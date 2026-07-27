@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import homeImg from '../assets/home.webp';
 import rentHouseImg from '../assets/RentHouse1.jpg';
 import propertyCareImg from '../assets/PropertyCare.webp';
@@ -62,13 +63,13 @@ const FeaturedProperties = () => {
         <h2 className="text-[#063B29] font-bold text-lg md:text-xl tracking-tight uppercase">
           FEATURED PROPERTIES IN ISLAMABAD
         </h2>
-        <a
-          href="/properties"
+        <Link
+          to="/properties"
           className="text-[#063B29] font-semibold text-xs md:text-sm flex items-center gap-1"
         >
           <span>View All Properties</span>
           <span>&rarr;</span>
-        </a>
+        </Link>
       </div>
 
       {/* Grid of 5 Cards */}

@@ -1,7 +1,7 @@
 import ComingSoon from '../Components/common/ComingSoon';
 
-const Properties = () => {
+const Signup = () => {
   return <ComingSoon />;
 };
 
-export default Properties;
+export default Signup;

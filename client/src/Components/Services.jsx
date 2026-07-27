@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import homeImg from '../assets/home.webp';
 import rentHouseImg from '../assets/RentHouse1.jpg';
 import propertyCareImg from '../assets/PropertyCare.webp';
@@ -52,13 +53,13 @@ const Services = () => {
         <h2 className="text-[#063B29] font-bold text-lg md:text-xl tracking-tight uppercase">
           OUR CORE SERVICES
         </h2>
-        <a
-          href="/services"
+        <Link
+          to="/services"
           className="text-[#063B29] font-semibold text-xs md:text-sm flex items-center gap-1"
         >
           <span>View All Services</span>
           <span>&rarr;</span>
-        </a>
+        </Link>
       </div>
 
       {/* Services Grid */}
@@ -81,13 +82,13 @@ const Services = () => {
                 {service.description}
               </p>
             </div>
-            <a
-              href="/services"
+            <Link
+              to="/services"
               className="text-[#063B29] font-bold text-[11px] tracking-wider uppercase flex items-center gap-1 mt-auto"
             >
               <span>EXPLORE</span>
               <span>&rarr;</span>
-            </a>
+            </Link>
           </div>
         ))}
       </div>
