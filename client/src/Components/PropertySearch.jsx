@@ -3,7 +3,7 @@ import { MapPin, ChevronDown, Search, SlidersHorizontal } from 'lucide-react';
 
 const PropertySearch = () => {
   return (
-    <div className="relative max-w-7xl mx-auto px-6 md:px-12 -mt-20 md:-mt-24 z-30 mb-16">
+    <div className="relative max-w-7xl mx-auto px-6 md:px-12 -mt-10 md:-mt-18 z-30 mb-16">
       <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
         {/* Title */}
         <h2 className="text-[#063B29] font-bold text-xs md:text-sm tracking-wider uppercase mb-6">
