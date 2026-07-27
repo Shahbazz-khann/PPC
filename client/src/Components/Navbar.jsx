@@ -1,13 +1,13 @@
 
 import { Search, ChevronDown } from 'lucide-react';
-import logoImg from '../assets/Logo.png';
+import Logo from '../assets/Logo.png';
 
 const Navbar = () => {
   return (
     <nav className="w-full bg-transparent py-4 px-8 md:px-12 flex items-center justify-between z-20 relative">
       {/* Logo */}
       <div className="flex items-center">
-        <img src={logoImg} alt="Property Care Pakistan" className="h-12 md:h-20 object-contain" />
+        <img src={Logo} alt="Property Care Pakistan" className="h-12 md:h-20 object-contain" />
       </div>
 
       {/* Navigation Links */}
