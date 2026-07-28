@@ -1,9 +1,7 @@
-import React from 'react'
+import ComingSoon from '../../Components/common/ComingSoon';
 
 const MyProperties = () => {
-  return (
-    <div>MyProperties</div>
-  )
-}
+  return <ComingSoon />;
+};
 
-export default MyProperties
+export default MyProperties;
