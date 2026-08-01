@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Search, ChevronDown } from 'lucide-react';
-import Logo from '../assets/Logo.png';
+import Logo3 from '../assets/Logo3.png';
 
 const Navbar = () => {
   return (
@@ -8,7 +8,7 @@ const Navbar = () => {
       {/* Logo */}
       <div className="flex items-center">
         <Link to="/">
-          <img src={Logo} alt="Property Care Pakistan" className="h-12 md:h-20 object-contain" />
+          <img src={Logo3} alt="Property Care Pakistan" className="h-12 md:h-30 object-contain" />
         </Link>
       </div>
 

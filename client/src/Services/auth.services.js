@@ -1,0 +1,31 @@
+import api from "./Api";
+
+/**
+ * Login user
+ */
+export const loginUser = async (loginData) => {
+  return await api.post("/auth/login", loginData);
+};
+
+/**
+ * Register new user
+ */
+export const signupUser = async (signupData) => {
+  return await api.post("/auth/signup", signupData);
+};
+
+/**
+ * Request password reset
+ */
+export const forgotPassword = async (email) => {
+  return await api.post("/auth/forgot-password", {
+    email,
+  });
+};
+
+/**
+ * Reset user password
+ */
+export const resetPassword = async (resetData) => {
+  return await api.post("/auth/reset-password", resetData);
+};

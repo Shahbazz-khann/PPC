@@ -14,6 +14,8 @@ import Resources from '../Pages/Resources';
 import Contact from '../Pages/Contact';
 import Login from '../Pages/Login';
 import Signup from '../Pages/Signup';
+import ForgotPassword from '../Pages/ForgotPassword';
+import ResetPassword from '../Pages/ResetPassword';
 
 // Customer Pages
 import CustomerDashboard from '../Pages/Customer/Dashboard';
@@ -78,12 +80,14 @@ const Approutes = () => {
       <Route path="/contact" element={<Contact />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Protected Dashboard Routes (Requires Authentication) */}
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           {/* Customer Role Routes */}
-          <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+          <Route path="/login/customer/dashboard" element={<CustomerDashboard />} />
           <Route path="/customer/my-properties" element={<CustomerMyProperties />} />
           <Route path="/customer/active-services" element={<CustomerActiveServices />} />
           <Route path="/customer/service-requests" element={<CustomerServiceRequest />} />

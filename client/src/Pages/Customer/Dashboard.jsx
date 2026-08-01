@@ -1,3 +1,7 @@
+import { useNavigate } from "react-router-dom";
+import { clearSession } from "../../Services/AuthSession";
+
+
 import React from 'react';
 import {
   Bell,
@@ -21,9 +25,27 @@ import homeImg from '../../assets/homeW.jpg';
 
 
 const Dashboard = () => {
+    const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Clear JWT and user session
+    clearSession();
+
+    // Clear login status
+    localStorage.removeItem("isLoggedIn");
+
+    // Redirect to login
+    navigate("/login");
+  };
   return (
     <div className="p-6 md:p-8 bg-[#F8FAFC] min-h-screen space-y-6 max-w-[1400px] mx-auto text-gray-800">
       
+        <button
+        onClick={handleLogout}
+        className="px-4 py-2 bg-red-600 text-white rounded-lg"
+      >
+        Logout
+      </button>
       {/* =========================================
          Dashboard Header
       ========================================= */}
