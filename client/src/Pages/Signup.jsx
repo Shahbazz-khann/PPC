@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { User, Mail, Globe, Phone, Lock, Eye, EyeOff, ShieldCheck, Home, Headphones } from 'lucide-react';
+import { User, Mail, Globe, Phone, Lock, Eye, EyeOff, ShieldCheck, Home, Headphones, Key } from 'lucide-react';
 import bgImage from '../assets/faisalmosqueSignup.png';
 import logoImg from '../assets/Logo3.png';
-import { signupUser } from '../Services/auth.services';
+import { signupUser, verifyEmail } from '../Services/auth.services';
 
 const Signup = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [verifyError, setVerifyError] = useState("");
+  const [isVerifyingSubmit, setIsVerifyingSubmit] = useState(false);
+  const [formMessage, setFormMessage] = useState({ text: "", type: "" });
 
   const {
     register,
@@ -33,6 +39,7 @@ const Signup = () => {
 
 const onSubmit = async (data) => {
   try {
+    setFormMessage({ text: "", type: "" });
     const signupData = {
       name: data.fullName,
       email: data.email,
@@ -41,19 +48,43 @@ const onSubmit = async (data) => {
       password: data.password,
     };
 
-    console.log("Signup data being sent:", signupData);
-
     const response = await signupUser(signupData);
 
-    console.log("Signup response:", response);
-
-    if (response.success) {
-      alert("Account created successfully!");
-
-      navigate("/login");
+    if (response && response.success) {
+      setFormMessage({ text: "A verification code has been sent to your email. Please check your inbox to continue.", type: "success" });
+      setRegisteredEmail(data.email);
+      setIsVerifying(true);
     }
   } catch (error) {
     console.error("Signup error:", error);
+    setFormMessage({ 
+      text: error?.response?.data?.message || "We couldn't send the verification code right now. Please try again.", 
+      type: "error" 
+    });
+  }
+};
+
+const handleVerify = async (e) => {
+  e.preventDefault();
+  setVerifyError("");
+  setFormMessage({ text: "", type: "" });
+  if (!otp || otp.length !== 6) {
+    setVerifyError("Please enter a valid 6-digit verification code");
+    return;
+  }
+  
+  setIsVerifyingSubmit(true);
+  try {
+    const response = await verifyEmail({ email: registeredEmail, otp });
+    if (response && response.success) {
+      setFormMessage({ text: "Account created successfully!", type: "success" });
+      setTimeout(() => navigate("/login"), 1500);
+    }
+  } catch (error) {
+    console.error("Verification error:", error);
+    setVerifyError(error?.response?.data?.message || "Verification failed. Please try again.");
+  } finally {
+    setIsVerifyingSubmit(false);
   }
 };
 
@@ -131,15 +162,60 @@ const onSubmit = async (data) => {
           {/* Header */}
           <div className="mb-5">
             <h3 className="text-2xl sm:text-3xl font-bold text-[#1E293B] tracking-tight">
-              Create Account
+              {isVerifying ? "Verify Email" : "Create Account"}
             </h3>
             <p className="text-xs sm:text-sm text-gray-500 mt-1.5 font-medium">
-              Sign up to get started with PPC
+              {isVerifying ? `Enter the 6-digit code sent to ${registeredEmail}` : "Sign up to get started with PPC"}
             </p>
           </div>
 
+          {formMessage.text && (
+            <div className={`mb-4 p-3 rounded-xl text-sm font-medium ${formMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+              {formMessage.text}
+            </div>
+          )}
+
           {/* Form */}
-          <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+          {isVerifying ? (
+            <form className="space-y-4" onSubmit={handleVerify}>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                  Verification Code
+                </label>
+                <div className="relative flex items-center">
+                  <Key className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                  <input
+                    type="text"
+                    maxLength="6"
+                    placeholder="Enter 6-digit code"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 sm:py-2.5 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all tracking-widest text-center font-bold"
+                  />
+                </div>
+                {verifyError && (
+                  <p className="text-red-500 text-xs mt-1 font-medium">{verifyError}</p>
+                )}
+              </div>
+              <button
+                type="submit"
+                disabled={isVerifyingSubmit}
+                className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#B8860B] via-[#C59B27] to-[#B8860B] hover:from-[#a37609] hover:to-[#a37609] text-white font-bold text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center mt-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {isVerifyingSubmit ? 'Verifying...' : 'Verify Email'}
+              </button>
+              <div className="flex items-center justify-center mt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsVerifying(false)}
+                  className="text-xs sm:text-sm text-gray-600 font-medium hover:text-[#B8860B] transition-colors"
+                >
+                  Change Email Address
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
             {/* Full Name Field */}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
@@ -371,6 +447,7 @@ const onSubmit = async (data) => {
               {isSubmitting ? 'Creating Account...' : 'Sign Up'}
             </button>
           </form>
+          )}
 
           {/* Bottom Card Footer - Login Navigation */}
           <div className="flex items-center justify-center mt-6 pt-5">

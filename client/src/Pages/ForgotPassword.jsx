@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 import bgImage from '../assets/FaisalMosque.png';
-import logoImg from '../assets/Logo.png';
+import logoImg from '../assets/Logo3.png';
 
 const ForgotPassword = () => {
  const {
@@ -46,7 +46,7 @@ const ForgotPassword = () => {
       />
 
       {/* Dark Overlay */}
-      <div className="fixed inset-0 bg-black/30 z-0" />
+      <div className="fixed inset-0  z-0" />
 
       {/* LEFT SECTION - Hero Branding */}
       <div className="relative lg:w-[58%] min-h-[350px] sm:min-h-[480px] lg:min-h-screen flex flex-col justify-between p-6 sm:p-10 lg:p-12 text-white z-10">
@@ -56,7 +56,7 @@ const ForgotPassword = () => {
           <img
             src={logoImg}
             alt="PPC Logo"
-            className="w-40 sm:w-48 h-auto drop-shadow-md"
+            className="w-40 sm:w-52 h-auto drop-shadow-md"
           />
         </div>
 

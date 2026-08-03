@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
 const sendPasswordResetEmail = async (toEmail, resetUrl) => {
     try {
         const mailOptions = {
-            from: process.env.EMAIL_FROM || '"Pakistan Property Care" <noreply@ppc.com>',
+            from: process.env.EMAIL_FROM || '"Pakistan Property Care" <shahbazzkhann2022@gmail.com>',
             to: toEmail,
             subject: 'Password Reset Request - Pakistan Property Care',
             html: `
@@ -59,6 +59,49 @@ const sendPasswordResetEmail = async (toEmail, resetUrl) => {
     }
 };
 
+/**
+ * Send email verification OTP
+ * @param {string} toEmail 
+ * @param {string} otp 
+ */
+const sendVerificationEmail = async (toEmail, otp) => {
+    try {
+        const mailOptions = {
+            from: process.env.EMAIL_FROM || '"Pakistan Property Care" <shahbazzkhann2022@gmail.com>',
+            to: toEmail,
+            subject: 'Verify your Email - Pakistan Property Care',
+            html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="color: #C59B27; margin: 0;">Pakistan Property Care</h2>
+                </div>
+                <h3 style="color: #333;">Verify Your Email Address</h3>
+                <p style="color: #555; line-height: 1.5;">
+                    Thank you for signing up! Please use the verification code below to complete your registration.
+                </p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="background-color: #f4f4f4; border: 1px dashed #ccc; padding: 15px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333; display: inline-block;">
+                        ${otp}
+                    </div>
+                </div>
+                <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #eaeaea; padding-top: 20px;">
+                    This verification code will expire in 15 minutes.
+                    <br><br>
+                    If you did not create an account, please ignore this email.
+                </p>
+            </div>
+            `,
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        logger.info(`Verification email sent to ${toEmail}. Message ID: ${info.messageId}`);
+        return true;
+    } catch (error) {
+        logger.error(`Error sending verification email to ${toEmail}:`, error);
+        return false;
+    }
+};
 module.exports = {
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    sendVerificationEmail
 };

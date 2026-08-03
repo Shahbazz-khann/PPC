@@ -3,11 +3,19 @@ const router = express.Router();
 
 const authController = require('../../controller/Auth/auth.controller');
 const { authenticate } = require('../../middlewares/authMiddleware');
+const {
+    validateSignup,
+    validateVerifyEmail,
+    validateLogin,
+    validateForgotPassword,
+    validateResetPassword
+} = require('../../validators/Auth/auth.validator');
 
-router.post('/signup', authController.signup);
-router.post('/login', authController.login);
-router.post('/forgot-password', authController.forgotPassword);
-router.post('/reset-password', authController.resetPassword);
+router.post('/signup', validateSignup, authController.signup);
+router.post('/verify-email', validateVerifyEmail, authController.verifyEmail);
+router.post('/login', validateLogin, authController.login);
+router.post('/forgot-password', validateForgotPassword, authController.forgotPassword);
+router.post('/reset-password', validateResetPassword, authController.resetPassword);
 
 router.get('/profile', authenticate, (req, res) => {
     return res.status(200).json({

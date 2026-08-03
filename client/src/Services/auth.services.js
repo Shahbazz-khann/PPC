@@ -15,6 +15,13 @@ export const signupUser = async (signupData) => {
 };
 
 /**
+ * Verify user email
+ */
+export const verifyEmail = async (verifyData) => {
+  return await api.post("/auth/verify-email", verifyData);
+};
+
+/**
  * Request password reset
  */
 export const forgotPassword = async (email) => {

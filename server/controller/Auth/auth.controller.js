@@ -3,8 +3,8 @@ const logger = require('../../utils/logger');
 const authModel = require('../../models/Auth/auth.model');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { sendPasswordResetEmail } = require('../../utils/email');
-
+const { sendPasswordResetEmail, sendVerificationEmail } = require('../../utils/email');
+const pendingUserModel = require('../../models/Auth/pending_user.model');
 /**
  * User Signup Controller
  */
@@ -18,38 +18,122 @@ const signup = async (req, res, next) => {
             password
         } = req.body;
 
-        // Validate required fields
-        if (!name || !email || !country || !mobile_no || !password) {
-            return res.status(400).json({
+
+
+        // Check if user already exists in main users table
+        const existingUser = await authModel.findUserByEmail(email);
+        if (existingUser) {
+            return res.status(409).json({
                 success: false,
-                message: 'All signup fields are required'
+                message: 'User already exists'
             });
         }
 
-        // Hash password before storing it in the database
+        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create user through the model
-        const user = await authModel.createUser({
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Hash OTP for secure storage
+        const hashedOtp = await bcrypt.hash(otp, 10);
+
+        // Set expiration to 15 minutes from now
+        const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+        // Store in pending_users table
+        const pendingUser = await pendingUserModel.createPendingUser({
             name,
             email,
             country,
             mobile_no,
-            password: hashedPassword
+            password: hashedPassword,
+            verification_code: hashedOtp,
+            verification_code_expires: otpExpires
         });
 
-        logger.info(`User registered successfully: ${email}`);
+        // Send email with plain text OTP
+        const emailSent = await sendVerificationEmail(email, otp);
 
-        return res.status(201).json({
+        if (!emailSent) {
+            logger.error(`Signup failed: Email could not be sent to ${email}`);
+            return res.status(500).json({
+                success: false,
+                message: 'We were unable to send the verification code to your email. Please try again.'
+            });
+        }
+
+        logger.info(`User registered and verification email sent: ${email}`);
+
+        return res.status(200).json({
             success: true,
-            message: 'User registered successfully',
-            data: user
+            message: 'A verification code has been sent to your email. Please check your inbox to continue.',
+            email: email
         });
 
     } catch (error) {
         logger.error('Signup error:', error);
+        next(error);
+    }
+};
 
-        // Pass error to centralized error middleware
+/**
+ * Verify Email Controller
+ */
+const verifyEmail = async (req, res, next) => {
+    try {
+        const { email, otp } = req.body;
+
+
+
+        const pendingUser = await pendingUserModel.findPendingUserByEmail(email);
+
+        if (!pendingUser) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid or expired verification request'
+            });
+        }
+
+        // Check if OTP is expired
+        if (new Date() > pendingUser.verification_code_expires) {
+            return res.status(400).json({
+                success: false,
+                message: 'Verification code has expired. Please sign up again.'
+            });
+        }
+
+        // Validate OTP
+        const isOtpValid = await bcrypt.compare(otp, pendingUser.verification_code);
+
+        if (!isOtpValid) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid verification code'
+            });
+        }
+
+        // Create user in main users table
+        const user = await authModel.createUser({
+            name: pendingUser.name,
+            email: pendingUser.email,
+            country: pendingUser.country,
+            mobile_no: pendingUser.mobile_no,
+            password: pendingUser.password // already hashed
+        });
+
+        // Delete from pending_users table
+        await pendingUserModel.deletePendingUser(email);
+
+        logger.info(`User email verified successfully: ${email}`);
+
+        return res.status(201).json({
+            success: true,
+            message: 'Email verified and account created successfully'
+        });
+
+    } catch (error) {
+        logger.error('Verify email error:', error);
         next(error);
     }
 };
@@ -63,13 +147,7 @@ const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
-        // Validate required fields
-        if (!email || !password) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email and password are required'
-            });
-        }
+
 
         // Find user by email
         const user = await authModel.findUserByEmail(email);
@@ -96,17 +174,17 @@ const login = async (req, res, next) => {
 
         console.log('JWT SECRET EXISTS:', !!process.env.JWT_SECRET);
         // Generate JWT token
-const token = jwt.sign(
-    {
-        user_id: user.user_id,
-        email: user.email,
-        name: user.name
-    },
-    process.env.JWT_SECRET,
-    {
-        expiresIn: '24h'
-    }
-);
+        const token = jwt.sign(
+            {
+                user_id: user.user_id,
+                email: user.email,
+                name: user.name
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: '24h'
+            }
+        );
 
 
 
@@ -123,12 +201,12 @@ const token = jwt.sign(
             created_at: user.created_at
         };
 
-   return res.status(200).json({
-    success: true,
-    message: 'Login successful',
-    token,
-    data: userData
-});
+        return res.status(200).json({
+            success: true,
+            message: 'Login successful',
+            token,
+            data: userData
+        });
 
     } catch (error) {
         logger.error('Login error:', error);
@@ -144,13 +222,7 @@ const forgotPassword = async (req, res, next) => {
     try {
         const { email } = req.body;
 
-        // Validate email
-        if (!email) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email is required'
-            });
-        }
+
 
         // Find user by email
         const user = await authModel.findUserByEmail(email);
@@ -203,7 +275,7 @@ const forgotPassword = async (req, res, next) => {
         // Generate the reset URL and send the email
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
         const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
-        
+
         // Send email without blocking the response unnecessarily or exposing failure to the client in generic response
         sendPasswordResetEmail(user.email, resetUrl).catch(err => {
             logger.error(`Failed to send password reset email to ${user.email}`, err);
@@ -231,13 +303,7 @@ const resetPassword = async (req, res, next) => {
             password
         } = req.body;
 
-        // Validate required fields
-        if (!token || !password) {
-            return res.status(400).json({
-                success: false,
-                message: 'Reset token and new password are required'
-            });
-        }
+
 
         // Hash the incoming raw token to match the database stored token
         const hashedResetToken = crypto
@@ -290,6 +356,7 @@ const resetPassword = async (req, res, next) => {
 
 module.exports = {
     signup,
+    verifyEmail,
     login,
     forgotPassword,
     resetPassword
