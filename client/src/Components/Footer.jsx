@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fa';
 import LogoS from '../assets/LogoS.png';
 
+
 const companyLinks = [
   { label: 'About Us', href: '#' },
   { label: 'Careers', href: '#' },

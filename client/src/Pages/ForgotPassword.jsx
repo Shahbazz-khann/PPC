@@ -56,7 +56,7 @@ const ForgotPassword = () => {
           <img
             src={logoImg}
             alt="PPC Logo"
-            className="w-40 sm:w-52 h-auto drop-shadow-md"
+            className="w-40 sm:w-50 h-auto drop-shadow-md"
           />
         </div>
 

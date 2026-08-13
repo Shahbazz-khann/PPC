@@ -1,7 +1,7 @@
 import ComingSoon from '../../Components/common/ComingSoon';
 
-const RenovationProgress = () => {
+const OwnerLogout = () => {
   return <ComingSoon />;
 };
 
-export default RenovationProgress;
+export default OwnerLogout;

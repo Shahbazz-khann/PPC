@@ -11,7 +11,8 @@ const createPendingUser = async (userData) => {
         mobile_no,
         password,
         verification_code,
-        verification_code_expires
+        verification_code_expires,
+        role_id
     } = userData;
 
     // We'll do an upsert on email so that if a user tries to sign up again 
@@ -24,16 +25,18 @@ const createPendingUser = async (userData) => {
             mobile_no,
             password,
             verification_code,
-            verification_code_expires
+            verification_code_expires,
+            role_id
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        VALUES ($1, $2, $3, $4, $5, $6, $7 , $8)
         ON CONFLICT (email) DO UPDATE SET
             name = EXCLUDED.name,
             country = EXCLUDED.country,
             mobile_no = EXCLUDED.mobile_no,
             password = EXCLUDED.password,
             verification_code = EXCLUDED.verification_code,
-            verification_code_expires = EXCLUDED.verification_code_expires
+            verification_code_expires = EXCLUDED.verification_code_expires,
+            role_id = EXCLUDED.role_id
         RETURNING *;
     `;
 
@@ -44,7 +47,8 @@ const createPendingUser = async (userData) => {
         mobile_no,
         password,
         verification_code,
-        verification_code_expires
+        verification_code_expires,
+        role_id
     ];
 
     const result = await pool.query(query, values);

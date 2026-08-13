@@ -8,6 +8,7 @@ import { signupUser, verifyEmail } from '../Services/auth.services';
 
 const Signup = () => {
   const navigate = useNavigate();
+  const [accountType, setAccountType] = useState('customer');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -46,8 +47,10 @@ const onSubmit = async (data) => {
       country: data.country,
       mobile_no: data.mobile,
       password: data.password,
+      account_type: accountType,
     };
 
+   
     const response = await signupUser(signupData);
 
     if (response && response.success) {
@@ -101,14 +104,14 @@ const handleVerify = async (e) => {
       {/* LEFT SECTION - Hero Branding */}
       <div className="relative lg:w-[58%] min-h-[350px] sm:min-h-[480px] lg:min-h-screen flex flex-col justify-between p-6 sm:p-10 lg:p-12 text-white z-10">
         {/* Top-Left PPC Branding */}
-        <div className="relative z-10 flex items-center gap-3.5">
-          <img src={logoImg} alt="PPC Logo" className="w-40 sm:w-60 h-auto drop-shadow-md" />
+        <div className="relative z-10 flex items-center gap-">
+          <img src={logoImg} alt="PPC Logo" className="w-40 sm:w-50 h-auto drop-shadow-md" />
         </div>
 
         {/* Lower-Left Main Text */}
         <div className="relative z-10 my-8 sm:my-12 lg:my-auto max-w-xl">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
-            Find. Buy. Rent.
+            Find, Buy, Rent,
           </h2>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#C59B27] tracking-tight mt-1 leading-tight">
             Your Perfect Property
@@ -128,7 +131,7 @@ const handleVerify = async (e) => {
             </div>
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-white leading-snug">Trusted &amp; Secure</h4>
-              <p className="text-[11px] text-gray-300">Verified by our team</p>
+              <p className="text-[11px] text-gray-200">Verified by our team</p>
             </div>
           </div>
 
@@ -139,7 +142,7 @@ const handleVerify = async (e) => {
             </div>
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-white leading-snug">Wide Range</h4>
-              <p className="text-[11px] text-gray-300">Residential &amp; Commercial</p>
+              <p className="text-[11px] text-gray-200">Residential &amp; Commercial</p>
             </div>
           </div>
 
@@ -150,7 +153,7 @@ const handleVerify = async (e) => {
             </div>
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-white leading-snug">24/7 Support</h4>
-              <p className="text-[11px] text-gray-300">We are here to help</p>
+              <p className="text-[11px] text-gray-200">We are here to help</p>
             </div>
           </div>
         </div>
@@ -158,9 +161,9 @@ const handleVerify = async (e) => {
 
       {/* RIGHT SECTION - White Rounded Authentication Card */}
       <div className="relative lg:w-[42%] flex items-center justify-center p-4 sm:p-8 lg:p-12 z-10">
-        <div className="w-full max-w-[460px] bg-white rounded-3xl shadow-2xl p-6 sm:p-8 text-gray-800 my-auto">
+        <div className="w-full max-w-[460px] bg-white rounded-3xl shadow-2xl p-6 sm:p-8 text-gray-800 my-2">
           {/* Header */}
-          <div className="mb-5">
+          <div className="mb-1">
             <h3 className="text-2xl sm:text-3xl font-bold text-[#1E293B] tracking-tight">
               {isVerifying ? "Verify Email" : "Create Account"}
             </h3>
@@ -437,6 +440,54 @@ const handleVerify = async (e) => {
             </div>
 
             {/* Terms and Conditions Checkout removed as requested */}
+
+            {/* Account Type Selection - UI only, local state */}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                Account Type
+              </label>
+              <div className="grid grid-cols-2 gap-2.5">
+                {/* Option 1 – Customer */}
+                <button
+                  type="button"
+                  onClick={() => setAccountType('customer')}
+                  className={`flex flex-col items-start gap-0.5 px-3.5 py-3 rounded-xl border text-left transition-all duration-200 ${
+                    accountType === 'customer'
+                      ? 'border-[#C59B27] bg-[#C59B27]/8 ring-1 ring-[#C59B27]'
+                      : 'border-gray-200 bg-gray-50/50 hover:border-[#C59B27]/50 hover:bg-[#C59B27]/5'
+                  }`}
+                >
+                  <span className={`text-xs font-bold leading-snug ${
+                    accountType === 'customer' ? 'text-[#B8860B]' : 'text-gray-800'
+                  }`}>
+                    I&#39;m looking for a property
+                  </span>
+                  <span className="text-[10px] text-gray-500 font-medium leading-snug">
+                    Buy or rent properties
+                  </span>
+                </button>
+
+                {/* Option 2 – Owner */}
+                <button
+                  type="button"
+                  onClick={() => setAccountType('owner')}
+                  className={`flex flex-col items-start gap-0.5 px-3.5 py-3 rounded-xl border text-left transition-all duration-200 ${
+                    accountType === 'owner'
+                      ? 'border-[#C59B27] bg-[#C59B27]/8 ring-1 ring-[#C59B27]'
+                      : 'border-gray-200 bg-gray-50/50 hover:border-[#C59B27]/50 hover:bg-[#C59B27]/5'
+                  }`}
+                >
+                  <span className={`text-xs font-bold leading-snug ${
+                    accountType === 'owner' ? 'text-[#B8860B]' : 'text-gray-800'
+                  }`}>
+                    I&#39;m a property owner
+                  </span>
+                  <span className="text-[10px] text-gray-500 font-medium leading-snug">
+                    List properties for sale or rent
+                  </span>
+                </button>
+              </div>
+            </div>
 
             {/* Full-width Gold Sign Up Button */}
             <button

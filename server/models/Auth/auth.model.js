@@ -9,7 +9,8 @@ const createUser = async (userData) => {
         email,
         country,
         mobile_no,
-        password
+        password,
+        role_id
     } = userData;
 
     const query = `
@@ -18,15 +19,17 @@ const createUser = async (userData) => {
             email,
             country,
             mobile_no,
-            password
+            password,
+            role_id
         )
-        VALUES ($1, $2, $3, $4, $5)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING
             user_id,
             name,
             email,
             country,
             mobile_no,
+            role_id,
             created_at
     `;
 
@@ -35,7 +38,8 @@ const createUser = async (userData) => {
         email,
         country,
         mobile_no,
-        password
+        password,
+        role_id
     ];
 
     const result = await pool.query(query, values);
@@ -45,20 +49,24 @@ const createUser = async (userData) => {
 
 
 /**
- * Find user by email
+ * Find user by email with role information
  */
 const findUserByEmail = async (email) => {
     const query = `
         SELECT
-            user_id,
-            name,
-            email,
-            country,
-            mobile_no,
-            password,
-            created_at
-        FROM users
-        WHERE email = $1
+            u.user_id,
+            u.name,
+            u.email,
+            u.country,
+            u.mobile_no,
+            u.password,
+            u.role_id,
+            r.role_name,
+            u.created_at
+        FROM users u
+        LEFT JOIN roles r
+            ON u.role_id = r.role_id
+        WHERE u.email = $1
     `;
 
     const result = await pool.query(query, [email]);
@@ -152,11 +160,56 @@ const updatePassword = async (
 
     return result.rows[0] || null;
 };
+//  get users 
+const getUsers = async () => {
+    const query = `
+        SELECT
+            user_id,
+            name,
+            email,
+            country,
+            mobile_no,
+            role_id,
+            created_at
+        FROM users
+        ORDER BY user_id ASC
+    `;
+
+    const result = await pool.query(query);
+
+    return result.rows;
+};
+
+// Get me 
+const getUserById = async (userId) => {
+    const result = await pool.query(
+        `
+        SELECT
+            u.user_id,
+            u.name,
+            u.email,
+            u.country,
+            u.mobile_no,
+            u.role_id,
+            r.role_name,
+            u.created_at
+        FROM users u
+        JOIN roles r ON r.role_id = u.role_id
+        WHERE u.user_id = $1
+        `,
+        [userId]
+    );
+
+    return result.rows[0];
+};
 
 module.exports = {
     createUser,
     findUserByEmail,
     saveResetToken,
     findUserByResetToken,
-    updatePassword
+    updatePassword,
+    getUsers,
+    getUserById
+    
 };

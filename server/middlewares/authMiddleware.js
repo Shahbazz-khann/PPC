@@ -61,6 +61,32 @@ console.log('JWT SECRET EXISTS IN MIDDLEWARE:', !!process.env.JWT_SECRET);
     }
 };
 
+    const authorize = (...allowedRoles) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+        }
+
+        const userRole = req.user.role_name?.trim().toLowerCase();
+
+        const normalizedRoles = allowedRoles.map((role) =>
+            role.trim().toLowerCase()
+        );
+
+        if (!normalizedRoles.includes(userRole)) {
+            return res.status(403).json({
+                success: false,
+                message: 'You are not authorized to access this resource'
+            });
+        }
+
+        next();
+    };
+};
 module.exports = {
-    authenticate
+    authenticate,
+    authorize
 };

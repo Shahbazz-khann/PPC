@@ -78,7 +78,7 @@ const ResetPassword = () => {
         {/* Lower-Left Main Text */}
         <div className="relative z-10 my-8 sm:my-12 lg:my-auto max-w-xl">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
-            Find. Buy. Rent.
+            Find, Buy, Rent,
           </h2>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#C59B27] tracking-tight mt-1 leading-tight">

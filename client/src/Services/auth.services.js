@@ -36,3 +36,10 @@ export const forgotPassword = async (email) => {
 export const resetPassword = async (resetData) => {
   return await api.post("/auth/reset-password", resetData);
 };
+
+/**
+ * Get current logged in user profile
+ */
+export const getCurrentUser = async () => {
+  return await api.get("/auth/me");
+};

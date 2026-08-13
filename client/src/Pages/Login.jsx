@@ -17,10 +17,11 @@ import logoImg from '../assets/Logo3.png';
 // import { loginUser } from '../services/auth.services';
 // import { saveSession } from '../services/AuthSession';
 import { loginUser } from '../Services/auth.services';
-import { saveSession } from '../Services/AuthSession';
+import { useAuth } from '../Context/AuthContext';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const { login } = useAuth();
 
   const navigate = useNavigate();
 
@@ -43,7 +44,8 @@ const Login = () => {
     console.log('USER:', response?.data);
 
     if (response?.success) {
-      saveSession({
+      // login() persists to sessionStorage AND updates React state (Sidebar reacts)
+      login({
         token: response.token,
         user: response.data,
       });
@@ -52,7 +54,24 @@ const Login = () => {
 
       console.log('Login session saved successfully');
 
-      navigate('customer/dashboard');
+      // Role-based redirect using role_name from backend response
+      const role = response.data?.role_name?.trim().toLowerCase();
+
+      if (role === 'customer') {
+        navigate('/customer/dashboard');
+      } else if (role === 'owner') {
+        navigate('/owner/dashboard');
+      } else if (role === 'inspector') {
+        navigate('/inspector/dashboard');
+      } else if (role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        console.error('Login: unknown or missing role_name:', response.data?.role_name);
+        setError('email', {
+          type: 'server',
+          message: 'Login succeeded but your account role could not be determined. Please contact support.',
+        });
+      }
     }
 
   } catch (error) {
@@ -85,14 +104,14 @@ const Login = () => {
           <img
             src={logoImg}
             alt="PPC Logo"
-            className="w-40 sm:w-60 h-auto drop-shadow-md"
+            className="w-40 sm:w-50 h-auto drop-shadow-md"
           />
         </div>
 
         {/* Lower-Left Main Text */}
         <div className="relative z-10 my-8 sm:my-12 lg:my-auto max-w-xl">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
-            Find. Buy. Rent.
+            Find, Buy, Rent,
           </h2>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#C59B27] tracking-tight mt-1 leading-tight">

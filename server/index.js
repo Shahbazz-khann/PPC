@@ -42,12 +42,9 @@ const apiRouter = express.Router();
 const authRoutes = require('./routes/Auth/auth.routes');
 apiRouter.use('/auth', authRoutes);
 
-
-
-// API routes will be added here later.
-
-// Example:
-// apiRouter.use('/auth', authRoutes);
+// Properties
+const propertyRoutes = require('./routes/Property/PropertyRoutes');
+apiRouter.use('/properties', propertyRoutes);
 
 app.use(`/api/${API_VERSION}`, apiRouter);
 

@@ -1,16 +1,32 @@
 const validateSignup = (req, res, next) => {
-    const { name, email, country, mobile_no, password } = req.body;
+    const {
+        name,
+        email,
+        country,
+        mobile_no,
+        password,
+        account_type
+    } = req.body;
+
     const errors = {};
 
     if (!name) errors.name = 'Name is required.';
+
     if (!email) {
         errors.email = 'Email is required.';
     } else if (!/^\S+@\S+\.\S+$/.test(email)) {
         errors.email = 'Please provide a valid email address.';
     }
+
     if (!country) errors.country = 'Country is required.';
     if (!mobile_no) errors.mobile_no = 'Mobile number is required.';
     if (!password) errors.password = 'Password is required.';
+
+    if (!account_type) {
+        errors.account_type = 'Account type is required.';
+    } else if (!['customer', 'owner'].includes(account_type)) {
+        errors.account_type = 'Invalid account type.';
+    }
 
     if (Object.keys(errors).length > 0) {
         return res.status(400).json({
@@ -19,9 +35,12 @@ const validateSignup = (req, res, next) => {
             errors
         });
     }
+
+    // Normalize email
+    req.body.email = email.trim().toLowerCase();
+
     next();
 };
-
 const validateLogin = (req, res, next) => {
     const { email, password } = req.body;
     const errors = {};
@@ -36,6 +55,10 @@ const validateLogin = (req, res, next) => {
             errors
         });
     }
+
+    // Normalize email: trim whitespace and convert to lowercase
+    req.body.email = email.trim().toLowerCase();
+
     next();
 };
 
@@ -53,6 +76,10 @@ const validateVerifyEmail = (req, res, next) => {
             errors
         });
     }
+
+    // Normalize email: trim whitespace and convert to lowercase
+    req.body.email = email.trim().toLowerCase();
+
     next();
 };
 
@@ -73,6 +100,10 @@ const validateForgotPassword = (req, res, next) => {
             errors
         });
     }
+
+    // Normalize email: trim whitespace and convert to lowercase
+    req.body.email = email.trim().toLowerCase();
+
     next();
 };
 
