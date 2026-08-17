@@ -46,6 +46,10 @@ apiRouter.use('/auth', authRoutes);
 const propertyRoutes = require('./routes/Property/PropertyRoutes');
 apiRouter.use('/properties', propertyRoutes);
 
+// Customer
+const customerRoutes = require('./routes/Customer/customer.routes');
+apiRouter.use('/customer', customerRoutes);
+
 app.use(`/api/${API_VERSION}`, apiRouter);
 
 // --------------------------------------------------

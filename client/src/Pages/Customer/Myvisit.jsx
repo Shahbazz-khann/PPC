@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getCustomerVisits } from '../../Services/customer.services';
 import {
   MapPin,
   Calendar,
@@ -275,6 +276,55 @@ const MiniCalendar = () => {
 
 const Myvisit = () => {
   const [tab, setTab] = useState('upcoming'); // 'upcoming' | 'past'
+  const [visits, setVisits] = useState([]);
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchVisits = async () => {
+      try {
+        setLoading(true);
+        const res = await getCustomerVisits({ tab });
+        if (res && res.success) {
+          if (res.summary) {
+            setSummary(res.summary);
+          }
+          if (Array.isArray(res.data)) {
+            const formatted = res.data.map(v => {
+              const d = v.scheduled_at ? new Date(v.scheduled_at) : null;
+              return {
+                id: v.visit_id,
+                status: v.status || 'Scheduled',
+                property: v.title || v.property?.title || 'Property Visit',
+                location: v.location || [v.property?.address, v.property?.city].filter(Boolean).join(', ') || 'Location Pending',
+                date: d ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Date Pending',
+                time: d ? d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Time Pending',
+                dateTime: d ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Date Pending',
+                inspector: v.inspector_name || v.inspector?.name || 'Inspector Assigned',
+                inspectorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80',
+                image: v.primary_approved_image || v.primary_image || v.image || '/src/assets/prop_villa.png',
+                fallback: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&q=80',
+                rating: 5
+              };
+            });
+            setVisits(formatted);
+          } else {
+            setVisits([]);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching customer visits:', err);
+        setVisits([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVisits();
+  }, [tab]);
+
+  const displayUpcoming = visits.length > 0 ? visits : MOCK_UPCOMING_VISITS;
+  const displayPast = visits.length > 0 ? visits : MOCK_PAST_VISITS;
 
   return (
     <div style={S.page}>
@@ -312,9 +362,15 @@ const Myvisit = () => {
           {/* ── UPCOMING VISITS ── */}
           {tab === 'upcoming' && (
             <div style={S.cardStack}>
-              {MOCK_UPCOMING_VISITS.map((v) => (
-                <UpcomingCard key={v.id} visit={v} />
-              ))}
+              {loading ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: '#6B7280', fontSize: '14px' }}>
+                  Loading upcoming visits...
+                </div>
+              ) : (
+                displayUpcoming.map((v) => (
+                  <UpcomingCard key={v.id} visit={v} />
+                ))
+              )}
             </div>
           )}
 
@@ -336,44 +392,50 @@ const Myvisit = () => {
                 </div>
 
                 {/* Table rows */}
-                {MOCK_PAST_VISITS.map((v) => (
-                  <div key={v.id} style={S.tableRow}>
-                    {/* Property */}
-                    <div style={{ ...S.td, flex: 2 }}>
-                      <div style={S.propCell}>
-                        <img src={v.image} alt={v.property} style={S.pastImg} />
-                        <div>
-                          <div style={S.pastName}>{v.property}</div>
-                          <div style={S.pastLoc}>{v.location}</div>
+                {loading ? (
+                  <div style={{ padding: '24px', textAlign: 'center', color: '#6B7280', fontSize: '14px' }}>
+                    Loading past visits...
+                  </div>
+                ) : (
+                  displayPast.map((v) => (
+                    <div key={v.id} style={S.tableRow}>
+                      {/* Property */}
+                      <div style={{ ...S.td, flex: 2 }}>
+                        <div style={S.propCell}>
+                          <img src={v.image} alt={v.property} style={S.pastImg} />
+                          <div>
+                            <div style={S.pastName}>{v.property}</div>
+                            <div style={S.pastLoc}>{v.location}</div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    {/* Date */}
-                    <div style={S.td}>
-                      <div style={S.pastDate}>{v.dateTime}</div>
-                      <div style={S.pastTime}>{v.time}</div>
-                    </div>
-                    {/* Inspector */}
-                    <div style={S.td}>
-                      <div style={S.inspCell}>
-                        <img src={v.inspectorAvatar} alt={v.inspector} style={S.inspAvatar} />
-                        <span style={S.inspName}>{v.inspector}</span>
+                      {/* Date */}
+                      <div style={S.td}>
+                        <div style={S.pastDate}>{v.dateTime}</div>
+                        <div style={S.pastTime}>{v.time}</div>
+                      </div>
+                      {/* Inspector */}
+                      <div style={S.td}>
+                        <div style={S.inspCell}>
+                          <img src={v.inspectorAvatar} alt={v.inspector} style={S.inspAvatar} />
+                          <span style={S.inspName}>{v.inspector}</span>
+                        </div>
+                      </div>
+                      {/* Status */}
+                      <div style={S.td}>
+                        <StatusBadge status={v.status} />
+                      </div>
+                      {/* Rating */}
+                      <div style={S.td}>
+                        <StarRow rating={v.rating} />
+                      </div>
+                      {/* Action */}
+                      <div style={S.td}>
+                        <button style={S.tableBtn}>View Details</button>
                       </div>
                     </div>
-                    {/* Status */}
-                    <div style={S.td}>
-                      <StatusBadge status={v.status} />
-                    </div>
-                    {/* Rating */}
-                    <div style={S.td}>
-                      <StarRow rating={v.rating} />
-                    </div>
-                    {/* Action */}
-                    <div style={S.td}>
-                      <button style={S.tableBtn}>View Details</button>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
               {/* Load More */}
@@ -397,7 +459,7 @@ const Myvisit = () => {
                   <Calendar size={16} color="#1D6A4A" strokeWidth={2} />
                 </div>
                 <div>
-                  <div style={S.sumVal}>{MOCK_SUMMARY.upcoming}</div>
+                  <div style={S.sumVal}>{summary?.upcoming_count ?? MOCK_SUMMARY.upcoming}</div>
                   <div style={S.sumLbl}>Upcoming Visits</div>
                 </div>
               </div>
@@ -407,7 +469,7 @@ const Myvisit = () => {
                   <CheckCircle2 size={16} color="#1D4ED8" strokeWidth={2} />
                 </div>
                 <div>
-                  <div style={S.sumVal}>{MOCK_SUMMARY.completed}</div>
+                  <div style={S.sumVal}>{summary?.completed_count ?? MOCK_SUMMARY.completed}</div>
                   <div style={S.sumLbl}>Completed Visits</div>
                 </div>
               </div>
@@ -417,7 +479,7 @@ const Myvisit = () => {
                   <Clock3 size={16} color="#D97706" strokeWidth={2} />
                 </div>
                 <div>
-                  <div style={S.sumVal}>{MOCK_SUMMARY.pending}</div>
+                  <div style={S.sumVal}>{summary?.pending_count ?? MOCK_SUMMARY.pending}</div>
                   <div style={S.sumLbl}>Pending Visits</div>
                 </div>
               </div>
@@ -427,7 +489,7 @@ const Myvisit = () => {
                   <Star size={16} color="#A855F7" strokeWidth={2} fill="#A855F7" />
                 </div>
                 <div>
-                  <div style={S.sumVal}>{MOCK_SUMMARY.avgRating}</div>
+                  <div style={S.sumVal}>{summary?.average_rating ?? MOCK_SUMMARY.avgRating}</div>
                   <div style={S.sumLbl}>Average Rating</div>
                 </div>
               </div>

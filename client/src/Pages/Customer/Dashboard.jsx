@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { clearSession } from '../../Services/AuthSession';
 import { useAuth } from '../../Context/AuthContext';
+import { getUpcomingVisit, getRecentActivities } from '../../Services/customer.services';
 import {
   Calendar,
   Clock,
@@ -248,6 +249,114 @@ const Dashboard = () => {
     );
   };
 
+  // Upcoming Visit state
+  const [upcomingVisit, setUpcomingVisit] = useState(null);
+  const [loadingVisit, setLoadingVisit] = useState(true);
+
+  useEffect(() => {
+    const fetchUpcomingVisit = async () => {
+      try {
+        setLoadingVisit(true);
+        const res = await getUpcomingVisit();
+        if (res && res.success && res.data) {
+          const visitData = res.data;
+          
+          let dateStr = 'TBD';
+          let timeStr = 'TBD';
+
+          if (visitData.scheduled_at) {
+            const dt = new Date(visitData.scheduled_at);
+            dateStr = dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            timeStr = dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+          }
+
+          const inspectorName = visitData.inspector_name || (typeof visitData.inspector === 'string' ? visitData.inspector : visitData.inspector?.name) || 'Assigned Inspector';
+
+          setUpcomingVisit({
+            ...visitData,
+            image: visitData.image || visitData.primary_image || visitData.property?.primary_image || MOCK_UPCOMING_VISIT.image,
+            title: visitData.title || visitData.property?.title || MOCK_UPCOMING_VISIT.title,
+            location: visitData.location || (visitData.property ? `${visitData.property.address}, ${visitData.property.city}` : MOCK_UPCOMING_VISIT.location),
+            status: visitData.status || MOCK_UPCOMING_VISIT.status,
+            date: dateStr,
+            time: timeStr,
+            inspector: inspectorName
+          });
+        } else {
+          setUpcomingVisit(null);
+        }
+      } catch (err) {
+        console.error('Failed to fetch upcoming visit:', err);
+        setUpcomingVisit(null);
+      } finally {
+        setLoadingVisit(false);
+      }
+    };
+
+    fetchUpcomingVisit();
+  }, []);
+
+  const displayVisit = upcomingVisit || MOCK_UPCOMING_VISIT;
+
+  // Recent Activity state
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        setLoadingActivities(true);
+        const res = await getRecentActivities();
+        if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setRecentActivities(res.data);
+        } else {
+          setRecentActivities([]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch recent activities:', err);
+        setRecentActivities([]);
+      } finally {
+        setLoadingActivities(false);
+      }
+    };
+
+    fetchActivities();
+  }, []);
+
+  const formatActivityTime = (timestamp) => {
+    if (!timestamp) return 'Recently';
+    const dt = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - dt;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  };
+
+  const getActivityMeta = (type) => {
+    switch (type) {
+      case 'visit':
+        return { icon: CheckCircle2, iconBg: '#E8F4F1', iconColor: '#1D6A4A' };
+      case 'request':
+        return { icon: FileText, iconBg: '#F0F9FF', iconColor: '#0EA5E9' };
+      case 'transaction':
+        return { icon: FileText, iconBg: '#EEF2FF', iconColor: '#4F46E5' };
+      case 'invoice':
+        return { icon: Receipt, iconBg: '#FFF7ED', iconColor: '#D97706' };
+      case 'inspection_report':
+        return { icon: FileText, iconBg: '#FDF4FF', iconColor: '#A855F7' };
+      default:
+        return { icon: CheckCircle2, iconBg: '#E8F4F1', iconColor: '#1D6A4A' };
+    }
+  };
+
   const visibleProps = MOCK_PROPERTIES.slice(
     propStart,
     propStart + visibleCount
@@ -392,49 +501,71 @@ const Dashboard = () => {
             {/* Upcoming Visit */}
             <section style={styles.card}>
               <h2 style={styles.sectionTitle}>Upcoming Visit</h2>
-              <div style={styles.visitContent}>
-                <img
-                  src={MOCK_UPCOMING_VISIT.image}
-                  alt={MOCK_UPCOMING_VISIT.title}
-                  style={styles.visitImage}
-                  onError={(e) => {
-                    e.target.src =
-                      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=300&q=80';
-                  }}
-                />
-                <div style={styles.visitInfo}>
-                  <div style={styles.visitTitleRow}>
-                    <span style={styles.visitTitle}>{MOCK_UPCOMING_VISIT.title}</span>
-                    <span style={styles.confirmedBadge}>{MOCK_UPCOMING_VISIT.status}</span>
-                  </div>
-                  <div style={styles.visitLocation}>
-                    <MapPin size={12} color="#9CA3AF" />
-                    <span>{MOCK_UPCOMING_VISIT.location}</span>
-                  </div>
-                  <div style={styles.visitMeta}>
-                    <span style={styles.visitMetaItem}>
-                      <Calendar size={13} color="#6B7280" />
-                      {MOCK_UPCOMING_VISIT.date}
-                    </span>
-                    <span style={styles.visitMetaItem}>
-                      <Clock size={13} color="#6B7280" />
-                      {MOCK_UPCOMING_VISIT.time}
-                    </span>
-                  </div>
-                  <div style={styles.visitInspector}>
-                    <img
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80"
-                      alt={MOCK_UPCOMING_VISIT.inspector}
-                      style={styles.inspectorAvatar}
-                    />
-                    <span style={styles.inspectorName}>Inspector: {MOCK_UPCOMING_VISIT.inspector}</span>
-                  </div>
+              {loadingVisit ? (
+                <div style={{ padding: '24px 0', textAlign: 'center', color: '#6B7280', fontSize: '14px' }}>
+                  Loading upcoming visit...
                 </div>
-              </div>
-              <div style={styles.visitBtns}>
-                <button style={styles.btnPrimary}>View Property</button>
-                <button style={styles.btnSecondary}>Visit Details</button>
-              </div>
+              ) : displayVisit ? (
+                <>
+                  <div style={styles.visitContent}>
+                    <img
+                      src={displayVisit.image}
+                      alt={displayVisit.title}
+                      style={styles.visitImage}
+                      onError={(e) => {
+                        e.target.src =
+                          'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=300&q=80';
+                      }}
+                    />
+                    <div style={styles.visitInfo}>
+                      <div style={styles.visitTitleRow}>
+                        <span style={styles.visitTitle}>{displayVisit.title}</span>
+                        <span style={styles.confirmedBadge}>{displayVisit.status}</span>
+                      </div>
+                      <div style={styles.visitLocation}>
+                        <MapPin size={12} color="#9CA3AF" />
+                        <span>{displayVisit.location}</span>
+                      </div>
+                      <div style={styles.visitMeta}>
+                        <span style={styles.visitMetaItem}>
+                          <Calendar size={13} color="#6B7280" />
+                          {displayVisit.date}
+                        </span>
+                        <span style={styles.visitMetaItem}>
+                          <Clock size={13} color="#6B7280" />
+                          {displayVisit.time}
+                        </span>
+                      </div>
+                      <div style={styles.visitInspector}>
+                        <img
+                          src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80"
+                          alt={displayVisit.inspector}
+                          style={styles.inspectorAvatar}
+                        />
+                        <span style={styles.inspectorName}>Inspector: {displayVisit.inspector}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={styles.visitBtns}>
+                    <button
+                      style={styles.btnPrimary}
+                      onClick={() => navigate(displayVisit.property?.property_id ? `/customer/properties/${displayVisit.property.property_id}` : '/customer/properties')}
+                    >
+                      View Property
+                    </button>
+                    <button
+                      style={styles.btnSecondary}
+                      onClick={() => navigate('/customer/my-visits')}
+                    >
+                      Visit Details
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div style={{ padding: '32px 16px', textAlign: 'center', color: '#6B7280', fontSize: '14px' }}>
+                  No upcoming visit scheduled.
+                </div>
+              )}
             </section>
 
             {/* Recent Transaction */}
@@ -501,32 +632,59 @@ const Dashboard = () => {
           <div style={styles.activityCard}>
             <div style={styles.activityHeader}>
               <span style={styles.sectionTitle}>Recent Activity</span>
-              <button style={styles.viewAllSmall}>View All</button>
+              <button style={styles.viewAllSmall} onClick={() => navigate('/customer/my-visits')}>View All</button>
             </div>
 
             <div style={styles.activityList}>
-              {MOCK_ACTIVITY.map((item) => {
-                const IconComp = item.icon;
-                return (
-                  <div key={item.id} style={styles.activityItem}>
-                    <div
-                      style={{
-                        ...styles.activityIconBox,
-                        background: item.iconBg,
-                      }}
-                    >
-                      <IconComp size={14} color={item.iconColor} strokeWidth={2} />
+              {loadingActivities ? (
+                <div style={{ padding: '16px 0', textAlign: 'center', color: '#6B7280', fontSize: '13px' }}>
+                  Loading activities...
+                </div>
+              ) : recentActivities.length > 0 ? (
+                recentActivities.map((item) => {
+                  const meta = getActivityMeta(item.type);
+                  const IconComp = meta.icon;
+                  return (
+                    <div key={item.activity_id} style={styles.activityItem}>
+                      <div
+                        style={{
+                          ...styles.activityIconBox,
+                          background: meta.iconBg,
+                        }}
+                      >
+                        <IconComp size={14} color={meta.iconColor} strokeWidth={2} />
+                      </div>
+                      <div style={styles.activityText}>
+                        <div style={styles.activityLabel}>{item.text}</div>
+                        <div style={styles.activityTime}>{formatActivityTime(item.timestamp)}</div>
+                      </div>
                     </div>
-                    <div style={styles.activityText}>
-                      <div style={styles.activityLabel}>{item.text}</div>
-                      <div style={styles.activityTime}>{item.time}</div>
+                  );
+                })
+              ) : (
+                MOCK_ACTIVITY.map((item) => {
+                  const IconComp = item.icon;
+                  return (
+                    <div key={item.id} style={styles.activityItem}>
+                      <div
+                        style={{
+                          ...styles.activityIconBox,
+                          background: item.iconBg,
+                        }}
+                      >
+                        <IconComp size={14} color={item.iconColor} strokeWidth={2} />
+                      </div>
+                      <div style={styles.activityText}>
+                        <div style={styles.activityLabel}>{item.text}</div>
+                        <div style={styles.activityTime}>{item.time}</div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
 
-            <button style={styles.goActivityBtn}>Go to Activity</button>
+            <button style={styles.goActivityBtn} onClick={() => navigate('/customer/my-visits')}>Go to Activity</button>
           </div>
         </aside>
       </div>

@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getProperties } from '../../Services/property.service';
 import {
   Search,
   Heart,
@@ -385,10 +386,72 @@ const MyProperties = () => {
     // Sort
     if (sortBy === 'price_asc') list.sort((a, b) => a.price - b.price);
     if (sortBy === 'price_desc') list.sort((a, b) => b.price - a.price);
-    // 'newest' keeps insertion order (mock data is already newest-first)
-
     return list;
   }, [searchText, purpose, type, city, bedrooms, bathrooms, area, activeTab, sortBy]);
+
+  // API Properties state
+  const [apiProperties, setApiProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchApiProperties = async () => {
+      try {
+        setLoading(true);
+        const params = {};
+        if (searchText.trim()) params.search = searchText.trim();
+        
+        let pFilter = purpose;
+        if (activeTab === 'For Sale') pFilter = 'sale';
+        else if (activeTab === 'For Rent') pFilter = 'rent';
+        else if (purpose === 'For Sale') pFilter = 'sale';
+        else if (purpose === 'For Rent') pFilter = 'rent';
+        
+        if (pFilter && pFilter !== 'All') params.purpose = pFilter;
+        if (type !== 'All') params.property_type = type;
+        if (city !== 'All Cities') params.city = city;
+        if (bedrooms !== 'All') params.bedrooms = parseInt(bedrooms, 10);
+        if (bathrooms !== 'All') params.bathrooms = parseInt(bathrooms, 10);
+        if (sortBy) params.sort = sortBy;
+
+        const res = await getProperties(params);
+        if (res && res.success && Array.isArray(res.data)) {
+          setApiProperties(res.data);
+        } else {
+          setApiProperties([]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch properties from API:', err);
+        setApiProperties([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApiProperties();
+  }, [searchText, purpose, type, city, bedrooms, bathrooms, area, activeTab, sortBy]);
+
+  const displayList = useMemo(() => {
+    if (apiProperties.length > 0) {
+      return apiProperties.map(p => ({
+        id: p.property_id,
+        image: p.primary_image || p.image || '/src/assets/prop_villa.png',
+        fallback: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80',
+        purpose: p.purpose || (p.sale_price ? 'For Sale' : 'For Rent'),
+        title: p.title,
+        location: [p.address, p.city].filter(Boolean).join(', '),
+        price: p.sale_price || p.rent_price || 0,
+        priceDisplay: p.sale_price ? `Rs. ${Number(p.sale_price).toLocaleString()}` : p.rent_price ? `Rs. ${Number(p.rent_price).toLocaleString()}` : 'Contact for Price',
+        priceNote: p.rent_price && !p.sale_price ? '/ month' : null,
+        beds: p.bedrooms || 0,
+        baths: p.bathrooms || 0,
+        area: `${p.area_value || ''} ${p.area_unit || ''}`.trim(),
+        type: p.property_type,
+        city: p.city,
+        isFavorite: false,
+      }));
+    }
+    return filteredProperties;
+  }, [apiProperties, filteredProperties]);
 
   const handleReset = () => {
     setSearchText('');
@@ -568,12 +631,16 @@ const MyProperties = () => {
 
       {/* Results count */}
       <div style={resultsCount}>
-        Showing {filteredProperties.length > 0 ? `1–${filteredProperties.length}` : '0'} of{' '}
-        {MOCK_PROPERTIES.length} properties
+        Showing {displayList.length > 0 ? `1–${displayList.length}` : '0'} of{' '}
+        {displayList.length} properties
       </div>
 
       {/* ══ Property Grid / List ══ */}
-      {filteredProperties.length === 0 ? (
+      {loading ? (
+        <div style={{ padding: '48px 0', textAlign: 'center', color: '#6B7280', fontSize: '14px' }}>
+          Loading properties...
+        </div>
+      ) : displayList.length === 0 ? (
         <div style={emptyState}>
           <Eye size={36} color="#D1D5DB" strokeWidth={1.5} />
           <p style={{ margin: '12px 0 0', color: '#6B7280', fontWeight: '600' }}>
@@ -585,13 +652,13 @@ const MyProperties = () => {
         </div>
       ) : viewMode === 'grid' ? (
         <div style={gridContainer}>
-          {filteredProperties.map((prop) => (
+          {displayList.map((prop) => (
             <PropertyCard key={prop.id} property={prop} viewMode="grid" onViewDetails={handleViewDetails} />
           ))}
         </div>
       ) : (
         <div style={listContainer}>
-          {filteredProperties.map((prop) => (
+          {displayList.map((prop) => (
             <PropertyCard key={prop.id} property={prop} viewMode="list" onViewDetails={handleViewDetails} />
           ))}
         </div>

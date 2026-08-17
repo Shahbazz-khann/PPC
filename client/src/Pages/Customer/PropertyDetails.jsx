@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getPropertyById } from '../../Services/property.service';
 import {
   ChevronLeft,
   ChevronRight,
@@ -540,13 +541,54 @@ const PropertyDetails = () => {
   const [visitRequested, setVisitRequested] = useState(false);
 
   useEffect(() => {
-    // Simulate API fetch delay
-    const timer = setTimeout(() => {
-      const found = MOCK_PROPERTIES_DETAIL[Number(id)];
-      setProperty(found || null);
-      setLoading(false);
-    }, 350);
-    return () => clearTimeout(timer);
+    const fetchProperty = async () => {
+      try {
+        setLoading(true);
+        const res = await getPropertyById(id);
+        if (res && res.success && res.data) {
+          const raw = res.data;
+          const formattedMedia = (raw.media && raw.media.length > 0)
+            ? raw.media.map((m, idx) => ({
+                media_id: m.media_id || idx + 1,
+                url: m.media_url || m.url,
+                fallback: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
+                caption: m.is_primary ? 'Front Exterior' : `Property View ${idx + 1}`
+              }))
+            : [
+                {
+                  media_id: 1,
+                  url: raw.primary_image || raw.image || '/src/assets/prop_villa.png',
+                  fallback: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
+                  caption: 'Front Exterior'
+                }
+              ];
+
+          setProperty({
+            ...raw,
+            property_status: raw.purpose || (raw.sale_price ? 'For Sale' : 'For Rent'),
+            area_unit: raw.area_unit || raw.area_symbol || 'sqft',
+            media: formattedMedia,
+            verification: raw.verification || {
+              verification_status: 'Verified',
+              verified_date: new Date(raw.created_at || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            }
+          });
+        } else {
+          const found = MOCK_PROPERTIES_DETAIL[Number(id)];
+          setProperty(found || null);
+        }
+      } catch (err) {
+        console.error('Failed to fetch property detail from API:', err);
+        const found = MOCK_PROPERTIES_DETAIL[Number(id)];
+        setProperty(found || null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchProperty();
+    }
   }, [id]);
 
   const handleImgError = useCallback((mediaId) => {
