@@ -1,4 +1,5 @@
 const inspectorModel = require('../../models/Inspector/Inspector.model');
+const bcrypt = require('bcryptjs');
 
 const getDashboardSummary = async (req, res, next) => {
     try {
@@ -650,6 +651,94 @@ const getInspectorProfile = async (req, res, next) => {
     }
 };
 
+const updateInspectorProfile = async (req, res, next) => {
+    try {
+        const inspectorId = req.user.user_id;
+        const { full_name, phone_number } = req.body;
+        
+        if (!full_name || !phone_number) {
+            return res.status(400).json({
+                success: false,
+                message: 'full_name and phone_number are required'
+            });
+        }
+        
+        const updatedProfile = await inspectorModel.updateInspectorProfile(inspectorId, { full_name, phone_number });
+        
+        if (!updatedProfile) {
+            return res.status(404).json({
+                success: false,
+                message: 'Profile not found'
+            });
+        }
+        
+        res.status(200).json({
+            success: true,
+            message: 'Profile updated successfully',
+            data: updatedProfile
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const changePassword = async (req, res, next) => {
+    try {
+        const inspectorId = req.user.user_id;
+        const { current_password, new_password, confirm_password } = req.body;
+
+        if (!current_password || !new_password || !confirm_password) {
+            return res.status(400).json({
+                success: false,
+                message: 'All fields are required'
+            });
+        }
+
+        if (new_password !== confirm_password) {
+            return res.status(400).json({
+                success: false,
+                message: 'New password and confirm password do not match'
+            });
+        }
+
+        if (current_password === new_password) {
+            return res.status(400).json({
+                success: false,
+                message: 'New password cannot be the same as current password'
+            });
+        }
+
+        const user = await inspectorModel.getInspectorPassword(inspectorId);
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'Inspector not found'
+            });
+        }
+
+        const isMatch = await bcrypt.compare(current_password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({
+                success: false,
+                message: 'Incorrect current password'
+            });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(new_password, salt);
+
+        await inspectorModel.updateInspectorPassword(inspectorId, hashedPassword);
+
+        res.status(200).json({
+            success: true,
+            message: 'Password changed successfully'
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getDashboardSummary,
     getInspectionOverview,
@@ -679,5 +768,7 @@ module.exports = {
     getPropertiesList,
     getPropertyDetails,
     exportProperties,
-    getInspectorProfile
+    getInspectorProfile,
+    updateInspectorProfile,
+    changePassword
 };

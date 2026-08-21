@@ -1234,6 +1234,28 @@ const getInspectorProfile = async (inspectorId) => {
     };
 };
 
+const updateInspectorProfile = async (inspectorId, { full_name, phone_number }) => {
+    const updateQuery = `
+        UPDATE users
+        SET name = $1, mobile_no = $2
+        WHERE user_id = $3
+    `;
+    await pool.query(updateQuery, [full_name, phone_number, inspectorId]);
+    
+    return await getInspectorProfile(inspectorId);
+};
+
+const getInspectorPassword = async (inspectorId) => {
+    const query = 'SELECT password FROM users WHERE user_id = $1';
+    const { rows } = await pool.query(query, [inspectorId]);
+    return rows[0] || null;
+};
+
+const updateInspectorPassword = async (inspectorId, hashedPassword) => {
+    const query = 'UPDATE users SET password = $1 WHERE user_id = $2';
+    await pool.query(query, [hashedPassword, inspectorId]);
+};
+
 module.exports = {
     getDashboardSummary,
     getInspectionOverview,
@@ -1260,7 +1282,10 @@ module.exports = {
     getPropertiesSummary,
     getPropertiesList,
     getPropertyDetails,
-    getInspectorProfile
+    getInspectorProfile,
+    updateInspectorProfile,
+    getInspectorPassword,
+    updateInspectorPassword
 };
 
 

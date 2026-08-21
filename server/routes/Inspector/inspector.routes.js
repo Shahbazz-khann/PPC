@@ -14,6 +14,13 @@ router.get(
     inspectorController.getInspectorProfile
 );
 
+router.patch(
+    '/profile',
+    authenticate,
+    authorize('inspector'),
+    inspectorController.updateInspectorProfile
+);
+
 router.get(
     '/properties/summary',
     authenticate,
@@ -208,6 +215,13 @@ router.get(
     authenticate,
     authorize('inspector'),
     inspectorController.downloadReportPdf
+);
+
+router.patch(
+    '/settings/password',
+    authenticate,
+    authorize('inspector'),
+    inspectorController.changePassword
 );
 
 module.exports = router;
