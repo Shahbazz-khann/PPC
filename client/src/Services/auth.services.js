@@ -43,3 +43,10 @@ export const resetPassword = async (resetData) => {
 export const getCurrentUser = async () => {
   return await api.get("/auth/me");
 };
+
+/**
+ * Logout user
+ */
+export const logoutUser = async () => {
+  return await api.post("/auth/logout");
+};

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../../Services/Api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import {
@@ -92,8 +93,28 @@ const Profile = () => {
     }
   };
 
+  // Fetch profile on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get('/inspector/profile');
+        if (response.success && response.data) {
+          setProfileData(prev => ({
+            ...prev,
+            full_name: response.data.full_name || prev.full_name,
+            phone: response.data.phone_number || prev.phone,
+            email: response.data.email || prev.email,
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to load profile data', error);
+      }
+    };
+    fetchProfile();
+  }, []);
+
   // Handle Save Personal Info
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
     if (!profileData.full_name.trim()) {
       triggerToast('Please enter your full name.', 'error');
@@ -105,10 +126,18 @@ const Profile = () => {
     }
 
     setIsSavingProfile(true);
-    setTimeout(() => {
-      setIsSavingProfile(false);
+    try {
+      const payload = {
+        full_name: profileData.full_name,
+        phone_number: profileData.phone
+      };
+      await api.patch('/inspector/profile', payload);
       triggerToast('Personal profile information updated successfully.');
-    }, 800);
+    } catch (error) {
+      triggerToast('Failed to update profile.', 'error');
+    } finally {
+      setIsSavingProfile(false);
+    }
   };
 
   // Handle Update Password
@@ -347,32 +376,32 @@ const Profile = () => {
                 </div>
               </div>
 
-              {/* Assigned Region */}
+              {/* Assigned Region (Read Only) */}
               <div style={{ ...styles.formGroup, gridColumn: '1 / -1' }}>
-                <label style={styles.label}>Assigned Territory / Region</label>
+                <label style={styles.label}>
+                  Assigned Territory / Region <span style={styles.readOnlyNote}>(Not Persisted)</span>
+                </label>
                 <div style={styles.inputIconWrap}>
                   <MapPin size={15} color="#9CA3AF" style={styles.fieldIcon} />
                   <input
                     type="text"
                     value={profileData.region}
-                    onChange={(e) =>
-                      setProfileData((prev) => ({ ...prev, region: e.target.value }))
-                    }
-                    style={styles.textInputWithIcon}
+                    readOnly
+                    style={{ ...styles.textInputWithIcon, ...styles.readOnlyInput }}
                   />
                 </div>
               </div>
 
-              {/* Bio / Summary */}
+              {/* Bio / Summary (Read Only) */}
               <div style={{ ...styles.formGroup, gridColumn: '1 / -1' }}>
-                <label style={styles.label}>Inspector Bio & Specialization</label>
+                <label style={styles.label}>
+                  Inspector Bio & Specialization <span style={styles.readOnlyNote}>(Not Persisted)</span>
+                </label>
                 <textarea
                   rows={4}
                   value={profileData.bio}
-                  onChange={(e) =>
-                    setProfileData((prev) => ({ ...prev, bio: e.target.value }))
-                  }
-                  style={styles.textareaInput}
+                  readOnly
+                  style={{ ...styles.textareaInput, ...styles.readOnlyInput }}
                 />
               </div>
             </div>

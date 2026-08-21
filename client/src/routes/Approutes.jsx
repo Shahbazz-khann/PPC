@@ -4,6 +4,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 // Layout & Guards
 import DashboardLayout from '../Layout/DashboardLayout';
 import ProtectedRoute from '../Components/common/ProtectedRoutes';
+import GuestRoute from '../Components/common/GuestRoute';
+import Logout from '../Components/common/Logout';
 
 // Public Pages
 import Home from '../Pages/Home';
@@ -25,14 +27,12 @@ import CustomerMyTransactions  from '../Pages/Customer/MyTransactions';
 import CustomerInspectionReport from '../Pages/Customer/InspectionReport';
 import CustomerPaymentAndInvoices from '../Pages/Customer/PaymentAndInvoices';
 import CustomerAccountSetting  from '../Pages/Customer/AccountSetting';
-import CustomerLogout          from '../Pages/Customer/Logout';
 import CustomerPropertyDetails from '../Pages/Customer/PropertyDetails';
 
 // Admin Pages
 import AdminDashboard from '../Pages/Admin/Dashboard';
 import AdminAppointment from '../Pages/Admin/Appointment';
 import AdminCmsMangement from '../Pages/Admin/CmsMangement';
-import AdminLogout from '../Pages/Admin/Logout';
 import AdminPayments from '../Pages/Admin/Payments';
 import AdminProperties from '../Pages/Admin/Properties';
 import AdminReportsAndAnalytics from '../Pages/Admin/ReportsAndAnalytics';
@@ -61,22 +61,25 @@ import OwnerPropertyVisits       from '../Pages/PropertyOwner/PropertyVisits';
 import OwnerTransactions         from '../Pages/PropertyOwner/Transactions';
 import OwnerPaymentAndInvoices   from '../Pages/PropertyOwner/PaymentAndInvoices';
 import OwnerAccountSetting       from '../Pages/PropertyOwner/AccountSetting';
-import OwnerLogout               from '../Pages/PropertyOwner/Logout';
 
 const Approutes = () => {
   return (
     <Routes>
       {/* Public / Landing Page Routes (No Sidebar) */}
-      <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
       <Route path="/services" element={<ServicesPage />} />
       <Route path="/properties" element={<Properties />} />
       <Route path="/resources" element={<Resources />} />
       <Route path="/contact" element={<Contact />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
+      
+      {/* Guest-only routes */}
+      <Route element={<GuestRoute />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+      </Route>
 
       {/* Protected Dashboard Routes (Requires Authentication) */}
       <Route element={<ProtectedRoute />}>
@@ -90,7 +93,7 @@ const Approutes = () => {
             <Route path="/customer/inspection-reports" element={<CustomerInspectionReport />} />
             <Route path="/customer/payments-invoices"  element={<CustomerPaymentAndInvoices />} />
             <Route path="/customer/account-settings"   element={<CustomerAccountSetting />} />
-            <Route path="/customer/logout"             element={<CustomerLogout />} />
+            <Route path="/customer/logout"             element={<Logout />} />
             <Route path="/customer/properties/:id"     element={<CustomerPropertyDetails />} />
           </Route>
 
@@ -107,7 +110,7 @@ const Approutes = () => {
             <Route path="/admin/reports-analytics" element={<AdminReportsAndAnalytics />} />
             <Route path="/admin/cms-management" element={<AdminCmsMangement />} />
             <Route path="/admin/settings" element={<AdminSetting />} />
-            <Route path="/admin/logout" element={<AdminLogout />} />
+            <Route path="/admin/logout" element={<Logout />} />
           </Route>
 
           {/* Inspector Role Routes */}
@@ -120,7 +123,7 @@ const Approutes = () => {
             <Route path="/inspector/messages" element={<InspectorMessages />} />
             <Route path="/inspector/profile" element={<InspectorProfile />} />
             <Route path="/inspector/settings" element={<InspectorSetting />} />
-            {/* TODO: Create InspectorLogout component and map /inspector/logout route */}
+            <Route path="/inspector/logout" element={<Logout />} />
           </Route>
 
           {/* Property Owner Role Routes */}
@@ -133,7 +136,7 @@ const Approutes = () => {
             <Route path="/owner/transactions"          element={<OwnerTransactions />} />
             <Route path="/owner/payments-invoices"     element={<OwnerPaymentAndInvoices />} />
             <Route path="/owner/account-settings"      element={<OwnerAccountSetting />} />
-            <Route path="/owner/logout"                element={<OwnerLogout />} />
+            <Route path="/owner/logout"                element={<Logout />} />
 
             {/* Legacy Owner Route Redirects */}
             <Route path="/owner/overview"        element={<Navigate to="/owner/dashboard" replace />} />
