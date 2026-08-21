@@ -42,12 +42,21 @@ const apiRouter = express.Router();
 const authRoutes = require('./routes/Auth/auth.routes');
 apiRouter.use('/auth', authRoutes);
 
+// Properties
+const propertyRoutes = require('./routes/Property/PropertyRoutes');
+apiRouter.use('/properties', propertyRoutes);
 
+// Customer
+const customerRoutes = require('./routes/Customer/customer.routes');
+apiRouter.use('/customer', customerRoutes);
 
-// API routes will be added here later.
+// Owner
+const ownerRoutes = require('./routes/Owner/owner.routes');
+apiRouter.use('/owner', ownerRoutes);
 
-// Example:
-// apiRouter.use('/auth', authRoutes);
+// Inspector
+const inspectorRoutes = require('./routes/Inspector/inspector.routes');
+apiRouter.use('/inspector', inspectorRoutes);
 
 app.use(`/api/${API_VERSION}`, apiRouter);
 

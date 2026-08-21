@@ -29,6 +29,7 @@ import {
   User,
   LayoutDashboard,
   DollarSign,
+  ShieldCheck,
 } from 'lucide-react';
 
 // Supported Application Roles
@@ -49,69 +50,33 @@ export const menuConfig = {
       roles: [ROLES.CUSTOMER],
     },
     {
-      title: 'My Properties',
-      path: '/customer/my-properties',
+      title: 'Properties',
+      path: '/customer/properties',
       icon: Building2,
       roles: [ROLES.CUSTOMER],
     },
     {
-      title: 'Active Services',
-      path: '/customer/active-services',
-      icon: Briefcase,
+      title: 'My Visits',
+      path: '/customer/my-visits',
+      icon: Calendar,
       roles: [ROLES.CUSTOMER],
     },
     {
-      title: 'Service Requests',
-      path: '/customer/service-requests',
-      icon: ClipboardCheck,
+      title: 'My Transactions',
+      path: '/customer/my-transactions',
+      icon: FileText,
       roles: [ROLES.CUSTOMER],
     },
     {
       title: 'Inspection Reports',
       path: '/customer/inspection-reports',
-      icon: FileText,
-      roles: [ROLES.CUSTOMER],
-    },
-    {
-      title: 'Rent Collection',
-      path: '/customer/rent-collection',
-      icon: CreditCard,
-      roles: [ROLES.CUSTOMER],
-    },
-    {
-      title: 'Legal Documents',
-      path: '/customer/legal-documents',
-      icon: FileCheck,
-      roles: [ROLES.CUSTOMER],
-    },
-    {
-      title: 'Renovation Progress',
-      path: '/customer/renovation-progress',
-      icon: Hammer,
-      roles: [ROLES.CUSTOMER],
-    },
-    {
-      title: 'Maintenance History',
-      path: '/customer/maintenance-history',
-      icon: History,
+      icon: ClipboardCheck,
       roles: [ROLES.CUSTOMER],
     },
     {
       title: 'Payments & Invoices',
       path: '/customer/payments-invoices',
       icon: Receipt,
-      roles: [ROLES.CUSTOMER],
-    },
-    {
-      title: 'Support Center',
-      path: '/customer/support-center',
-      icon: Headset,
-      roles: [ROLES.CUSTOMER],
-    },
-    {
-      title: 'Rewards & Offers',
-      path: '/customer/rewards-offers',
-      icon: Award,
       roles: [ROLES.CUSTOMER],
     },
     {
@@ -127,6 +92,7 @@ export const menuConfig = {
       roles: [ROLES.CUSTOMER],
     },
   ],
+
 
   [ROLES.ADMIN]: [
     {
@@ -262,57 +228,57 @@ export const menuConfig = {
 
   [ROLES.OWNER]: [
     {
-      title: 'Overview',
-      path: '/owner/overview',
-      icon: LayoutDashboard,
+      title: 'Dashboard',
+      path: '/owner/dashboard',
+      icon: Home,
       roles: [ROLES.OWNER],
     },
     {
-      title: 'Properties',
+      title: 'My Properties',
       path: '/owner/properties',
       icon: Building2,
       roles: [ROLES.OWNER],
     },
     {
-      title: 'Tenants',
-      path: '/owner/tenants',
-      icon: Users,
+      title: 'Property Verification',
+      path: '/owner/property-verification',
+      icon: ShieldCheck,
       roles: [ROLES.OWNER],
     },
     {
-      title: 'Rent Collection',
-      path: '/owner/rent-collection',
-      icon: CreditCard,
+      title: 'Inspections',
+      path: '/owner/inspections',
+      icon: ClipboardCheck,
       roles: [ROLES.OWNER],
     },
     {
-      title: 'Expenses',
-      path: '/owner/expenses',
-      icon: DollarSign,
+      title: 'Property Visits',
+      path: '/owner/property-visits',
+      icon: Calendar,
       roles: [ROLES.OWNER],
     },
     {
-      title: 'Reports',
-      path: '/owner/reports',
+      title: 'Transactions',
+      path: '/owner/transactions',
       icon: FileText,
       roles: [ROLES.OWNER],
     },
     {
-      title: 'Documents',
-      path: '/owner/documents',
-      icon: FileText,
+      title: 'Payments & Invoices',
+      path: '/owner/payments-invoices',
+      icon: Receipt,
       roles: [ROLES.OWNER],
     },
     {
-      title: 'Messages',
-      path: '/owner/messages',
-      icon: MessageSquare,
-      roles: [ROLES.OWNER],
-    },
-    {
-      title: 'Settings',
-      path: '/owner/settings',
+      title: 'Account Settings',
+      path: '/owner/account-settings',
       icon: Settings,
+      roles: [ROLES.OWNER],
+    },
+    {
+      title: 'Logout',
+      path: '/owner/logout',
+      icon: LogOut,
       roles: [ROLES.OWNER],
     },
   ],

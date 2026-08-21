@@ -4,7 +4,7 @@ import Logo3 from '../assets/Logo3.png';
 
 const Navbar = () => {
   return (
-    <nav className="w-full bg-transparent py-4 px-8 md:px-12 flex items-center justify-between z-20 relative">
+    <nav className="w-full bg-transparent py-1 px-8 md:px-4 flex items-center justify-between z-20 relative">
       {/* Logo */}
       <div className="flex items-center">
         <Link to="/">

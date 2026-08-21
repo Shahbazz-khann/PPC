@@ -1,14 +1,16 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { getMenuByRole, ROLES } from '../Config/MenuConfig';
+import { getMenuByRole } from '../Config/MenuConfig';
+import { getUser } from '../Services/AuthSession';
 import LogoS from '../assets/LogoS.png';
 
 const Sidebar = () => {
-  // Temporary role variable - easy to replace with logged-in user's role later
-  const currentRole = ROLES.CUSTOMER;
+  // Read the authenticated user from session and derive their role dynamically
+  const user = getUser();
+  const currentRole = user?.role_name?.trim().toLowerCase();
 
-  // Retrieve menu items dynamically from menuConfig.js based on role
-  const menuItems = getMenuByRole(currentRole);
+  // Return empty menu if no valid session or unrecognized role
+  const menuItems = currentRole ? getMenuByRole(currentRole) : [];
 
   return (
     <aside className="w-64 min-h-screen bg-[#032B1D] text-white flex flex-col p-4 select-none">

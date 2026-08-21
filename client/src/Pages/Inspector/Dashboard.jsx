@@ -1,349 +1,548 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
 import {
   Bell,
   ChevronDown,
   ClipboardList,
-  CheckCircle2,
-  RotateCw,
   Clock,
-  ArrowRight,
+  RotateCw,
+  CheckCircle2,
   FileText,
+  Calendar,
+  MapPin,
+  ArrowRight,
 } from 'lucide-react';
 
-// Static Dummy Data
-const statsData = [
+// ─── Mock Data for Inspector Dashboard ────────────────────────────────────────
+const MOCK_STATS = [
   {
-    id: 'total-inspections',
-    title: 'Total Inspections',
-    subtitle: 'All Time',
-    value: '24',
+    id: 'assigned',
+    title: 'Assigned Inspections',
+    subtitle: 'Total assigned to you',
+    value: 18,
     icon: ClipboardList,
-    hasDropdown: true,
+    iconBg: '#E0F2FE',
+    iconColor: '#0284C7',
+  },
+  {
+    id: 'pending',
+    title: 'Pending Inspections',
+    subtitle: 'Awaiting inspection',
+    value: 7,
+    icon: Clock,
+    iconBg: '#FEF3C7',
+    iconColor: '#D97706',
+  },
+  {
+    id: 'in_progress',
+    title: 'In Progress',
+    subtitle: 'Currently ongoing',
+    value: 4,
+    icon: RotateCw,
+    iconBg: '#DCFCE7',
+    iconColor: '#16A34A',
   },
   {
     id: 'completed',
     title: 'Completed',
-    value: '16',
+    subtitle: 'This month',
+    value: 24,
     icon: CheckCircle2,
+    iconBg: '#F3E8FF',
+    iconColor: '#9333EA',
   },
   {
-    id: 'in-progress',
-    title: 'In Progress',
-    value: '5',
-    icon: RotateCw,
-  },
-  {
-    id: 'pending',
-    title: 'Pending',
-    value: '3',
-    icon: Clock,
+    id: 'reports',
+    title: 'Reports Submitted',
+    subtitle: 'This month',
+    value: 21,
+    icon: FileText,
+    iconBg: '#FFEDD5',
+    iconColor: '#EA580C',
   },
 ];
 
-const scheduleData = [
-  {
-    id: 1,
-    time: '10:00 AM',
-    location: 'DHA Lahore',
-    type: 'Routine Inspection',
-    status: 'Inspection',
-  },
-  {
-    id: 2,
-    time: '01:00 PM',
-    location: 'Bahria Town',
-    type: 'Property Visit',
-    status: 'Inspection',
-  },
-  {
-    id: 3,
-    time: '03:30 PM',
-    location: 'Gulberg Islamabad',
-    type: 'Maintenance Check',
-    status: 'Inspection',
-  },
-];
-
-const inspectionSummary = {
-  total: 24,
-  completed: 16,
-  inProgress: 5,
-  pending: 3,
+const MOCK_OVERVIEW = {
+  pending: 7,
+  pendingPercent: 20,
+  inProgress: 4,
+  inProgressPercent: 11,
+  completed: 24,
+  completedPercent: 69,
+  total: 35,
 };
 
-const recentReportsData = [
+const MOCK_UPCOMING_SCHEDULES = [
   {
     id: 1,
-    location: 'DHA Lahore',
-    date: '20 May 2024',
+    day: '11',
+    month: 'AUG',
+    time: '10:00 AM',
+    title: 'House # 123, Street 5',
+    location: 'Bahria Town, Phase 8, Rawalpindi',
+    status: 'Upcoming',
   },
   {
     id: 2,
-    location: 'Bahria Town',
-    date: '19 May 2024',
+    day: '11',
+    month: 'AUG',
+    time: '02:00 PM',
+    title: 'Plot # 45, Block C',
+    location: 'DHA Phase 2, Islamabad',
+    status: 'Upcoming',
   },
   {
     id: 3,
-    location: 'Emaar Creek',
-    date: '18 May 2024',
+    day: '12',
+    month: 'AUG',
+    time: '11:30 AM',
+    title: 'House # 67, Street 12',
+    location: 'G-13/4, Islamabad',
+    status: 'Upcoming',
   },
+  {
+    id: 4,
+    day: '12',
+    month: 'AUG',
+    time: '03:00 PM',
+    title: 'Plot # 09, Block A',
+    location: 'Citi Housing, Jhelum',
+    status: 'Upcoming',
+  },
+];
+
+const MOCK_RECENT_INSPECTIONS = [
+  {
+    id: 1,
+    title: 'House # 23, Street 7',
+    location: 'DHA Phase 5, Islamabad',
+    completedDate: 'Completed on 10 Aug 2025',
+    status: 'Completed',
+    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=120&q=80',
+  },
+  {
+    id: 2,
+    title: 'Plot # 12, Block B',
+    location: 'Bahria Town, Phase 8, Rawalpindi',
+    completedDate: 'Completed on 09 Aug 2025',
+    status: 'Completed',
+    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=120&q=80',
+  },
+  {
+    id: 3,
+    title: 'House # 44, Street 3',
+    location: 'G-11/2, Islamabad',
+    completedDate: 'Completed on 08 Aug 2025',
+    status: 'Completed',
+    image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=120&q=80',
+  },
+  {
+    id: 4,
+    title: 'Plot # 88, Block D',
+    location: 'DHA Phase 2, Islamabad',
+    completedDate: 'Completed on 07 Aug 2025',
+    status: 'Completed',
+    image: 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=120&q=80',
+  },
+];
+
+// Trend chart points data
+const TREND_DATA = [
+  { label: '1 Aug', assigned: 7, completed: 2, pending: 0 },
+  { label: '3 Aug', assigned: 10, completed: 4, pending: 1 },
+  { label: '5 Aug', assigned: 14, completed: 6, pending: 2 },
+  { label: '7 Aug', assigned: 17, completed: 9, pending: 3 },
+  { label: '9 Aug', assigned: 20, completed: 14, pending: 5 },
+  { label: '11 Aug', assigned: 23, completed: 17, pending: 7 },
 ];
 
 const InspectorDashboard = () => {
-  return (
-    <div className="min-h-screen bg-[#f8fafc] p-6 md:p-8 font-sans text-gray-900">
-      {/* Header */}
-      <header className="flex items-center justify-between mb-8 pb-2">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">
-          Dashboard
-        </h1>
+  const navigate = useNavigate();
+  const auth = useAuth();
+  const user = auth?.user;
 
-        <div className="flex items-center gap-5">
-          <div className="relative">
-            <button
-              type="button"
-              className="text-gray-600 hover:text-gray-900 transition-colors p-1.5 rounded-full hover:bg-gray-100 cursor-pointer"
-              aria-label="Notifications"
-            >
-              <Bell className="w-5 h-5 text-gray-700 stroke-[1.8]" />
-            </button>
-            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#056839] text-white text-[10px] font-bold flex items-center justify-center border-2 border-[#f8fafc]">
-              3
-            </span>
+  const [timeRange, setTimeRange] = useState('This Month');
+
+  const displayName = user?.full_name || user?.name || 'Sara';
+  const displayRole = 'Inspector';
+  const avatarUrl =
+    user?.avatar ||
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256';
+
+  return (
+    <div style={styles.container}>
+      {/* ═══════════════════════════════════════════════
+          TOP HEADER
+      ═══════════════════════════════════════════════ */}
+      <header style={styles.topHeader}>
+        {/* Welcome Greeting */}
+        <div>
+          <h1 style={styles.greetingTitle}>
+            Good morning, Inspector {displayName} <span role="img" aria-label="wave">👋</span>
+          </h1>
+          <p style={styles.greetingSub}>
+            Here's what's happening with your inspections today.
+          </p>
+        </div>
+
+        {/* Header Right Actions & Profile */}
+        <div style={styles.headerRight}>
+          {/* Current Date Badge */}
+          <div style={styles.dateBadge}>
+            <Calendar size={15} color="#6B7280" />
+            <span style={styles.dateText}>11 August 2025, Monday</span>
           </div>
 
-          <div className="flex items-center gap-3 cursor-pointer">
+          {/* Notification Button */}
+          <button style={styles.notificationBtn} aria-label="Notifications">
+            <Bell size={18} color="#374151" />
+            <span style={styles.notificationBadge}>3</span>
+          </button>
+
+          {/* Logged-in Inspector Profile Chip */}
+          <div style={styles.profileChip} onClick={() => navigate('/inspector/profile')}>
             <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256"
-              alt="Inspector User"
-              className="w-10 h-10 rounded-full object-cover border border-gray-200"
+              src={avatarUrl}
+              alt={displayName}
+              style={styles.profileAvatar}
+              onError={(e) => {
+                e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256';
+              }}
             />
-            <div className="flex flex-col leading-tight">
-              <span className="text-sm font-semibold text-gray-900">
-                Inspector User
-              </span>
-              <span className="text-xs text-gray-500 font-normal">
-                Property Inspector
-              </span>
+            <div style={styles.profileInfo}>
+              <span style={styles.profileName}>{displayName}</span>
+              <span style={styles.profileRole}>{displayRole}</span>
             </div>
-            <ChevronDown className="w-4 h-4 text-gray-500 ml-1" />
+            <ChevronDown size={14} color="#6B7280" />
           </div>
         </div>
       </header>
 
-      {/* Statistics Cards */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        {statsData.map((stat) => {
-          const Icon = stat.icon;
+      {/* ═══════════════════════════════════════════════
+          TOP METRIC STAT CARDS (5 Cards Grid)
+      ═══════════════════════════════════════════════ */}
+      <section style={styles.statsGrid}>
+        {MOCK_STATS.map((stat) => {
+          const IconComponent = stat.icon;
           return (
-            <div
-              key={stat.id}
-              className="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] flex flex-col justify-between min-h-[140px]"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="text-sm font-semibold text-gray-800 tracking-wide">
-                    {stat.title}
-                  </h2>
-                  {stat.hasDropdown && (
-                    <button
-                      type="button"
-                      className="flex items-center gap-1 text-xs text-gray-400 mt-1 hover:text-gray-600 cursor-pointer"
-                    >
-                      <span>{stat.subtitle}</span>
-                      <ChevronDown className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#056839] flex items-center justify-center">
-                  <Icon className="w-5 h-5 stroke-[1.8]" />
+            <div key={stat.id} style={styles.statCard}>
+              <div style={styles.statCardHeader}>
+                <span style={styles.statTitle}>{stat.title}</span>
+                <div style={{ ...styles.statIconBox, background: stat.iconBg, color: stat.iconColor }}>
+                  <IconComponent size={20} />
                 </div>
               </div>
-
-              <div className="mt-4">
-                <span className="text-3xl lg:text-4xl font-bold text-[#056839] tracking-tight">
-                  {stat.value}
-                </span>
+              <div style={styles.statValueRow}>
+                <span style={styles.statValue}>{stat.value}</span>
               </div>
+              <span style={styles.statSubtitle}>{stat.subtitle}</span>
             </div>
           );
         })}
       </section>
 
-      {/* Main Content Grid */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Today's Schedule */}
-        <div className="lg:col-span-6 bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] flex flex-col justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-6">
-              Today's Schedule
-            </h2>
-
-            <div className="divide-y divide-gray-100">
-              {scheduleData.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between py-5 first:pt-2"
-                >
-                  <div className="flex items-center gap-6">
-                    <span className="text-sm font-semibold text-gray-500 w-20 flex-shrink-0">
-                      {item.time}
-                    </span>
-                    <div className="pl-4 border-l border-gray-200">
-                      <h3 className="text-base font-bold text-gray-900 leading-snug">
-                        {item.location}
-                      </h3>
-                      <p className="text-sm text-gray-400 font-normal mt-0.5">
-                        {item.type}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className="text-sm font-semibold text-[#056839] px-3 py-1 rounded-full bg-emerald-50/60">
-                    {item.status}
-                  </span>
-                </div>
-              ))}
+      {/* ═══════════════════════════════════════════════
+          MIDDLE ROW: Inspection Overview & Upcoming Schedules
+      ═══════════════════════════════════════════════ */}
+      <section style={styles.middleGrid}>
+        {/* Left: Inspection Overview Card */}
+        <div style={styles.card}>
+          <div style={styles.cardHeader}>
+            <h3 style={styles.cardTitle}>Inspection Overview</h3>
+            <div style={styles.dropdownWrap}>
+              <select
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value)}
+                style={styles.dropdownSelect}
+              >
+                <option value="This Month">This Month</option>
+                <option value="This Week">This Week</option>
+                <option value="All Time">All Time</option>
+              </select>
+              <ChevronDown size={14} color="#6B7280" style={styles.dropdownIcon} />
             </div>
           </div>
 
-          <div className="mt-6 pt-2">
-            <button
-              type="button"
-              className="w-full bg-[#f0f7f4] hover:bg-[#e4f1eb] text-[#056839] font-semibold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer text-sm"
-            >
-              <span>View Full Schedule</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+          <div style={styles.donutSection}>
+            {/* SVG Donut Chart */}
+            <div style={styles.donutWrapper}>
+              <svg viewBox="0 0 100 100" style={styles.donutSvg}>
+                {/* Background Ring */}
+                <circle cx="50" cy="50" r="40" stroke="#F1F5F9" strokeWidth="11" fill="none" />
+
+                {/* Completed Arc (69%) */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="#22C55E"
+                  strokeWidth="11"
+                  fill="none"
+                  strokeDasharray="172.5 251.3"
+                  strokeDashoffset="0"
+                  strokeLinecap="round"
+                />
+                {/* Pending Arc (20%) */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="#3B82F6"
+                  strokeWidth="11"
+                  fill="none"
+                  strokeDasharray="50.2 251.3"
+                  strokeDashoffset="-172.5"
+                  strokeLinecap="round"
+                />
+                {/* In Progress Arc (11%) */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="#F59E0B"
+                  strokeWidth="11"
+                  fill="none"
+                  strokeDasharray="28.6 251.3"
+                  strokeDashoffset="-222.7"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div style={styles.donutCenter}>
+                <span style={styles.donutCenterLabel}>Total</span>
+                <span style={styles.donutCenterValue}>{MOCK_OVERVIEW.total}</span>
+              </div>
+            </div>
+
+            {/* Donut Legend List */}
+            <div style={styles.donutLegendList}>
+              <div style={styles.legendRow}>
+                <div style={styles.legendDotGroup}>
+                  <span style={{ ...styles.legendDot, background: '#3B82F6' }} />
+                  <span style={styles.legendLabel}>Pending</span>
+                </div>
+                <span style={styles.legendValue}>
+                  {MOCK_OVERVIEW.pending} ({MOCK_OVERVIEW.pendingPercent}%)
+                </span>
+              </div>
+
+              <div style={styles.legendRow}>
+                <div style={styles.legendDotGroup}>
+                  <span style={{ ...styles.legendDot, background: '#F59E0B' }} />
+                  <span style={styles.legendLabel}>In Progress</span>
+                </div>
+                <span style={styles.legendValue}>
+                  {MOCK_OVERVIEW.inProgress} ({MOCK_OVERVIEW.inProgressPercent}%)
+                </span>
+              </div>
+
+              <div style={styles.legendRow}>
+                <div style={styles.legendDotGroup}>
+                  <span style={{ ...styles.legendDot, background: '#22C55E' }} />
+                  <span style={styles.legendLabel}>Completed</span>
+                </div>
+                <span style={styles.legendValue}>
+                  {MOCK_OVERVIEW.completed} ({MOCK_OVERVIEW.completedPercent}%)
+                </span>
+              </div>
+
+              <div style={styles.legendTotalRow}>
+                <span style={styles.legendTotalLabel}>Total</span>
+                <span style={styles.legendTotalValue}>{MOCK_OVERVIEW.total}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Right Column: Inspection Summary & Recent Reports */}
-        <div className="lg:col-span-6 flex flex-col gap-6">
-          {/* Inspection Summary */}
-          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
-            <h2 className="text-lg font-bold text-gray-900 mb-6">
-              Inspection Summary
-            </h2>
+        {/* Right: Upcoming Schedules Card */}
+        <div style={styles.card}>
+          <div style={styles.cardHeader}>
+            <h3 style={styles.cardTitle}>Upcoming Schedules</h3>
+            <button
+              style={styles.viewAllBtn}
+              onClick={() => navigate('/inspector/schedules')}
+            >
+              View all
+            </button>
+          </div>
 
-            <div className="flex items-center justify-between px-2 sm:px-6">
-              {/* Donut Chart */}
-              <div className="relative w-44 h-44 flex items-center justify-center flex-shrink-0">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                  {/* Completed: 16/24 (approx 66.7%) -> stroke #1e3a8a */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="36"
-                    stroke="#1e3a8a"
-                    strokeWidth="10"
-                    strokeDasharray="146 226.19"
-                    strokeDashoffset="0"
-                    strokeLinecap="round"
-                    fill="transparent"
-                  />
-                  {/* In Progress: 5/24 (approx 20.8%) -> stroke #056839 */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="36"
-                    stroke="#056839"
-                    strokeWidth="10"
-                    strokeDasharray="44 226.19"
-                    strokeDashoffset="-150"
-                    strokeLinecap="round"
-                    fill="transparent"
-                  />
-                  {/* Pending: 3/24 (approx 12.5%) -> stroke #eab308 */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="36"
-                    stroke="#eab308"
-                    strokeWidth="10"
-                    strokeDasharray="24 226.19"
-                    strokeDashoffset="-197"
-                    strokeLinecap="round"
-                    fill="transparent"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="text-3xl font-extrabold text-gray-900 tracking-tight leading-none">
-                    {inspectionSummary.total}
-                  </span>
-                  <span className="text-[11px] font-medium text-gray-400 mt-1">
-                    Total Inspections
-                  </span>
+          <div style={styles.schedulesList}>
+            {MOCK_UPCOMING_SCHEDULES.map((item) => (
+              <div key={item.id} style={styles.scheduleItem}>
+                <div style={styles.scheduleLeft}>
+                  {/* Date Circle/Box */}
+                  <div style={styles.dateBox}>
+                    <span style={styles.dateDay}>{item.day}</span>
+                    <span style={styles.dateMonth}>{item.month}</span>
+                  </div>
+                  {/* Time & Property Details */}
+                  <div>
+                    <div style={styles.scheduleTimeRow}>
+                      <Clock size={13} color="#6B7280" />
+                      <span style={styles.scheduleTime}>{item.time}</span>
+                    </div>
+                    <h4 style={styles.schedulePropertyTitle}>{item.title}</h4>
+                    <p style={styles.scheduleLocation}>{item.location}</p>
+                  </div>
                 </div>
+
+                <span style={styles.upcomingBadge}>{item.status}</span>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-              {/* Legend */}
-              <div className="flex flex-col gap-4 min-w-[160px]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-3 h-3 rounded-full bg-[#1e3a8a]" />
-                    <span className="text-sm font-semibold text-gray-800">
-                      Completed
-                    </span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900 ml-4">
-                    {inspectionSummary.completed}
-                  </span>
-                </div>
+      {/* ═══════════════════════════════════════════════
+          BOTTOM ROW: Recent Inspections & Status Trend Graph
+      ═══════════════════════════════════════════════ */}
+      <section style={styles.bottomGrid}>
+        {/* Left: Recent Inspections Card */}
+        <div style={styles.card}>
+          <div style={styles.cardHeader}>
+            <h3 style={styles.cardTitle}>Recent Inspections</h3>
+            <button
+              style={styles.viewAllBtn}
+              onClick={() => navigate('/inspector/inspections')}
+            >
+              View all
+            </button>
+          </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-3 h-3 rounded-full bg-[#056839]" />
-                    <span className="text-sm font-semibold text-gray-800">
-                      In Progress
-                    </span>
+          <div style={styles.recentList}>
+            {MOCK_RECENT_INSPECTIONS.map((item) => (
+              <div key={item.id} style={styles.recentItem}>
+                <div style={styles.recentLeft}>
+                  <img src={item.image} alt={item.title} style={styles.recentThumb} />
+                  <div>
+                    <h4 style={styles.recentTitle}>{item.title}</h4>
+                    <p style={styles.recentSub}>{item.location}</p>
+                    <span style={styles.recentDate}>{item.completedDate}</span>
                   </div>
-                  <span className="text-sm font-bold text-gray-900 ml-4">
-                    {inspectionSummary.inProgress}
-                  </span>
                 </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-3 h-3 rounded-full bg-[#eab308]" />
-                    <span className="text-sm font-semibold text-gray-800">
-                      Pending
-                    </span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900 ml-4">
-                    {inspectionSummary.pending}
-                  </span>
-                </div>
+                <span style={styles.completedBadge}>{item.status}</span>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: Inspection Status Trend Chart */}
+        <div style={styles.card}>
+          <div style={styles.cardHeader}>
+            <h3 style={styles.cardTitle}>Inspection Status Trend</h3>
+            <div style={styles.dropdownWrap}>
+              <select
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value)}
+                style={styles.dropdownSelect}
+              >
+                <option value="This Month">This Month</option>
+                <option value="This Week">This Week</option>
+                <option value="All Time">All Time</option>
+              </select>
+              <ChevronDown size={14} color="#6B7280" style={styles.dropdownIcon} />
             </div>
           </div>
 
-          {/* Recent Reports */}
-          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">
-              Recent Reports
-            </h2>
-
-            <div className="divide-y divide-gray-100">
-              {recentReportsData.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between py-3.5 first:pt-1 last:pb-1"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-11 h-11 rounded-xl border border-gray-200 flex items-center justify-center bg-gray-50 text-[#056839]">
-                      <FileText className="w-5 h-5 stroke-[1.8]" />
-                    </div>
-                    <span className="text-base font-semibold text-gray-900">
-                      {item.location}
-                    </span>
-                  </div>
-
-                  <span className="text-sm font-semibold text-gray-500">
-                    {item.date}
-                  </span>
-                </div>
-              ))}
+          {/* Trend Chart Legends */}
+          <div style={styles.trendLegendsRow}>
+            <div style={styles.trendLegendItem}>
+              <span style={{ ...styles.trendLegendLine, background: '#2563EB' }} />
+              <span style={styles.trendLegendText}>Assigned</span>
             </div>
+            <div style={styles.trendLegendItem}>
+              <span style={{ ...styles.trendLegendLine, background: '#EAB308' }} />
+              <span style={styles.trendLegendText}>Completed</span>
+            </div>
+            <div style={styles.trendLegendItem}>
+              <span style={{ ...styles.trendLegendLine, background: '#22C55E' }} />
+              <span style={styles.trendLegendText}>Pending</span>
+            </div>
+          </div>
+
+          {/* SVG Status Trend Line Chart */}
+          <div style={styles.chartWrapper}>
+            <svg viewBox="0 0 500 200" style={styles.trendSvg}>
+              {/* Horizontal Grid Lines & Y-Axis Labels */}
+              {[25, 20, 15, 10, 5, 0].map((val, idx) => {
+                const y = 20 + idx * 30;
+                return (
+                  <g key={val}>
+                    <line x1="35" y1={y} x2="480" y2={y} stroke="#F1F5F9" strokeWidth="1" />
+                    <text x="25" y={y + 4} fontSize="11" fill="#9CA3AF" textAnchor="end">
+                      {val}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* X-Axis Labels */}
+              {TREND_DATA.map((item, idx) => {
+                const x = 50 + idx * 80;
+                return (
+                  <text key={item.label} x={x} y="192" fontSize="11" fill="#9CA3AF" textAnchor="middle">
+                    {item.label}
+                  </text>
+                );
+              })}
+
+              {/* Line 1: Assigned (Blue #2563EB) */}
+              <path
+                d="M 50 128 L 130 110 L 210 86 L 290 68 L 370 50 L 450 32"
+                fill="none"
+                stroke="#2563EB"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+              {[
+                { x: 50, y: 128 },
+                { x: 130, y: 110 },
+                { x: 210, y: 86 },
+                { x: 290, y: 68 },
+                { x: 370, y: 50 },
+                { x: 450, y: 32 },
+              ].map((pt, i) => (
+                <circle key={i} cx={pt.x} cy={pt.y} r="4" fill="#2563EB" stroke="#FFFFFF" strokeWidth="2" />
+              ))}
+
+              {/* Line 2: Completed (Yellow #EAB308) */}
+              <path
+                d="M 50 158 L 130 146 L 210 134 L 290 116 L 370 86 L 450 68"
+                fill="none"
+                stroke="#EAB308"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+              {[
+                { x: 50, y: 158 },
+                { x: 130, y: 146 },
+                { x: 210, y: 134 },
+                { x: 290, y: 116 },
+                { x: 370, y: 86 },
+                { x: 450, y: 68 },
+              ].map((pt, i) => (
+                <circle key={i} cx={pt.x} cy={pt.y} r="4" fill="#EAB308" stroke="#FFFFFF" strokeWidth="2" />
+              ))}
+
+              {/* Line 3: Pending (Green #22C55E) */}
+              <path
+                d="M 50 170 L 130 164 L 210 158 L 290 152 L 370 140 L 450 128"
+                fill="none"
+                stroke="#22C55E"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+              {[
+                { x: 50, y: 170 },
+                { x: 130, y: 164 },
+                { x: 210, y: 158 },
+                { x: 290, y: 152 },
+                { x: 370, y: 140 },
+                { x: 450, y: 128 },
+              ].map((pt, i) => (
+                <circle key={i} cx={pt.x} cy={pt.y} r="4" fill="#22C55E" stroke="#FFFFFF" strokeWidth="2" />
+              ))}
+            </svg>
           </div>
         </div>
       </section>
@@ -351,5 +550,490 @@ const InspectorDashboard = () => {
   );
 };
 
-export default InspectorDashboard;
+// ─── Styles Object (Matching Modern Clean PPC Design) ────────────────────────
+const styles = {
+  container: {
+    background: '#F8FAFC',
+    minHeight: '100vh',
+    padding: '24px 32px 40px 32px',
+    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+    color: '#0F172A',
+  },
 
+  topHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '28px',
+    flexWrap: 'wrap',
+    gap: '16px',
+  },
+  greetingTitle: {
+    fontSize: '22px',
+    fontWeight: '800',
+    color: '#0F172A',
+    margin: 0,
+    lineHeight: 1.2,
+  },
+  greetingSub: {
+    fontSize: '13px',
+    color: '#64748B',
+    margin: '4px 0 0 0',
+  },
+
+  headerRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  },
+
+  dateBadge: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    background: '#FFFFFF',
+    border: '1px solid #E2E8F0',
+    borderRadius: '10px',
+    padding: '8px 14px',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+  },
+  dateText: {
+    fontSize: '12.5px',
+    fontWeight: '600',
+    color: '#334155',
+  },
+
+  notificationBtn: {
+    position: 'relative',
+    background: '#FFFFFF',
+    border: '1px solid #E2E8F0',
+    borderRadius: '10px',
+    padding: '9px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: '-4px',
+    right: '-4px',
+    background: '#EF4444',
+    color: '#FFFFFF',
+    fontSize: '10px',
+    fontWeight: '700',
+    width: '18px',
+    height: '18px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '2px solid #FFFFFF',
+  },
+
+  profileChip: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    background: '#FFFFFF',
+    border: '1px solid #E2E8F0',
+    borderRadius: '12px',
+    padding: '6px 12px 6px 8px',
+    cursor: 'pointer',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+  },
+  profileAvatar: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    objectFit: 'cover',
+    border: '1.5px solid #E2E8F0',
+  },
+  profileInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    lineHeight: 1.2,
+  },
+  profileName: {
+    fontSize: '13px',
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  profileRole: {
+    fontSize: '11px',
+    fontWeight: '500',
+    color: '#64748B',
+  },
+
+  /* ── 5 Stat Cards Grid ── */
+  statsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '16px',
+    marginBottom: '28px',
+  },
+  statCard: {
+    background: '#FFFFFF',
+    border: '1px solid #E2E8F0',
+    borderRadius: '16px',
+    padding: '18px 20px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+  },
+  statCardHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '12px',
+  },
+  statTitle: {
+    fontSize: '13px',
+    fontWeight: '700',
+    color: '#334155',
+  },
+  statIconBox: {
+    width: '38px',
+    height: '38px',
+    borderRadius: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statValueRow: {
+    display: 'flex',
+    alignItems: 'baseline',
+    marginBottom: '4px',
+  },
+  statValue: {
+    fontSize: '28px',
+    fontWeight: '800',
+    color: '#0F172A',
+    lineHeight: 1,
+  },
+  statSubtitle: {
+    fontSize: '11.5px',
+    color: '#64748B',
+    fontWeight: '500',
+  },
+
+  /* ── Middle Grid Layout ── */
+  middleGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '24px',
+    marginBottom: '28px',
+  },
+
+  card: {
+    background: '#FFFFFF',
+    border: '1px solid #E2E8F0',
+    borderRadius: '18px',
+    padding: '24px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  cardHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '20px',
+  },
+  cardTitle: {
+    fontSize: '16px',
+    fontWeight: '800',
+    color: '#0F172A',
+    margin: 0,
+  },
+
+  dropdownWrap: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  dropdownSelect: {
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    border: '1px solid #E2E8F0',
+    borderRadius: '8px',
+    padding: '5px 26px 5px 12px',
+    fontSize: '12px',
+    fontWeight: '600',
+    color: '#334155',
+    background: '#F8FAFC',
+    cursor: 'pointer',
+    outline: 'none',
+  },
+  dropdownIcon: {
+    position: 'absolute',
+    right: '8px',
+    pointerEvents: 'none',
+  },
+  viewAllBtn: {
+    background: 'transparent',
+    border: 'none',
+    fontSize: '12.5px',
+    fontWeight: '700',
+    color: '#2563EB',
+    cursor: 'pointer',
+  },
+
+  /* ── Donut Chart Styling ── */
+  donutSection: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '28px',
+    marginTop: '8px',
+  },
+  donutWrapper: {
+    position: 'relative',
+    width: '160px',
+    height: '160px',
+    flexShrink: 0,
+  },
+  donutSvg: {
+    width: '100%',
+    height: '100%',
+    transform: 'rotate(-90deg)',
+  },
+  donutCenter: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  donutCenterLabel: {
+    fontSize: '11px',
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  donutCenterValue: {
+    fontSize: '24px',
+    fontWeight: '800',
+    color: '#0F172A',
+    lineHeight: 1,
+  },
+
+  donutLegendList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+    flex: 1,
+  },
+  legendRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    fontSize: '13px',
+  },
+  legendDotGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  legendDot: {
+    width: '10px',
+    height: '10px',
+    borderRadius: '50%',
+  },
+  legendLabel: {
+    color: '#334155',
+    fontWeight: '600',
+  },
+  legendValue: {
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  legendTotalRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: '10px',
+    borderTop: '1px solid #F1F5F9',
+    fontSize: '13px',
+  },
+  legendTotalLabel: {
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  legendTotalValue: {
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+
+  /* ── Upcoming Schedules ── */
+  schedulesList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  scheduleItem: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '12px 14px',
+    background: '#F8FAFC',
+    border: '1px solid #F1F5F9',
+    borderRadius: '12px',
+  },
+  scheduleLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '14px',
+  },
+  dateBox: {
+    background: '#FFFFFF',
+    border: '1px solid #E2E8F0',
+    borderRadius: '10px',
+    padding: '6px 12px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    minWidth: '52px',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+  },
+  dateDay: {
+    fontSize: '15px',
+    fontWeight: '800',
+    color: '#0F172A',
+    lineHeight: 1,
+  },
+  dateMonth: {
+    fontSize: '10px',
+    fontWeight: '700',
+    color: '#64748B',
+    marginTop: '2px',
+  },
+  scheduleTimeRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '11px',
+    color: '#64748B',
+    fontWeight: '600',
+    marginBottom: '2px',
+  },
+  scheduleTime: {
+    fontSize: '11.5px',
+  },
+  schedulePropertyTitle: {
+    fontSize: '13px',
+    fontWeight: '700',
+    color: '#0F172A',
+    margin: 0,
+  },
+  scheduleLocation: {
+    fontSize: '11.5px',
+    color: '#64748B',
+    margin: '1px 0 0 0',
+  },
+  upcomingBadge: {
+    background: '#EEF2FF',
+    color: '#3557E8',
+    fontSize: '11px',
+    fontWeight: '700',
+    padding: '4px 10px',
+    borderRadius: '8px',
+  },
+
+  /* ── Bottom Grid ── */
+  bottomGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '24px',
+  },
+
+  /* ── Recent Inspections ── */
+  recentList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  recentItem: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '10px 12px',
+    background: '#FFFFFF',
+    border: '1px solid #F1F5F9',
+    borderRadius: '12px',
+  },
+  recentLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  recentThumb: {
+    width: '46px',
+    height: '46px',
+    borderRadius: '10px',
+    objectFit: 'cover',
+    border: '1px solid #E2E8F0',
+  },
+  recentTitle: {
+    fontSize: '13px',
+    fontWeight: '700',
+    color: '#0F172A',
+    margin: 0,
+  },
+  recentSub: {
+    fontSize: '11.5px',
+    color: '#64748B',
+    margin: '1px 0 0 0',
+  },
+  recentDate: {
+    fontSize: '11px',
+    color: '#94A3B8',
+    display: 'block',
+    marginTop: '2px',
+  },
+  completedBadge: {
+    background: '#DCFCE7',
+    color: '#15803D',
+    fontSize: '11px',
+    fontWeight: '700',
+    padding: '4px 10px',
+    borderRadius: '8px',
+  },
+
+  /* ── Trend Graph Styling ── */
+  trendLegendsRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '20px',
+    marginBottom: '16px',
+  },
+  trendLegendItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  trendLegendLine: {
+    width: '16px',
+    height: '3px',
+    borderRadius: '2px',
+  },
+  trendLegendText: {
+    fontSize: '12px',
+    fontWeight: '600',
+    color: '#475569',
+  },
+  chartWrapper: {
+    width: '100%',
+    height: '180px',
+  },
+  trendSvg: {
+    width: '100%',
+    height: '100%',
+  },
+};
+
+export default InspectorDashboard;

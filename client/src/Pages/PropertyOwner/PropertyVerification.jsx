@@ -1,0 +1,324 @@
+import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Building2, ShieldCheck, Clock, XCircle, Search, ChevronDown,
+  RotateCcw, MapPin, Eye, CheckCircle2, AlertCircle, X,
+} from 'lucide-react';
+
+// ─── Mock Data ─────────────────────────────────────────────────────────────────
+const MOCK_VERIFICATIONS = [
+  {
+    property_id: 1, property_title: 'Modern Family Villa', property_location: 'Bahria Town',
+    city: 'Islamabad', property_type: 'House', ppc_id: '#PPC-10012',
+    verification_status: 'Verified', verification_date: '18 Aug 2026', updated_at: '18 Aug 2026',
+    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=120&q=80',
+  },
+  {
+    property_id: 2, property_title: 'Luxury Apartment', property_location: 'DHA Phase 2',
+    city: 'Islamabad', property_type: 'Apartment', ppc_id: '#PPC-10011',
+    verification_status: 'Pending', verification_date: '17 Aug 2026', updated_at: '17 Aug 2026',
+    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=120&q=80',
+  },
+  {
+    property_id: 3, property_title: 'Fully Furnished House', property_location: 'G-13',
+    city: 'Islamabad', property_type: 'House', ppc_id: '#PPC-10010',
+    verification_status: 'Verified', verification_date: '15 Aug 2026', updated_at: '16 Aug 2026',
+    image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=120&q=80',
+  },
+  {
+    property_id: 4, property_title: 'Commercial Plaza', property_location: 'Blue Area',
+    city: 'Islamabad', property_type: 'Commercial', ppc_id: '#PPC-10009',
+    verification_status: 'Rejected', verification_date: '14 Aug 2026', updated_at: '15 Aug 2026',
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=120&q=80',
+  },
+  {
+    property_id: 5, property_title: 'Luxury Villa', property_location: 'F-7',
+    city: 'Islamabad', property_type: 'House', ppc_id: '#PPC-10008',
+    verification_status: 'Pending', verification_date: '12 Aug 2026', updated_at: '12 Aug 2026',
+    image: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&w=120&q=80',
+  },
+  {
+    property_id: 6, property_title: 'Executive Bungalow', property_location: 'E-11',
+    city: 'Islamabad', property_type: 'House', ppc_id: '#PPC-10007',
+    verification_status: 'Pending', verification_date: '10 Aug 2026', updated_at: '10 Aug 2026',
+    image: 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=120&q=80',
+  },
+];
+
+const TYPE_COLORS = {
+  House: { bg: '#E8F4F1', color: '#1D6A4A' },
+  Apartment: { bg: '#EEF2FF', color: '#4F46E5' },
+  Commercial: { bg: '#FEF3C7', color: '#92400E' },
+};
+
+const STATUS_CONFIG = {
+  Verified: { bg: '#DCFCE7', color: '#166534', icon: CheckCircle2, label: 'Verified' },
+  Pending:  { bg: '#FFF7ED', color: '#92400E', icon: Clock,         label: 'Pending'  },
+  Rejected: { bg: '#FEF2F2', color: '#991B1B', icon: XCircle,       label: 'Rejected' },
+};
+
+// ─── Detail Modal ─────────────────────────────────────────────────────────────
+const DetailModal = ({ prop, onClose }) => {
+  if (!prop) return null;
+  const sc = STATUS_CONFIG[prop.verification_status] || STATUS_CONFIG.Pending;
+  const StatusIcon = sc.icon;
+  return (
+    <div style={S.overlay} onClick={onClose}>
+      <div style={S.modal} onClick={(e) => e.stopPropagation()}>
+        <div style={S.modalHeader}>
+          <h3 style={S.modalTitle}>Verification Details</h3>
+          <button style={S.closeBtn} onClick={onClose}><X size={18} color="#374151" /></button>
+        </div>
+        <div style={S.modalBody}>
+          <img src={prop.image} alt={prop.property_title} style={S.modalImg}
+            onError={(e) => { e.target.style.display = 'none'; }} />
+          <div style={S.modalGrid}>
+            <div style={S.modalRow}><span style={S.modalKey}>Property</span><span style={S.modalVal}>{prop.property_title}</span></div>
+            <div style={S.modalRow}><span style={S.modalKey}>PPC ID</span><span style={S.modalVal}>{prop.ppc_id}</span></div>
+            <div style={S.modalRow}><span style={S.modalKey}>Type</span><span style={S.modalVal}>{prop.property_type}</span></div>
+            <div style={S.modalRow}><span style={S.modalKey}>Location</span><span style={S.modalVal}>{prop.property_location}, {prop.city}</span></div>
+            <div style={S.modalRow}>
+              <span style={S.modalKey}>Status</span>
+              <span style={{ ...S.statusBadge, background: sc.bg, color: sc.color }}>
+                <StatusIcon size={12} /> {sc.label}
+              </span>
+            </div>
+            <div style={S.modalRow}><span style={S.modalKey}>Verification Date</span><span style={S.modalVal}>{prop.verification_date}</span></div>
+            <div style={S.modalRow}><span style={S.modalKey}>Last Updated</span><span style={S.modalVal}>{prop.updated_at}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+const OwnerPropertyVerification = () => {
+  const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All Status');
+  const [selected, setSelected] = useState(null);
+  const [page, setPage] = useState(1);
+  const PER_PAGE = 5;
+
+  const filtered = useMemo(() => MOCK_VERIFICATIONS.filter((p) => {
+    const q = search.toLowerCase();
+    if (q && !p.property_title.toLowerCase().includes(q) && !p.city.toLowerCase().includes(q) && !p.ppc_id.toLowerCase().includes(q)) return false;
+    if (statusFilter !== 'All Status' && p.verification_status !== statusFilter) return false;
+    return true;
+  }), [search, statusFilter]);
+
+  const totalPages = Math.ceil(filtered.length / PER_PAGE);
+  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+  const total = MOCK_VERIFICATIONS.length;
+  const pending = MOCK_VERIFICATIONS.filter((p) => p.verification_status === 'Pending').length;
+  const verified = MOCK_VERIFICATIONS.filter((p) => p.verification_status === 'Verified').length;
+  const rejected = MOCK_VERIFICATIONS.filter((p) => p.verification_status === 'Rejected').length;
+
+  const handleClear = () => { setSearch(''); setStatusFilter('All Status'); setPage(1); };
+
+  return (
+    <div style={S.page}>
+      {/* Header */}
+      <div style={S.pageHeader}>
+        <h1 style={S.pageTitle}>Property Verification</h1>
+        <p style={S.pageSub}>Track and monitor the verification status of your properties by PPC.</p>
+      </div>
+
+      {/* Summary Cards */}
+      <div style={S.cards}>
+        {[
+          { label: 'Total Properties', sub: 'All your properties', val: total, icon: Building2, bg: '#E8F4F1', color: '#1D6A4A' },
+          { label: 'Pending Verification', sub: 'Awaiting approval', val: pending, icon: Clock, bg: '#FFF7ED', color: '#D97706' },
+          { label: 'Verified Properties', sub: 'Successfully verified', val: verified, icon: ShieldCheck, bg: '#DCFCE7', color: '#166534' },
+          { label: 'Rejected Properties', sub: 'Require attention', val: rejected, icon: XCircle, bg: '#FEF2F2', color: '#991B1B' },
+        ].map((c) => {
+          const Icon = c.icon;
+          return (
+            <div key={c.label} style={S.card}>
+              <div style={{ ...S.cardIcon, background: c.bg }}><Icon size={22} color={c.color} /></div>
+              <div>
+                <div style={S.cardVal}>{c.val}</div>
+                <div style={S.cardLabel}>{c.label}</div>
+                <div style={S.cardSub}>{c.sub}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Filters */}
+      <div style={S.filterBar}>
+        <div style={S.searchBox}>
+          <Search size={15} color="#9CA3AF" />
+          <input style={S.searchInput} placeholder="Search by property title, ID or city..."
+            value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+        </div>
+        <div style={S.filterCenter}>
+          <span style={S.filterCenterLabel}>Verification Status</span>
+          <div style={S.selectWrap}>
+            <select style={S.select} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}>
+              <option>All Status</option>
+              <option>Pending</option>
+              <option>Verified</option>
+              <option>Rejected</option>
+            </select>
+            <ChevronDown size={14} color="#6B7280" style={S.chevron} />
+          </div>
+        </div>
+        <button style={S.clearBtn} onClick={handleClear}>
+          <RotateCcw size={13} /> Clear Filters
+        </button>
+      </div>
+
+      {/* Table */}
+      <div style={S.tableWrap}>
+        {filtered.length === 0 ? (
+          <div style={S.emptyState}>
+            <AlertCircle size={40} color="#9CA3AF" strokeWidth={1.5} />
+            <p style={S.emptyTitle}>No matching properties found</p>
+            <p style={S.emptySub}>Try adjusting your search or filters.</p>
+          </div>
+        ) : (
+          <>
+            <table style={S.table}>
+              <thead>
+                <tr style={S.thead}>
+                  {['Property', 'Property ID', 'Type', 'Location', 'Verification Status', 'Verification Date', 'Last Updated', 'Action'].map((h) => (
+                    <th key={h} style={S.th}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {paginated.map((p, i) => {
+                  const sc = STATUS_CONFIG[p.verification_status] || STATUS_CONFIG.Pending;
+                  const StatusIcon = sc.icon;
+                  const tc = TYPE_COLORS[p.property_type] || { bg: '#F3F4F6', color: '#374151' };
+                  return (
+                    <tr key={p.property_id} style={{ ...S.tr, background: i % 2 === 0 ? '#FFFFFF' : '#FAFAFA' }}>
+                      <td style={S.td}>
+                        <div style={S.propCell}>
+                          <img src={p.image} alt={p.property_title} style={S.propImg}
+                            onError={(e) => { e.target.src = 'https://placehold.co/60x48/e2e8f0/94a3b8?text=PPC'; }} />
+                          <div>
+                            <div style={S.propName}>{p.property_title}</div>
+                            <div style={S.propLoc}>{p.property_location}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={S.td}><span style={S.ppcId}>{p.ppc_id}</span></td>
+                      <td style={S.td}>
+                        <span style={{ ...S.typeBadge, background: tc.bg, color: tc.color }}>{p.property_type}</span>
+                      </td>
+                      <td style={S.td}><span style={S.cityTxt}>{p.property_location},<br />{p.city}</span></td>
+                      <td style={S.td}>
+                        <span style={{ ...S.statusBadge, background: sc.bg, color: sc.color }}>
+                          <StatusIcon size={12} /> {sc.label}
+                        </span>
+                      </td>
+                      <td style={S.td}><span style={S.dateTxt}>{p.verification_date}</span></td>
+                      <td style={S.td}><span style={S.dateTxt}>{p.updated_at}</span></td>
+                      <td style={S.td}>
+                        <div style={S.actions}>
+                          <button style={S.viewBtn} onClick={() => setSelected(p)}>View Details</button>
+                          <button style={S.eyeBtn} onClick={() => setSelected(p)}><Eye size={15} color="#1D6A4A" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            {/* Pagination */}
+            <div style={S.pagination}>
+              <span style={S.paginInfo}>Showing {(page - 1) * PER_PAGE + 1} to {Math.min(page * PER_PAGE, filtered.length)} of {filtered.length} properties</span>
+              <div style={S.paginBtns}>
+                <button style={S.paginArrow} onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>‹</button>
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button key={i + 1} style={{ ...S.paginNum, ...(page === i + 1 ? S.paginNumActive : {}) }}
+                    onClick={() => setPage(i + 1)}>{i + 1}</button>
+                ))}
+                <button style={S.paginArrow} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>›</button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Detail Modal */}
+      <DetailModal prop={selected} onClose={() => setSelected(null)} />
+    </div>
+  );
+};
+
+// ─── Styles ────────────────────────────────────────────────────────────────────
+const S = {
+  page: { background: '#F8FAFC', minHeight: '100vh', padding: '28px', fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", color: '#111827' },
+  pageHeader: { marginBottom: '22px' },
+  pageTitle: { fontSize: '24px', fontWeight: '800', color: '#111827', margin: '0 0 4px 0' },
+  pageSub: { fontSize: '13px', color: '#6B7280', margin: 0 },
+
+  cards: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', marginBottom: '22px' },
+  card: { background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px', padding: '18px', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' },
+  cardIcon: { width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  cardVal: { fontSize: '26px', fontWeight: '800', color: '#111827', lineHeight: 1.1 },
+  cardLabel: { fontSize: '12.5px', fontWeight: '700', color: '#374151', marginTop: '2px' },
+  cardSub: { fontSize: '11px', color: '#9CA3AF', marginTop: '1px' },
+
+  filterBar: { background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px 18px', display: 'flex', alignItems: 'flex-end', gap: '14px', marginBottom: '18px', flexWrap: 'wrap', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' },
+  searchBox: { display: 'flex', alignItems: 'center', gap: '8px', border: '1.5px solid #E2E8F0', borderRadius: '8px', padding: '7px 12px', flex: 2, minWidth: '220px', background: '#FAFAFA' },
+  searchInput: { border: 'none', outline: 'none', background: 'transparent', fontSize: '12.5px', color: '#111827', width: '100%', fontFamily: 'inherit' },
+  filterCenter: { display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '160px' },
+  filterCenterLabel: { fontSize: '11px', fontWeight: '600', color: '#6B7280' },
+  selectWrap: { position: 'relative' },
+  select: { appearance: 'none', WebkitAppearance: 'none', border: '1.5px solid #E2E8F0', borderRadius: '8px', padding: '7px 30px 7px 12px', fontSize: '12.5px', color: '#111827', background: '#FFFFFF', cursor: 'pointer', outline: 'none', width: '100%', fontFamily: 'inherit' },
+  chevron: { position: 'absolute', right: '9px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' },
+  clearBtn: { display: 'flex', alignItems: 'center', gap: '6px', border: '1.5px solid #E2E8F0', background: '#FFFFFF', borderRadius: '8px', padding: '7px 16px', fontSize: '12.5px', fontWeight: '600', color: '#374151', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' },
+
+  tableWrap: { background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' },
+  table: { width: '100%', borderCollapse: 'collapse' },
+  thead: { background: '#F8FAFC' },
+  th: { padding: '12px 14px', fontSize: '12px', fontWeight: '600', color: '#6B7280', textAlign: 'left', borderBottom: '1px solid #E2E8F0', whiteSpace: 'nowrap' },
+  tr: { borderBottom: '1px solid #F1F5F9' },
+  td: { padding: '13px 14px', verticalAlign: 'middle' },
+
+  propCell: { display: 'flex', alignItems: 'center', gap: '10px' },
+  propImg: { width: '60px', height: '48px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #E2E8F0' },
+  propName: { fontSize: '13px', fontWeight: '700', color: '#111827' },
+  propLoc: { fontSize: '11px', color: '#6B7280', marginTop: '2px' },
+  ppcId: { fontSize: '12px', fontWeight: '600', color: '#374151', fontFamily: 'monospace' },
+  typeBadge: { fontSize: '11px', fontWeight: '700', padding: '3px 9px', borderRadius: '6px', whiteSpace: 'nowrap' },
+  cityTxt: { fontSize: '12px', color: '#374151', lineHeight: 1.4 },
+  statusBadge: { display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', fontWeight: '700', padding: '4px 10px', borderRadius: '20px', whiteSpace: 'nowrap' },
+  dateTxt: { fontSize: '12px', color: '#374151' },
+  actions: { display: 'flex', alignItems: 'center', gap: '8px' },
+  viewBtn: { border: '1.5px solid #D1D5DB', background: '#FFFFFF', borderRadius: '7px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', color: '#374151', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' },
+  eyeBtn: { border: '1.5px solid #E2E8F0', background: '#FFFFFF', borderRadius: '7px', padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center' },
+
+  pagination: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderTop: '1px solid #E2E8F0' },
+  paginInfo: { fontSize: '12px', color: '#6B7280' },
+  paginBtns: { display: 'flex', gap: '4px' },
+  paginArrow: { width: '32px', height: '32px', border: '1px solid #E2E8F0', background: '#FFFFFF', borderRadius: '6px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151' },
+  paginNum: { width: '32px', height: '32px', border: '1px solid #E2E8F0', background: '#FFFFFF', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  paginNumActive: { background: '#1D6A4A', color: '#FFFFFF', border: '1px solid #1D6A4A' },
+
+  emptyState: { padding: '60px 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' },
+  emptyTitle: { fontSize: '15px', fontWeight: '700', color: '#374151', margin: 0 },
+  emptySub: { fontSize: '13px', color: '#9CA3AF', margin: 0 },
+
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
+  modal: { background: '#FFFFFF', borderRadius: '16px', width: '480px', maxWidth: '90vw', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' },
+  modalHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px', borderBottom: '1px solid #E2E8F0' },
+  modalTitle: { fontSize: '16px', fontWeight: '800', color: '#111827', margin: 0 },
+  closeBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex' },
+  modalBody: { padding: '20px' },
+  modalImg: { width: '100%', height: '160px', objectFit: 'cover', borderRadius: '10px', marginBottom: '16px' },
+  modalGrid: { display: 'flex', flexDirection: 'column', gap: '10px' },
+  modalRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', paddingBottom: '8px', borderBottom: '1px solid #F1F5F9' },
+  modalKey: { color: '#6B7280', fontWeight: '600' },
+  modalVal: { color: '#111827', fontWeight: '600', textAlign: 'right' },
+};
+
+export default OwnerPropertyVerification;

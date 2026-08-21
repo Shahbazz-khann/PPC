@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { Menu } from 'lucide-react';
-import { getMenuByRole, ROLES } from '../../Config/MenuConfig';
+import { getMenuByRole } from '../../Config/MenuConfig';
+import { useAuth } from '../../Context/AuthContext';
 import LogoS from '../../assets/LogoS.png';
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Temporary role variable - easy to replace with logged-in user's role later
-  const currentRole = ROLES.CUSTOMER;
+  // Reactive: reads from AuthContext which is updated immediately after login
+  const { user } = useAuth();
 
-  // Retrieve menu items dynamically from menuConfig.js based on role
-  const menuItems = getMenuByRole(currentRole);
+  // Normalize role_name to lowercase to match MenuConfig keys
+  const currentRole = user?.role_name?.trim().toLowerCase();
+
+  // Return empty menu if no session or unrecognized role
+  const menuItems = currentRole ? getMenuByRole(currentRole) : [];
 
   return (
     <aside
@@ -83,6 +87,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-
-
-

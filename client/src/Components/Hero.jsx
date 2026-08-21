@@ -1,6 +1,7 @@
 
 import Navbar from './Navbar';
-import faisalMosqueImg from '../assets/FaisalMosque.png';
+// import faisalMosqueImg from '../assets/FaisalMosque.png';
+import faisalMosqueImg from '../assets/fsq.png';
 
 const Hero = () => {
   return (
@@ -32,8 +33,8 @@ const Hero = () => {
 
         {/* Description */}
         <p className="text-white text-base md:text-lg font-normal mb-8 max-w-2xl leading-relaxed">
-          Buy, Sell, Rent, Maintain, Renovate & Invest – We <br />
-          Care For Your Property Like Our Own.
+          Buy, Sell, Rent, Maintain, Renovate & Invest. <br />
+         We  Care For Your Property Like Our Own.
         </p>
 
         {/* CTA Buttons */}
