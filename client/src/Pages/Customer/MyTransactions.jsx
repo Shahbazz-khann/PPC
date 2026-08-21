@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Search,
   ChevronDown,
@@ -15,93 +15,10 @@ import {
   SlidersHorizontal,
   Building2,
   TrendingUp,
+  X,
+  Loader2
 } from 'lucide-react';
-
-// ─── Mock Data ─────────────────────────────────────────────────────────────────
-// Structured to match the confirmed transactions table schema:
-//   transaction_id, property_id, customer_id, transaction_type_id,
-//   transaction_status_id, agreed_amount, transaction_date, timestamps
-//
-// Replace MOCK_TRANSACTIONS with a GET /api/customer/transactions API call
-// when the backend is ready. Field names match the DB schema.
-
-const MOCK_TRANSACTIONS = [
-  {
-    transaction_id: 'TXN-2026-0041',
-    property: {
-      property_id: 1,
-      title: 'Modern Family Villa',
-      location: 'Bahria Town, Islamabad',
-      image: '/src/assets/prop_villa.png',
-      fallback:
-        'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&q=80',
-    },
-    transaction_type: 'Purchase',
-    transaction_status: 'Active',
-    agreed_amount: 25000000,
-    transaction_date: '2026-08-05',
-  },
-  {
-    transaction_id: 'TXN-2026-0038',
-    property: {
-      property_id: 2,
-      title: 'Luxury Apartment in DHA',
-      location: 'DHA Phase 2, Islamabad',
-      image: '/src/assets/prop_apartment.png',
-      fallback:
-        'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=400&q=80',
-    },
-    transaction_type: 'Rent',
-    transaction_status: 'Completed',
-    agreed_amount: 120000,
-    transaction_date: '2026-07-20',
-  },
-  {
-    transaction_id: 'TXN-2026-0031',
-    property: {
-      property_id: 3,
-      title: 'Fully Furnished House',
-      location: 'G-13, Islamabad',
-      image: '/src/assets/prop_house.png',
-      fallback:
-        'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=400&q=80',
-    },
-    transaction_type: 'Rent',
-    transaction_status: 'Pending',
-    agreed_amount: 85000,
-    transaction_date: '2026-07-10',
-  },
-  {
-    transaction_id: 'TXN-2026-0027',
-    property: {
-      property_id: 4,
-      title: 'Smart Home Villa',
-      location: 'E-11, Islamabad',
-      image: '/src/assets/prop_living_room.png',
-      fallback:
-        'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=400&q=80',
-    },
-    transaction_type: 'Purchase',
-    transaction_status: 'Cancelled',
-    agreed_amount: 45000000,
-    transaction_date: '2026-06-28',
-  },
-  {
-    transaction_id: 'TXN-2026-0019',
-    property: {
-      property_id: 5,
-      title: 'Premium Penthouse',
-      location: 'DHA Phase 5, Lahore',
-      image: '/src/assets/prop_penthouse.png',
-      fallback:
-        'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80',
-    },
-    transaction_type: 'Rent',
-    transaction_status: 'Completed',
-    agreed_amount: 250000,
-    transaction_date: '2026-05-15',
-  },
-];
+import { getTransactionSummary, getTransactions, getTransactionById } from '../../Services/customer.services';
 
 // Status metadata — maps transaction_status values to visual tokens
 const STATUS_CONFIG = {
@@ -117,13 +34,14 @@ const TYPE_CONFIG = {
   Rent:     { bg: '#E0F2FE', color: '#0369A1', Icon: Home },
 };
 
-// Summary card config — derived from MOCK_TRANSACTIONS
-function buildSummary(transactions) {
+// Summary card config — derived from API now
+function buildSummary(data) {
+  if (!data) return { total: 0, active: 0, completed: 0, pending: 0 };
   return {
-    total:     transactions.length,
-    active:    transactions.filter((t) => t.transaction_status === 'Active').length,
-    completed: transactions.filter((t) => t.transaction_status === 'Completed').length,
-    pending:   transactions.filter((t) => t.transaction_status === 'Pending').length,
+    total:     data.total_transactions || 0,
+    active:    data.active_transactions || 0,
+    completed: data.completed_transactions || 0,
+    pending:   data.pending_transactions || 0,
   };
 }
 
@@ -181,15 +99,21 @@ const TypeBadge = ({ type }) => {
 
 // ─── Transaction Card ─────────────────────────────────────────────────────────
 
-const TransactionCard = ({ tx }) => {
+const TransactionCard = ({ tx, onView }) => {
   const [imgErr, setImgErr] = useState(false);
+  
+  const title = tx.property_title || 'Unknown Property';
+  const location = [tx.address, tx.city].filter(Boolean).join(', ') || 'Unknown Location';
+  const image = tx.primary_image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&q=80';
+  const fallback = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&q=80';
+
   return (
     <div style={S.txCard}>
       {/* Property Image */}
       <div style={S.txImgWrap}>
         <img
-          src={imgErr ? tx.property.fallback : tx.property.image}
-          alt={tx.property.title}
+          src={imgErr ? fallback : image}
+          alt={title}
           style={S.txImg}
           onError={() => setImgErr(true)}
         />
@@ -204,10 +128,10 @@ const TransactionCard = ({ tx }) => {
         </div>
 
         {/* Property name + location */}
-        <div style={S.txTitle}>{tx.property.title}</div>
+        <div style={S.txTitle}>{title}</div>
         <div style={S.txLocation}>
           <MapPin size={12} color="#9CA3AF" strokeWidth={2} />
-          <span>{tx.property.location}</span>
+          <span>{location}</span>
         </div>
 
         {/* Meta row */}
@@ -233,7 +157,7 @@ const TransactionCard = ({ tx }) => {
         <div style={S.txAmountLbl}>
           {tx.transaction_type === 'Rent' ? 'per month' : 'agreed amount'}
         </div>
-        <button style={S.viewBtn}>
+        <button style={S.viewBtn} onClick={() => onView(tx.transaction_id)}>
           <Eye size={14} strokeWidth={2} />
           View Details
         </button>
@@ -281,37 +205,66 @@ const MyTransactions = () => {
   const [statusFilter, setStatus] = useState('All');
   const [sortBy, setSort]       = useState('newest');
 
-  const summary = buildSummary(MOCK_TRANSACTIONS);
+  const [transactions, setTransactions] = useState([]);
+  const [summaryData, setSummaryData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const filtered = useMemo(() => {
-    let list = [...MOCK_TRANSACTIONS];
+  // Modal state
+  const [selectedTx, setSelectedTx] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
 
-    // Search
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter(
-        (t) =>
-          t.property.title.toLowerCase().includes(q) ||
-          t.property.location.toLowerCase().includes(q) ||
-          t.transaction_id.toLowerCase().includes(q)
-      );
-    }
-    // Type
-    if (typeFilter !== 'All') {
-      list = list.filter((t) => t.transaction_type === typeFilter);
-    }
-    // Status
-    if (statusFilter !== 'All') {
-      list = list.filter((t) => t.transaction_status === statusFilter);
-    }
-    // Sort
-    if (sortBy === 'newest') list.sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
-    if (sortBy === 'oldest') list.sort((a, b) => new Date(a.transaction_date) - new Date(b.transaction_date));
-    if (sortBy === 'amount_desc') list.sort((a, b) => b.agreed_amount - a.agreed_amount);
-    if (sortBy === 'amount_asc')  list.sort((a, b) => a.agreed_amount - b.agreed_amount);
-
-    return list;
+  useEffect(() => {
+    fetchData();
   }, [search, typeFilter, statusFilter, sortBy]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const [summaryRes, txRes] = await Promise.all([
+        getTransactionSummary(),
+        getTransactions({
+          search,
+          transaction_type: typeFilter !== 'All' ? typeFilter : '',
+          status: statusFilter !== 'All' ? statusFilter : '',
+          sort: sortBy
+        })
+      ]);
+
+      if (summaryRes.data.success) {
+        setSummaryData(summaryRes.data.data);
+      }
+      
+      if (txRes.data.success) {
+        setTransactions(txRes.data.data);
+      }
+
+    } catch (err) {
+      console.error('Error fetching transactions:', err);
+      setError('Failed to load transactions. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewDetails = async (txId) => {
+    try {
+      setModalLoading(true);
+      const res = await getTransactionById(txId);
+      if (res.data.success) {
+        setSelectedTx(res.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching transaction details:', err);
+      alert('Failed to load details.');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const summary = buildSummary(summaryData);
 
   return (
     <div style={S.page}>
@@ -425,13 +378,23 @@ const MyTransactions = () => {
 
       {/* ── Results count ── */}
       <div style={S.resultsCount}>
-        {filtered.length > 0
-          ? `Showing ${filtered.length} of ${MOCK_TRANSACTIONS.length} transactions`
-          : 'No matching transactions'}
+        {loading ? 'Loading...' : (transactions.length > 0
+          ? `Showing ${transactions.length} transactions`
+          : 'No matching transactions')}
       </div>
 
       {/* ── Transaction List ── */}
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+          <Loader2 size={32} color="#1D6A4A" style={{ animation: 'spin 1s linear infinite' }} />
+        </div>
+      ) : error ? (
+        <div style={{ ...S.emptyState, color: '#991B1B' }}>
+          <AlertCircle size={36} strokeWidth={1.5} />
+          <div style={S.emptyTitle}>Error</div>
+          <div style={S.emptyDesc}>{error}</div>
+        </div>
+      ) : transactions.length === 0 ? (
         search || typeFilter !== 'All' || statusFilter !== 'All' ? (
           // Filtered empty state
           <div style={S.emptyState}>
@@ -452,9 +415,74 @@ const MyTransactions = () => {
         )
       ) : (
         <div style={S.txList}>
-          {filtered.map((tx) => (
-            <TransactionCard key={tx.transaction_id} tx={tx} />
+          {transactions.map((tx) => (
+            <TransactionCard key={tx.transaction_id} tx={tx} onView={handleViewDetails} />
           ))}
+        </div>
+      )}
+
+      {/* ── Modal Overlay ── */}
+      {(selectedTx || modalLoading) && (
+        <div style={S.modalOverlay}>
+          <div style={S.modalContent}>
+            {modalLoading ? (
+               <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+                 <Loader2 size={32} color="#1D6A4A" style={{ animation: 'spin 1s linear infinite' }} />
+               </div>
+            ) : selectedTx && (
+              <>
+                <div style={S.modalHeader}>
+                  <h3 style={S.modalTitle}>Transaction Details</h3>
+                  <button style={S.modalClose} onClick={() => setSelectedTx(null)}>
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                <div style={S.modalBody}>
+                  <div style={S.modalImgWrap}>
+                    <img 
+                      src={selectedTx.primary_image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&q=80'} 
+                      alt={selectedTx.property_title} 
+                      style={S.modalImg} 
+                    />
+                  </div>
+                  
+                  <div style={S.modalSection}>
+                    <h4 style={S.modalSub}>Property</h4>
+                    <div style={S.modalValueLg}>{selectedTx.property_title}</div>
+                    <div style={S.modalValueMd}>{[selectedTx.address, selectedTx.city].filter(Boolean).join(', ')}</div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                    <div style={S.modalField}>
+                      <span style={S.modalLabel}>Transaction ID</span>
+                      <span style={S.modalValue}>{selectedTx.transaction_id}</span>
+                    </div>
+                    <div style={S.modalField}>
+                      <span style={S.modalLabel}>Date</span>
+                      <span style={S.modalValue}>{formatDate(selectedTx.transaction_date)}</span>
+                    </div>
+                    <div style={S.modalField}>
+                      <span style={S.modalLabel}>Agreed Amount</span>
+                      <span style={S.modalValueAmount}>{formatPKR(selectedTx.agreed_amount)}</span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+                    <TypeBadge type={selectedTx.transaction_type} />
+                    <StatusBadge status={selectedTx.transaction_status} />
+                  </div>
+                  
+                  {selectedTx.remarks && (
+                    <div style={{ ...S.modalSection, marginTop: '20px' }}>
+                      <h4 style={S.modalSub}>Remarks</h4>
+                      <p style={S.modalDesc}>{selectedTx.remarks}</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -608,6 +636,55 @@ const S = {
     borderRadius: '10px', padding: '9px 22px',
     fontSize: '13px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit',
   },
+
+  // Modal Overlay
+  modalOverlay: {
+    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+    background: 'rgba(0,0,0,0.5)', zIndex: 9999,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    padding: '20px'
+  },
+  modalContent: {
+    background: '#FFF', borderRadius: '16px',
+    width: '100%', maxWidth: '500px',
+    boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+    overflow: 'hidden', display: 'flex', flexDirection: 'column',
+    maxHeight: '90vh',
+  },
+  modalHeader: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '16px 20px', borderBottom: '1px solid #E5E7EB',
+  },
+  modalTitle: { margin: 0, fontSize: '18px', fontWeight: '700', color: '#111827' },
+  modalClose: {
+    background: 'transparent', border: 'none', color: '#6B7280',
+    cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center',
+    justifyContent: 'center', borderRadius: '6px',
+  },
+  modalBody: { padding: '20px', overflowY: 'auto' },
+  modalImgWrap: { width: '100%', height: '200px', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px' },
+  modalImg: { width: '100%', height: '100%', objectFit: 'cover' },
+  modalSection: { marginBottom: '16px' },
+  modalSub: { margin: '0 0 4px 0', fontSize: '12px', color: '#6B7280', textTransform: 'uppercase', fontWeight: '600' },
+  modalValueLg: { fontSize: '20px', fontWeight: '800', color: '#111827', marginBottom: '4px' },
+  modalValueMd: { fontSize: '14px', color: '#4B5563', fontWeight: '500' },
+  modalField: {
+    background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '12px 16px',
+    borderRadius: '10px', flex: '1 1 calc(33% - 10px)', minWidth: '130px',
+  },
+  modalLabel: { display: 'block', fontSize: '11px', color: '#6B7280', marginBottom: '4px', fontWeight: '600', textTransform: 'uppercase' },
+  modalValue: { fontSize: '14px', color: '#111827', fontWeight: '700' },
+  modalValueAmount: { fontSize: '16px', color: '#1D6A4A', fontWeight: '800' },
+  modalDesc: { fontSize: '14px', color: '#374151', lineHeight: '1.5', margin: 0 },
 };
+
+// Global spin animation for loader
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.innerHTML = `
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+  `;
+  document.head.appendChild(style);
+}
 
 export default MyTransactions;

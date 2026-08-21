@@ -410,8 +410,530 @@ const getCustomerVisits = async (customerId, filters = {}) => {
     };
 };
 
+// get Transaction Summary 
+
+
+const getTransactionSummary = async (customerId) => {
+    const query = `
+        SELECT
+            COUNT(*) AS total_transactions,
+
+            COUNT(*) FILTER (
+                WHERE LOWER(ts.name) = 'in progress'
+            ) AS active_transactions,
+
+            COUNT(*) FILTER (
+                WHERE LOWER(ts.name) = 'completed'
+            ) AS completed_transactions,
+
+            COUNT(*) FILTER (
+                WHERE LOWER(ts.name) = 'pending'
+            ) AS pending_transactions
+
+        FROM transactions t
+        JOIN transaction_statuses ts
+            ON ts.transaction_status_id = t.transaction_status_id
+
+        WHERE t.customer_id = $1;
+    `;
+
+    const result = await pool.query(query, [customerId]);
+
+    return result.rows[0];
+};
+/**
+ * Fetch customer's transactions list with filters and pagination
+ * @param {number|string} customerId
+ * @param {Object} filters - { search, status, transaction_type, sort, page, limit }
+ */
+const getCustomerTransactions = async (customerId, filters = {}) => {
+    const {
+        search,
+        status,
+        transaction_type,
+        sort,
+        page = 1,
+        limit = 10
+    } = filters;
+
+    const whereConditions = [`t.customer_id = $1`];
+    const queryParams = [customerId];
+    let paramIndex = 2;
+
+    // Search filter
+    if (search && search.trim()) {
+        whereConditions.push(`(p.title ILIKE $${paramIndex} OR p.address ILIKE $${paramIndex} OR p.city ILIKE $${paramIndex})`);
+        queryParams.push(`%${search.trim()}%`);
+        paramIndex++;
+    }
+
+    // Status filter
+    if (status && status.trim()) {
+        if (!isNaN(status)) {
+            whereConditions.push(`t.transaction_status_id = $${paramIndex}`);
+            queryParams.push(parseInt(status, 10));
+            paramIndex++;
+        } else {
+            whereConditions.push(`LOWER(ts.name) = LOWER($${paramIndex})`);
+            queryParams.push(status.trim());
+            paramIndex++;
+        }
+    }
+
+    // Transaction type filter
+    if (transaction_type && transaction_type.trim()) {
+        if (!isNaN(transaction_type)) {
+            whereConditions.push(`t.transaction_type_id = $${paramIndex}`);
+            queryParams.push(parseInt(transaction_type, 10));
+            paramIndex++;
+        } else {
+            whereConditions.push(`LOWER(tt.name) = LOWER($${paramIndex})`);
+            queryParams.push(transaction_type.trim());
+            paramIndex++;
+        }
+    }
+
+    const whereClause = whereConditions.join(' AND ');
+
+    // Sorting
+    let orderBy = 't.transaction_date DESC NULLS LAST, t.created_at DESC';
+    if (sort) {
+        if (sort === 'oldest') {
+            orderBy = 't.transaction_date ASC NULLS LAST, t.created_at ASC';
+        } else if (sort === 'amount_high') {
+            orderBy = 't.agreed_amount DESC NULLS LAST, t.created_at DESC';
+        } else if (sort === 'amount_low') {
+            orderBy = 't.agreed_amount ASC NULLS LAST, t.created_at DESC';
+        }
+    }
+
+    // Count Query for Pagination
+    const countQuery = `
+        SELECT COUNT(*) AS total
+        FROM transactions t
+        LEFT JOIN properties p ON p.property_id = t.property_id
+        LEFT JOIN transaction_statuses ts ON ts.transaction_status_id = t.transaction_status_id
+        LEFT JOIN transaction_types tt ON tt.transaction_type_id = t.transaction_type_id
+        WHERE ${whereClause};
+    `;
+
+    const countResult = await pool.query(countQuery, queryParams);
+    const total = parseInt(countResult.rows[0].total, 10) || 0;
+
+    // Pagination
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+    const offset = (pageNum - 1) * limitNum;
+
+    // Main Query
+    const mainQuery = `
+        SELECT
+            t.transaction_id,
+            t.property_id,
+            p.title AS property_title,
+            p.address,
+            p.city,
+            tt.name AS transaction_type,
+            ts.name AS transaction_status,
+            t.agreed_amount,
+            t.transaction_date,
+            pm.media_url AS primary_image
+        FROM transactions t
+        LEFT JOIN properties p ON p.property_id = t.property_id
+        LEFT JOIN transaction_statuses ts ON ts.transaction_status_id = t.transaction_status_id
+        LEFT JOIN transaction_types tt ON tt.transaction_type_id = t.transaction_type_id
+        LEFT JOIN property_media pm
+            ON pm.property_id = p.property_id
+           AND pm.media_type_id = 1
+           AND pm.media_status_id = 3
+           AND pm.is_primary = TRUE
+           AND pm.is_deleted = FALSE
+        WHERE ${whereClause}
+        ORDER BY ${orderBy}
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1};
+    `;
+
+    const mainResult = await pool.query(mainQuery, [...queryParams, limitNum, offset]);
+
+    return {
+        transactions: mainResult.rows,
+        pagination: {
+            total,
+            page: pageNum,
+            limit: limitNum,
+            total_pages: Math.ceil(total / limitNum) || 1
+        }
+    };
+};
+/**
+ * Fetch a single transaction by ID for a specific customer
+ * @param {number|string} customerId
+ * @param {number|string} transactionId
+ */
+const getTransactionById = async (customerId, transactionId) => {
+    const query = `
+        SELECT
+            t.transaction_id,
+            t.property_id,
+            p.title AS property_title,
+            p.address,
+            p.city,
+            p.sale_price,
+            p.rent_price,
+            p.bedrooms,
+            p.bathrooms,
+            p.area_value,
+            pt.name AS property_type,
+            tt.name AS transaction_type,
+            ts.name AS transaction_status,
+            t.agreed_amount,
+            t.transaction_date,
+            t.remarks,
+            pm.media_url AS primary_image
+        FROM transactions t
+        LEFT JOIN properties p ON p.property_id = t.property_id
+        LEFT JOIN property_types pt ON pt.property_type_id = p.property_type_id
+        LEFT JOIN transaction_statuses ts ON ts.transaction_status_id = t.transaction_status_id
+        LEFT JOIN transaction_types tt ON tt.transaction_type_id = t.transaction_type_id
+        LEFT JOIN property_media pm
+            ON pm.property_id = p.property_id
+           AND pm.media_type_id = 1
+           AND pm.media_status_id = 3
+           AND pm.is_primary = TRUE
+           AND pm.is_deleted = FALSE
+        WHERE t.customer_id = $1 AND t.transaction_id = $2
+    `;
+
+    const result = await pool.query(query, [customerId, transactionId]);
+    return result.rows[0] || null;
+};
+/**
+ * Fetch customer's inspection reports summary
+ * @param {number|string} customerId
+ */
+const getInspectionReportSummary = async (customerId) => {
+    const query = `
+        SELECT
+            COUNT(DISTINCT ir.inspection_report_id) AS total_reports,
+
+            COUNT(DISTINCT ir.inspection_report_id) FILTER (
+                WHERE LOWER(ist.name) = 'completed'
+            ) AS completed,
+
+            COUNT(DISTINCT ir.inspection_report_id) FILTER (
+                WHERE LOWER(ires.name) = 'passed'
+            ) AS passed,
+
+            COUNT(DISTINCT ir.inspection_report_id) FILTER (
+                WHERE LOWER(ires.name) = 'requires attention'
+            ) AS needs_attention
+
+        FROM inspection_reports ir
+        JOIN inspections i ON i.inspection_id = ir.inspection_id
+        JOIN property_visits pv ON pv.property_id = i.property_id
+        LEFT JOIN inspection_statuses ist ON ist.inspection_status_id = i.inspection_status_id
+        LEFT JOIN inspection_results ires ON ires.inspection_result_id = ir.inspection_result_id
+        WHERE pv.customer_id = $1;
+    `;
+
+    const result = await pool.query(query, [customerId]);
+    return result.rows[0] || {
+        total_reports: 0,
+        completed: 0,
+        passed: 0,
+        needs_attention: 0
+    };
+};
+/**
+ * Fetch customer's inspection reports list with filters and pagination
+ * @param {number|string} customerId
+ * @param {Object} filters
+ */
+const getInspectionReportsList = async (customerId, filters = {}) => {
+    const {
+        search,
+        status,
+        result: inspectionResult,
+        sort,
+        page = 1,
+        limit = 10
+    } = filters;
+
+    const whereConditions = [`pv.customer_id = $1`];
+    const queryParams = [customerId];
+    let paramIndex = 2;
+
+    if (search && search.trim()) {
+        whereConditions.push(`(p.title ILIKE $${paramIndex} OR p.address ILIKE $${paramIndex} OR p.city ILIKE $${paramIndex} OR u.name ILIKE $${paramIndex})`);
+        queryParams.push(`%${search.trim()}%`);
+        paramIndex++;
+    }
+
+    if (status && status.trim()) {
+        whereConditions.push(`LOWER(ist.name) = LOWER($${paramIndex})`);
+        queryParams.push(status.trim());
+        paramIndex++;
+    }
+
+    if (inspectionResult && inspectionResult.trim()) {
+        whereConditions.push(`LOWER(ires.name) = LOWER($${paramIndex})`);
+        queryParams.push(inspectionResult.trim());
+        paramIndex++;
+    }
+
+    const whereClause = whereConditions.join(' AND ');
+
+    let orderBy = 'ir.created_at DESC';
+    if (sort) {
+        if (sort === 'oldest') {
+            orderBy = 'ir.created_at ASC';
+        } else if (sort === 'date_desc') {
+            orderBy = 'COALESCE(i.completed_at, i.scheduled_at) DESC NULLS LAST, ir.created_at DESC';
+        } else if (sort === 'date_asc') {
+            orderBy = 'COALESCE(i.completed_at, i.scheduled_at) ASC NULLS LAST, ir.created_at ASC';
+        }
+    }
+
+    const countQuery = `
+        SELECT COUNT(DISTINCT ir.inspection_report_id) AS total
+        FROM inspection_reports ir
+        JOIN inspections i ON i.inspection_id = ir.inspection_id
+        JOIN property_visits pv ON pv.property_id = i.property_id
+        JOIN properties p ON p.property_id = i.property_id
+        LEFT JOIN inspection_statuses ist ON ist.inspection_status_id = i.inspection_status_id
+        LEFT JOIN inspection_results ires ON ires.inspection_result_id = ir.inspection_result_id
+        LEFT JOIN users u ON u.user_id = i.inspector_id
+        WHERE ${whereClause};
+    `;
+
+    const countResult = await pool.query(countQuery, queryParams);
+    const total = parseInt(countResult.rows[0].total, 10) || 0;
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+    const offset = (pageNum - 1) * limitNum;
+
+    const mainQuery = `
+        SELECT
+            ir.inspection_report_id,
+            p.property_id,
+            p.title AS property_title,
+            p.address,
+            p.city,
+            u.name AS inspector_name,
+            COALESCE(i.completed_at, i.scheduled_at) AS inspection_date,
+            ist.name AS inspection_status,
+            ires.name AS inspection_result,
+            ir.overall_condition,
+            ir.report_summary,
+            pm.media_url AS primary_image
+        FROM inspection_reports ir
+        JOIN inspections i ON i.inspection_id = ir.inspection_id
+        JOIN property_visits pv ON pv.property_id = i.property_id
+        JOIN properties p ON p.property_id = i.property_id
+        LEFT JOIN inspection_statuses ist ON ist.inspection_status_id = i.inspection_status_id
+        LEFT JOIN inspection_results ires ON ires.inspection_result_id = ir.inspection_result_id
+        LEFT JOIN users u ON u.user_id = i.inspector_id
+        LEFT JOIN property_media pm
+            ON pm.property_id = p.property_id
+           AND pm.media_type_id = 1
+           AND pm.media_status_id = 3
+           AND pm.is_primary = TRUE
+           AND pm.is_deleted = FALSE
+        WHERE ${whereClause}
+        GROUP BY 
+            ir.inspection_report_id,
+            p.property_id,
+            p.title,
+            p.address,
+            p.city,
+            u.name,
+            i.completed_at,
+            i.scheduled_at,
+            ist.name,
+            ires.name,
+            ir.overall_condition,
+            ir.report_summary,
+            pm.media_url,
+            ir.created_at
+        ORDER BY ${orderBy}
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1};
+    `;
+
+    const mainResult = await pool.query(mainQuery, [...queryParams, limitNum, offset]);
+
+    return {
+        reports: mainResult.rows,
+        pagination: {
+            total,
+            page: pageNum,
+            limit: limitNum,
+            total_pages: Math.ceil(total / limitNum) || 1
+        }
+    };
+};
+ 
+/**
+ * Fetch a single inspection report by ID for a specific customer
+ * @param {number|string} customerId
+ * @param {number|string} reportId
+ */
+const getInspectionReportById = async (customerId, reportId) => {
+    const query = `
+        SELECT
+            ir.inspection_report_id,
+            ir.overall_condition,
+            ir.report_summary,
+            ir.findings,
+            ir.recommendations,
+            ir.reported_at,
+            
+            p.property_id,
+            p.title AS property_title,
+            p.address,
+            p.city,
+            
+            i.inspection_id,
+            COALESCE(i.completed_at, i.scheduled_at) AS inspection_date,
+            i.notes AS inspection_notes,
+            
+            u.user_id AS inspector_id,
+            u.name AS inspector_name,
+            u.email AS inspector_email,
+            u.mobile_no AS inspector_mobile,
+            
+            ist.name AS inspection_status,
+            ires.name AS inspection_result,
+            
+            (
+                SELECT COALESCE(json_agg(
+                    json_build_object(
+                        'inspection_media_id', im.inspection_media_id,
+                        'file_name', im.file_name,
+                        'file_url', im.file_url,
+                        'caption', im.caption,
+                        'media_type_id', im.media_type_id,
+                        'created_at', im.created_at
+                    )
+                ), '[]'::json)
+                FROM inspection_media im
+                WHERE im.inspection_id = i.inspection_id
+            ) AS media
+        FROM inspection_reports ir
+        JOIN inspections i ON i.inspection_id = ir.inspection_id
+        JOIN properties p ON p.property_id = i.property_id
+        LEFT JOIN inspection_statuses ist ON ist.inspection_status_id = i.inspection_status_id
+        LEFT JOIN inspection_results ires ON ires.inspection_result_id = ir.inspection_result_id
+        LEFT JOIN users u ON u.user_id = i.inspector_id
+        WHERE ir.inspection_report_id = $2
+          AND EXISTS (
+              SELECT 1 FROM property_visits pv
+              WHERE pv.property_id = i.property_id AND pv.customer_id = $1
+          )
+    `;
+
+    const result = await pool.query(query, [customerId, reportId]);
+    return result.rows[0] || null;
+};
+
+/**
+ * Update customer profile details
+ * @param {number|string} customerId
+ * @param {Object} updateData
+ */
+const updateCustomerProfile = async (customerId, updateData) => {
+    const { name, email, country, mobile_no } = updateData;
+
+    // Check if email is already in use by another user
+    if (email) {
+        const emailCheckQuery = 'SELECT user_id FROM users WHERE email = $1 AND user_id != $2';
+        const emailCheckResult = await pool.query(emailCheckQuery, [email, customerId]);
+        if (emailCheckResult.rows.length > 0) {
+            const error = new Error('Email is already in use');
+            error.statusCode = 400;
+            throw error;
+        }
+    }
+
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (name !== undefined) {
+        updates.push(`name = $${paramIndex++}`);
+        values.push(name);
+    }
+    if (email !== undefined) {
+        updates.push(`email = $${paramIndex++}`);
+        values.push(email);
+    }
+    if (country !== undefined) {
+        updates.push(`country = $${paramIndex++}`);
+        values.push(country);
+    }
+    if (mobile_no !== undefined) {
+        updates.push(`mobile_no = $${paramIndex++}`);
+        values.push(mobile_no);
+    }
+
+    if (updates.length === 0) {
+        const error = new Error('No fields provided to update');
+        error.statusCode = 400;
+        throw error;
+    }
+    
+    values.push(customerId);
+    
+    const query = `
+        UPDATE users
+        SET ${updates.join(', ')}
+        WHERE user_id = $${paramIndex}
+        RETURNING user_id, name, email, country, mobile_no, role_id
+    `;
+
+    const result = await pool.query(query, values);
+    
+    if (result.rows.length === 0) {
+        const error = new Error('User not found');
+        error.statusCode = 404;
+        throw error;
+    }
+    
+    return result.rows[0];
+};
+
+/**
+ * Get customer's current password by ID
+ * @param {number|string} customerId
+ */
+const getCustomerPasswordById = async (customerId) => {
+    const query = 'SELECT password FROM users WHERE user_id = $1';
+    const result = await pool.query(query, [customerId]);
+    return result.rows[0] ? result.rows[0].password : null;
+};
+
+/**
+ * Update customer password
+ * @param {number|string} customerId
+ * @param {string} hashedPassword
+ */
+const updateCustomerPassword = async (customerId, hashedPassword) => {
+    const query = 'UPDATE users SET password = $1 WHERE user_id = $2';
+    await pool.query(query, [hashedPassword, customerId]);
+    return true;
+};
+
 module.exports = {
     getUpcomingVisitByCustomerId,
     getRecentActivitiesByCustomerId,
     getCustomerVisits,
+    getTransactionSummary,
+    getCustomerTransactions,
+    getTransactionById,
+    getInspectionReportSummary,
+    getInspectionReportsList,
+    getInspectionReportById,
+    updateCustomerProfile,
+    getCustomerPasswordById,
+    updateCustomerPassword
 };

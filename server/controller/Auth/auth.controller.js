@@ -412,10 +412,35 @@ const getMe = async (req, res, next) => {
 };
 
 
+/**
+ * User Logout Controller
+ */
+const logout = async (req, res, next) => {
+    try {
+        // Since we are using stateless JWTs without a token blacklist,
+        // logout is handled client-side by destroying the token.
+        // We just return a success response to confirm the action.
+        if (req.user && req.user.email) {
+            logger.info(`User logged out successfully: ${req.user.email}`);
+        } else {
+            logger.info(`User logged out successfully`);
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Logout successful'
+        });
+    } catch (error) {
+        logger.error('Logout error:', error);
+        next(error);
+    }
+};
+
 module.exports = {
     signup,
     verifyEmail,
     login,
+    logout,
     forgotPassword,
     resetPassword,
     getUsers,

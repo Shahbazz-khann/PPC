@@ -50,6 +50,14 @@ apiRouter.use('/properties', propertyRoutes);
 const customerRoutes = require('./routes/Customer/customer.routes');
 apiRouter.use('/customer', customerRoutes);
 
+// Owner
+const ownerRoutes = require('./routes/Owner/owner.routes');
+apiRouter.use('/owner', ownerRoutes);
+
+// Inspector
+const inspectorRoutes = require('./routes/Inspector/inspector.routes');
+apiRouter.use('/inspector', inspectorRoutes);
+
 app.use(`/api/${API_VERSION}`, apiRouter);
 
 // --------------------------------------------------

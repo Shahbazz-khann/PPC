@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Search,
   ChevronDown,
@@ -17,98 +17,12 @@ import {
   SlidersHorizontal,
   ArrowRight,
   Image as ImageIcon,
+  Loader2,
 } from 'lucide-react';
+import { getInspectionReportSummary, getInspectionReports, getInspectionReportById } from '../../services/customer.services';
 
-// ─── Mock Data ─────────────────────────────────────────────────────────────────
-// Structured to match the confirmed database schema:
-//
-//  inspections:       inspection_id, property_id, inspector_id,
-//                     inspection_status_id, inspection_result_id, timestamps
-//  inspection_reports: report_id, inspection_id, findings, timestamps
-//  inspection_media:   media_id, inspection_id, media_type_id, uploaded_by
-//
-// Replace MOCK_REPORTS with GET /api/customer/inspection-reports when backend ready.
-// All field names mirror the confirmed DB schema.
-
-const MOCK_REPORTS = [
-  {
-    report_id: 'RPT-2026-0018',
-    inspection_id: 'INS-2026-0041',
-    property: {
-      property_id: 1,
-      title: 'Modern Family Villa',
-      location: 'Bahria Town, Islamabad',
-      image: '/src/assets/prop_villa.png',
-      fallback: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&q=80',
-    },
-    inspector_name: 'Ahmed Raza',
-    inspection_status: 'Completed',
-    inspection_result: 'Passed',
-    inspection_date: '2026-08-05',
-    findings: 'The property is in excellent structural condition. All major systems including electrical, plumbing, and HVAC are functional. Minor cosmetic touch-ups recommended for external paintwork. No significant defects were observed.',
-    media: [
-      { media_id: 1, type: 'image', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80', caption: 'Front elevation' },
-      { media_id: 2, type: 'image', url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=80', caption: 'Living area' },
-      { media_id: 3, type: 'image', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80', caption: 'Kitchen' },
-    ],
-  },
-  {
-    report_id: 'RPT-2026-0015',
-    inspection_id: 'INS-2026-0038',
-    property: {
-      property_id: 2,
-      title: 'Luxury Apartment in DHA',
-      location: 'DHA Phase 2, Islamabad',
-      image: '/src/assets/prop_apartment.png',
-      fallback: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=400&q=80',
-    },
-    inspector_name: 'Usman Ali',
-    inspection_status: 'Completed',
-    inspection_result: 'Needs Attention',
-    inspection_date: '2026-07-22',
-    findings: 'Overall structure is sound. However, the bathroom tiles on the second floor show signs of water seepage. Electrical panel in the kitchen requires replacement. Recommend addressing these issues before proceeding.',
-    media: [
-      { media_id: 4, type: 'image', url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80', caption: 'Building exterior' },
-      { media_id: 5, type: 'image', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80', caption: 'Bathroom seepage area' },
-    ],
-  },
-  {
-    report_id: 'RPT-2026-0012',
-    inspection_id: 'INS-2026-0031',
-    property: {
-      property_id: 3,
-      title: 'Fully Furnished House',
-      location: 'G-13, Islamabad',
-      image: '/src/assets/prop_house.png',
-      fallback: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=400&q=80',
-    },
-    inspector_name: 'Bilal Ahmed',
-    inspection_status: 'In Progress',
-    inspection_result: null,
-    inspection_date: '2026-08-10',
-    findings: null,
-    media: [],
-  },
-  {
-    report_id: 'RPT-2026-0009',
-    inspection_id: 'INS-2026-0027',
-    property: {
-      property_id: 4,
-      title: 'Smart Home Villa',
-      location: 'E-11, Islamabad',
-      image: '/src/assets/prop_living_room.png',
-      fallback: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=400&q=80',
-    },
-    inspector_name: 'Ahmed Raza',
-    inspection_status: 'Completed',
-    inspection_result: 'Passed',
-    inspection_date: '2026-07-01',
-    findings: 'Property has been extensively renovated and all systems are in excellent working order. Smart home automation systems are fully operational. The property meets PPC quality standards.',
-    media: [
-      { media_id: 6, type: 'image', url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=80', caption: 'Main living area' },
-    ],
-  },
-];
+// Fallback property image
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&q=80';
 
 // ─── Status / Result Config ────────────────────────────────────────────────────
 
@@ -159,7 +73,7 @@ const Lightbox = ({ media, startIndex, onClose }) => {
         {/* Close */}
         <button style={S.lightboxClose} onClick={onClose}><X size={18} /></button>
         {/* Image */}
-        <img src={current.url} alt={current.caption} style={S.lightboxImg} />
+        <img src={current.file_url || current.url} alt={current.caption} style={S.lightboxImg} />
         <div style={S.lightboxCaption}>{current.caption}</div>
         {/* Navigation */}
         {media.length > 1 && (
@@ -198,7 +112,7 @@ const ReportDetail = ({ report, onClose }) => {
         <div style={S.detailHeader}>
           <div>
             <div style={S.detailTitle}>Inspection Report</div>
-            <div style={S.detailSubtitle}>{report.report_id}</div>
+            <div style={S.detailSubtitle}>{report.inspection_report_id}</div>
           </div>
           <button style={S.detailClose} onClick={onClose}><X size={18} /></button>
         </div>
@@ -210,16 +124,16 @@ const ReportDetail = ({ report, onClose }) => {
             <div style={S.detailSectionTitle}>Property</div>
             <div style={S.detailPropCard}>
               <img
-                src={propImgErr ? report.property.fallback : report.property.image}
-                alt={report.property.title}
+                src={propImgErr ? FALLBACK_IMAGE : (report.primary_image || FALLBACK_IMAGE)}
+                alt={report.property_title}
                 style={S.detailPropImg}
                 onError={() => setPropImgErr(true)}
               />
               <div>
-                <div style={S.detailPropName}>{report.property.title}</div>
+                <div style={S.detailPropName}>{report.property_title}</div>
                 <div style={S.detailPropLoc}>
                   <MapPin size={12} color="#9CA3AF" />
-                  {report.property.location}
+                  {[report.address, report.city].filter(Boolean).join(', ')}
                 </div>
               </div>
             </div>
@@ -255,8 +169,8 @@ const ReportDetail = ({ report, onClose }) => {
           {/* Findings */}
           <div style={S.detailSection}>
             <div style={S.detailSectionTitle}>Findings & Remarks</div>
-            {report.findings ? (
-              <div style={S.detailFindings}>{report.findings}</div>
+            {report.findings || report.report_summary ? (
+              <div style={S.detailFindings}>{report.findings || report.report_summary}</div>
             ) : (
               <div style={S.detailPending}>
                 Inspection is still in progress. Findings will be available once the inspection is completed.
@@ -274,11 +188,11 @@ const ReportDetail = ({ report, onClose }) => {
               <div style={S.mediaGrid}>
                 {report.media.map((m, i) => (
                   <div
-                    key={m.media_id}
+                    key={m.inspection_media_id || m.media_id || i}
                     style={S.mediaThumb}
                     onClick={() => setLightbox(i)}
                   >
-                    <img src={m.url} alt={m.caption} style={S.mediaThumbImg} />
+                    <img src={m.file_url || m.url} alt={m.caption} style={S.mediaThumbImg} />
                     <div style={S.mediaThumbOverlay}>
                       <ImageIcon size={18} color="#fff" />
                     </div>
@@ -306,13 +220,17 @@ const ReportDetail = ({ report, onClose }) => {
 // Report list card
 const ReportCard = ({ report, onView }) => {
   const [imgErr, setImgErr] = useState(false);
+  
+  // Safe location fallback
+  const location = [report.address, report.city].filter(Boolean).join(', ') || 'Unknown Location';
+  
   return (
     <div style={S.card}>
       {/* Property image */}
       <div style={S.cardImgWrap}>
         <img
-          src={imgErr ? report.property.fallback : report.property.image}
-          alt={report.property.title}
+          src={imgErr ? FALLBACK_IMAGE : (report.primary_image || FALLBACK_IMAGE)}
+          alt={report.property_title}
           style={S.cardImg}
           onError={() => setImgErr(true)}
         />
@@ -325,17 +243,17 @@ const ReportCard = ({ report, onView }) => {
           <StatusBadge label={report.inspection_status} config={STATUS_CFG} />
           <StatusBadge label={report.inspection_result} config={RESULT_CFG} />
         </div>
-        <div style={S.cardTitle}>{report.property.title}</div>
+        <div style={S.cardTitle}>{report.property_title}</div>
         <div style={S.cardLoc}>
           <MapPin size={12} color="#9CA3AF" strokeWidth={2} />
-          {report.property.location}
+          {location}
         </div>
 
         {/* Meta */}
         <div style={S.cardMeta}>
           <div style={S.cardMetaItem}>
             <span style={S.cardMetaLbl}>Report ID</span>
-            <span style={S.cardMetaVal}>{report.report_id}</span>
+            <span style={S.cardMetaVal}>{report.inspection_report_id}</span>
           </div>
           <div style={S.cardMetaDivider} />
           <div style={S.cardMetaItem}>
@@ -356,21 +274,15 @@ const ReportCard = ({ report, onView }) => {
         </div>
 
         {/* Findings preview */}
-        {report.findings && (
+        {report.report_summary && (
           <div style={S.cardFindings}>
-            {report.findings.length > 120 ? report.findings.slice(0, 120) + '…' : report.findings}
+            {report.report_summary.length > 120 ? report.report_summary.slice(0, 120) + '…' : report.report_summary}
           </div>
         )}
       </div>
 
       {/* Right action */}
       <div style={S.cardRight}>
-        {report.media.length > 0 && (
-          <div style={S.mediaCountPill}>
-            <ImageIcon size={12} color="#6B7280" />
-            {report.media.length} photo{report.media.length > 1 ? 's' : ''}
-          </div>
-        )}
         <button style={S.viewBtn} onClick={() => onView(report)}>
           View Report
           <ArrowRight size={13} strokeWidth={2.5} />
@@ -399,34 +311,95 @@ const InspectionReport = () => {
   const [search, setSearch]       = useState('');
   const [statusFilter, setStatus] = useState('All');
   const [resultFilter, setResult] = useState('All');
-  const [sortBy, setSort]         = useState('newest');
+  const [sortBy, setSort]         = useState('date_desc'); // changed to match backend param
   const [selectedReport, setSelected] = useState(null);
 
+  // API States
+  const [reports, setReports] = useState([]);
+  const [summary, setSummary] = useState({ total_reports: 0, completed: 0, passed: 0, needs_attention: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ total: 0, total_pages: 1 });
+  const [fetchingDetail, setFetchingDetail] = useState(false);
+
   // Derived summary values
-  const total     = MOCK_REPORTS.length;
-  const completed = MOCK_REPORTS.filter((r) => r.inspection_status === 'Completed').length;
-  const passed    = MOCK_REPORTS.filter((r) => r.inspection_result === 'Passed').length;
-  const attention = MOCK_REPORTS.filter((r) => r.inspection_result === 'Needs Attention').length;
+  const total     = Number(summary.total_reports) || 0;
+  const completed = Number(summary.completed) || 0;
+  const passed    = Number(summary.passed) || 0;
+  const attention = Number(summary.needs_attention) || 0;
 
-  const filtered = useMemo(() => {
-    let list = [...MOCK_REPORTS];
+  // 1) Fetch Summary
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const res = await getInspectionReportSummary();
+        if (res.data?.success) {
+          setSummary(res.data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching summary:', err);
+      }
+    };
+    fetchSummary();
+  }, []);
 
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter(
-        (r) =>
-          r.property.title.toLowerCase().includes(q) ||
-          r.property.location.toLowerCase().includes(q) ||
-          r.report_id.toLowerCase().includes(q)
-      );
+  // 2) Fetch Reports with Debounce
+  const fetchReports = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = { page, limit: 10 };
+      if (search.trim()) params.search = search;
+      if (statusFilter !== 'All') params.status = statusFilter;
+      if (resultFilter !== 'All') params.result = resultFilter;
+      if (sortBy) params.sort = sortBy;
+
+      const res = await getInspectionReports(params);
+      if (res.data?.success) {
+        setReports(res.data.data);
+        setPagination(res.data.pagination);
+      } else {
+        setError(res.data?.message || 'Failed to fetch reports.');
+      }
+    } catch (err) {
+      console.error('Error fetching reports:', err);
+      setError(err.response?.data?.message || 'An error occurred.');
+    } finally {
+      setLoading(false);
     }
-    if (statusFilter !== 'All') list = list.filter((r) => r.inspection_status === statusFilter);
-    if (resultFilter !== 'All') list = list.filter((r) => r.inspection_result === resultFilter);
-    if (sortBy === 'newest') list.sort((a, b) => new Date(b.inspection_date) - new Date(a.inspection_date));
-    if (sortBy === 'oldest') list.sort((a, b) => new Date(a.inspection_date) - new Date(b.inspection_date));
+  }, [search, statusFilter, resultFilter, sortBy, page]);
 
-    return list;
+  useEffect(() => {
+    const debounceId = setTimeout(() => {
+      fetchReports();
+    }, 300);
+    return () => clearTimeout(debounceId);
+  }, [fetchReports]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
   }, [search, statusFilter, resultFilter, sortBy]);
+
+  // Handle viewing detailed report
+  const handleViewReport = async (reportItem) => {
+    setFetchingDetail(true);
+    try {
+      const res = await getInspectionReportById(reportItem.inspection_report_id);
+      if (res.data?.success) {
+        setSelected(res.data.data);
+      } else {
+        // Fallback to basic list data if detail fails unexpectedly
+        setSelected(reportItem); 
+      }
+    } catch (err) {
+      console.error('Failed to fetch detailed report:', err);
+      setSelected(reportItem);
+    } finally {
+      setFetchingDetail(false);
+    }
+  };
 
   return (
     <div style={S.page}>
@@ -490,8 +463,8 @@ const InspectionReport = () => {
         <div style={S.selectWrap}>
           <SlidersHorizontal size={13} color="#6B7280" style={{ position: 'absolute', left: '10px', pointerEvents: 'none' }} />
           <select id="insp-sort" value={sortBy} onChange={(e) => setSort(e.target.value)} style={{ ...S.selectEl, paddingLeft: '30px' }}>
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
+            <option value="date_desc">Newest First</option>
+            <option value="date_asc">Oldest First</option>
           </select>
           <ChevronDown size={13} color="#6B7280" style={S.selectIcon} />
         </div>
@@ -499,20 +472,28 @@ const InspectionReport = () => {
 
       {/* ── Results count ── */}
       <div style={S.resultsCount}>
-        {filtered.length > 0
-          ? `Showing ${filtered.length} of ${MOCK_REPORTS.length} reports`
-          : 'No matching reports'}
+        {loading && reports.length === 0 ? (
+          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Loader2 size={13} className="animate-spin" /> Loading reports...
+          </span>
+        ) : error ? (
+          <span style={{ color: '#EF4444' }}>{error}</span>
+        ) : reports.length > 0 ? (
+          `Showing ${reports.length} of ${pagination.total} reports`
+        ) : (
+          'No matching reports'
+        )}
       </div>
 
       {/* ── Report List ── */}
-      {filtered.length === 0 ? (
+      {reports.length === 0 && !loading && !error ? (
         search || statusFilter !== 'All' || resultFilter !== 'All' ? (
           <div style={S.emptyState}>
             <div style={S.emptyIconBox}><Search size={30} color="#D1D5DB" strokeWidth={1.5} /></div>
             <div style={S.emptyTitle}>No reports match your filters</div>
             <div style={S.emptySub}>Try adjusting your search or filter criteria.</div>
             <button
-              onClick={() => { setSearch(''); setStatus('All'); setResult('All'); }}
+              onClick={() => { setSearch(''); setStatus('All'); setResult('All'); setSort('date_desc'); }}
               style={S.clearBtn}
             >
               Clear Filters
@@ -529,9 +510,32 @@ const InspectionReport = () => {
         )
       ) : (
         <div style={S.reportList}>
-          {filtered.map((r) => (
-            <ReportCard key={r.report_id} report={r} onView={setSelected} />
+          {reports.map((r) => (
+            <ReportCard key={r.inspection_report_id} report={r} onView={handleViewReport} />
           ))}
+          
+          {/* Pagination Controls */}
+          {pagination.total_pages > 1 && (
+             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
+                <button 
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  style={{ ...S.clearBtn, opacity: page === 1 ? 0.5 : 1 }}
+                >
+                  Previous
+                </button>
+                <span style={{ fontSize: '13px', color: '#6B7280', fontWeight: '500' }}>
+                  Page {page} of {pagination.total_pages}
+                </span>
+                <button 
+                  onClick={() => setPage(p => Math.min(pagination.total_pages, p + 1))}
+                  disabled={page === pagination.total_pages}
+                  style={{ ...S.clearBtn, opacity: page === pagination.total_pages ? 0.5 : 1 }}
+                >
+                  Next
+                </button>
+             </div>
+          )}
         </div>
       )}
 

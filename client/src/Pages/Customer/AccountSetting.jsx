@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Eye,
   EyeOff,
@@ -7,15 +7,17 @@ import {
   Headphones,
   ShieldCheck,
 } from 'lucide-react';
+import { getCurrentUser } from '../../Services/auth.services';
+import { updateCustomerProfile, changeCustomerPassword } from '../../Services/customer.services';
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
 const AccountSetting = () => {
   // Profile state
-  const [fullName, setFullName] = useState('Ahmed Khan');
-  const [email, setEmail] = useState('ahmed.khan@example.com');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [country, setCountry] = useState('Pakistan');
-  const [phone] = useState('+92 300 1234567');
+  const [phone, setPhone] = useState('');
 
   // Security state
   const [currentPwd, setCurrentPwd] = useState('');
@@ -46,6 +48,91 @@ const AccountSetting = () => {
       <polygon points="12.2,4.5 12.7,6 14.3,6 13,6.8 13.5,8.3 12.2,7.3 10.9,8.3 11.4,6.8 10.1,6 11.7,6" fill="#FFFFFF" />
     </svg>
   );
+
+  const [userProfile, setUserProfile] = useState(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isChangingPwd, setIsChangingPwd] = useState(false);
+  const [profileMsg, setProfileMsg] = useState({ type: '', text: '' });
+  const [pwdMsg, setPwdMsg] = useState({ type: '', text: '' });
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      setIsProfileLoading(true);
+      const res = await getCurrentUser();
+      const user = res.data?.data || res.data;
+      if (user) {
+        setUserProfile(user);
+        setFullName(user.name || '');
+        setEmail(user.email || '');
+        setCountry(user.country || 'Pakistan');
+        setPhone(user.mobile_no || '');
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile', error);
+    } finally {
+      setIsProfileLoading(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    setProfileMsg({ type: '', text: '' });
+    setIsSavingProfile(true);
+    try {
+      const res = await updateCustomerProfile({
+        name: fullName,
+        email: email,
+        country: country,
+        mobile_no: phone
+      });
+      setProfileMsg({ type: 'success', text: 'Profile updated successfully!' });
+      setUserProfile(res.data?.data || userProfile);
+    } catch (error) {
+      setProfileMsg({
+        type: 'error',
+        text: error.response?.data?.message || 'Failed to update profile'
+      });
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    setPwdMsg({ type: '', text: '' });
+    
+    if (!currentPwd || !newPwd || !confirmPwd) {
+      setPwdMsg({ type: 'error', text: 'All password fields are required' });
+      return;
+    }
+    if (newPwd !== confirmPwd) {
+      setPwdMsg({ type: 'error', text: 'New passwords do not match' });
+      return;
+    }
+    
+    setIsChangingPwd(true);
+    try {
+      await changeCustomerPassword({
+        current_password: currentPwd,
+        new_password: newPwd,
+        confirm_password: confirmPwd
+      });
+      setPwdMsg({ type: 'success', text: 'Password changed successfully!' });
+      setCurrentPwd('');
+      setNewPwd('');
+      setConfirmPwd('');
+    } catch (error) {
+      setPwdMsg({
+        type: 'error',
+        text: error.response?.data?.message || 'Failed to change password'
+      });
+    } finally {
+      setIsChangingPwd(false);
+    }
+  };
 
   return (
     <div style={s.page}>
@@ -150,10 +237,31 @@ const AccountSetting = () => {
               </div>
             </div>
 
+            {profileMsg.text && (
+              <div style={{
+                padding: '10px 14px',
+                marginTop: '16px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: '500',
+                background: profileMsg.type === 'success' ? '#ECFDF5' : '#FEF2F2',
+                color: profileMsg.type === 'success' ? '#065F46' : '#991B1B',
+                border: `1px solid ${profileMsg.type === 'success' ? '#A7F3D0' : '#FECACA'}`
+              }}>
+                {profileMsg.text}
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div style={s.profileActions}>
               <button style={s.cancelBtn}>Cancel</button>
-              <button style={s.saveBtn}>Save Changes</button>
+              <button 
+                style={s.saveBtn} 
+                onClick={handleSaveProfile}
+                disabled={isSavingProfile}
+              >
+                {isSavingProfile ? 'Saving...' : 'Save Changes'}
+              </button>
             </div>
           </div>
 
@@ -265,9 +373,30 @@ const AccountSetting = () => {
               </div>
             )}
 
+            {pwdMsg.text && (
+              <div style={{
+                padding: '10px 14px',
+                marginTop: '16px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: '500',
+                background: pwdMsg.type === 'success' ? '#ECFDF5' : '#FEF2F2',
+                color: pwdMsg.type === 'success' ? '#065F46' : '#991B1B',
+                border: `1px solid ${pwdMsg.type === 'success' ? '#A7F3D0' : '#FECACA'}`
+              }}>
+                {pwdMsg.text}
+              </div>
+            )}
+
             {/* Update Password Button */}
             <div style={s.securityActions}>
-              <button style={s.updatePwdBtn}>Update Password</button>
+              <button 
+                style={s.updatePwdBtn}
+                onClick={handleUpdatePassword}
+                disabled={isChangingPwd}
+              >
+                {isChangingPwd ? 'Updating...' : 'Update Password'}
+              </button>
             </div>
           </div>
         </div>
@@ -280,14 +409,14 @@ const AccountSetting = () => {
             <div style={s.profileSummaryCenter}>
               <img
                 src="/src/assets/customer_avatar.png"
-                alt="Ahmed Khan"
+                alt={userProfile?.name || "User"}
                 style={s.summaryAvatar}
                 onError={(e) => {
                   e.target.src =
                     'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80';
                 }}
               />
-              <div style={s.summaryName}>Ahmed Khan</div>
+              <div style={s.summaryName}>{userProfile?.name || fullName || "Loading..."}</div>
               <span style={s.roleBadge}>Customer</span>
               <div style={s.summaryRole}>PPC Customer</div>
             </div>
@@ -299,7 +428,7 @@ const AccountSetting = () => {
             <div style={s.accountInfoList}>
               <div style={s.accountRow}>
                 <span style={s.accountRowLabel}>Account Status</span>
-                <span style={s.activeBadge}>Active</span>
+                <span style={s.activeBadge}>{userProfile?.is_active ? 'Active' : 'Active'}</span>
               </div>
               <div style={s.accountRow}>
                 <span style={s.accountRowLabel}>Account Role</span>
@@ -307,15 +436,21 @@ const AccountSetting = () => {
               </div>
               <div style={s.accountRow}>
                 <span style={s.accountRowLabel}>Account Created</span>
-                <span style={s.accountRowValue}>15 Jan 2026</span>
+                <span style={s.accountRowValue}>
+                  {userProfile?.created_at ? new Date(userProfile.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '...'}
+                </span>
               </div>
               <div style={s.accountRow}>
                 <span style={s.accountRowLabel}>Last Updated</span>
-                <span style={s.accountRowValue}>10 Aug 2026</span>
+                <span style={s.accountRowValue}>
+                  {userProfile?.updated_at ? new Date(userProfile.updated_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '...'}
+                </span>
               </div>
               <div style={s.accountRow}>
                 <span style={s.accountRowLabel}>User ID</span>
-                <span style={s.accountRowValue}>USR-2026-0001</span>
+                <span style={s.accountRowValue}>
+                  {userProfile?.user_id ? `USR-${userProfile.user_id.toString().padStart(4, '0')}` : '...'}
+                </span>
               </div>
             </div>
           </div>

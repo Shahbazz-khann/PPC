@@ -14,6 +14,7 @@ const {
 router.post('/signup', validateSignup, authController.signup);
 router.post('/verify-email', validateVerifyEmail, authController.verifyEmail);
 router.post('/login', validateLogin, authController.login);
+router.post('/logout', authenticate, authController.logout);
 router.post('/forgot-password', validateForgotPassword, authController.forgotPassword);
 router.post('/reset-password', validateResetPassword, authController.resetPassword);
 

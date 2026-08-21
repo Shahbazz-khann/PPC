@@ -25,4 +25,4 @@ export const getProperties = async (params = {}) => {
  */
 export const getPropertyById = async (propertyId) => {
   return await api.get(`/properties/${propertyId}`);
-};
+}; 
