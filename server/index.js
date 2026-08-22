@@ -87,12 +87,17 @@ app.use(errorHandler);
 // --------------------------------------------------
 // Start Server
 // --------------------------------------------------
+const http = require('http');
+const { initializeSocket } = require('./socket/socket.server');
 
 const startServer = async () => {
   try {
     await connectDB();
 
-    app.listen(port, () => {
+    const httpServer = http.createServer(app);
+    initializeSocket(httpServer);
+
+    httpServer.listen(port, () => {
       logger.info(`PPC server running on http://localhost:${port}`);
       logger.info(`API version ${API_VERSION} available at /api/${API_VERSION}`);
     });
