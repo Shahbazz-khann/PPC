@@ -19,15 +19,13 @@ const Sidebar = () => {
 
   return (
     <aside
-      className={`h-screen sticky top-0 bg-[#032B1D] text-white flex flex-col p-2 select-none transition-all duration-300 ease-in-out ${
-        isCollapsed ? 'w-20' : 'w-64'
-      }`}
+      className={`h-screen sticky top-0 bg-[#032B1D] text-white flex flex-col p-2 select-none transition-all duration-300 ease-in-out ${isCollapsed ? 'w-20' : 'w-64'
+        }`}
     >
       {/* Logo & Toggle Header */}
       <div
-        className={`px-2 py-2 flex items-center border-b border-white/10 mb-2 transition-all duration-300 ${
-          isCollapsed ? 'justify-center' : 'justify-between'
-        }`}
+        className={`px-2 py-2 flex items-center border-b border-white/10 mb-2 transition-all duration-300 ${isCollapsed ? 'justify-center' : 'justify-between'
+          }`}
       >
         {/* Logo Container */}
         {!isCollapsed && (
@@ -63,12 +61,10 @@ const Sidebar = () => {
                   to={item.path}
                   title={isCollapsed ? item.title : undefined}
                   className={({ isActive }) =>
-                    `flex items-center gap-3.5 py-2 px-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      isCollapsed ? 'px-0 justify-center' : 'px-3 justify-start'
-                    } ${
-                      isActive
-                        ? 'bg-[#104D36] text-white font-semibold'
-                        : 'text-white/80 hover:text-white hover:bg-white/5'
+                    `flex items-center gap-3.5 py-2 px-3 rounded-xl text-sm font-medium transition-all duration-200 ${isCollapsed ? 'px-0 justify-center' : 'px-3 justify-start'
+                    } ${isActive
+                      ? 'bg-[#104D36] text-white font-semibold'
+                      : 'text-white/80 hover:text-white hover:bg-white/5'
                     }`
                   }
                 >

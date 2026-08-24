@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import {
@@ -23,6 +23,7 @@ import {
   Activity,
   CreditCard,
 } from 'lucide-react';
+import { getOwnerDashboardSummary, getOwnerVerificationSummary } from '../../Services/owner.services';
 
 // ─── Static / Mock Data (Owner-scoped) ──────────────────────────────────────────
 
@@ -216,7 +217,7 @@ const MOCK_RECENT_ACTIVITY = [
 
 // ─── Sub-Components ────────────────────────────────────────────────────────────
 
-const StatCard = ({ stat }) => {
+const StatCard = ({ stat, loading, error }) => {
   const IconComp = stat.icon;
   return (
     <div style={styles.statCard}>
@@ -225,7 +226,15 @@ const StatCard = ({ stat }) => {
           <IconComp size={20} color={stat.iconColor} strokeWidth={1.8} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={styles.statValue}>{stat.value}</div>
+          <div style={styles.statValue}>
+            {loading ? (
+              <div className="h-6 w-12 bg-gray-200 animate-pulse rounded"></div>
+            ) : error ? (
+              <span className="text-red-500 text-lg">-</span>
+            ) : (
+              stat.value
+            )}
+          </div>
           <div style={styles.statLabel}>{stat.label}</div>
         </div>
       </div>
@@ -240,6 +249,113 @@ const OwnerDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const [summaryData, setSummaryData] = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(true);
+  const [summaryError, setSummaryError] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchSummary = async () => {
+      try {
+        setLoadingSummary(true);
+        const res = await getOwnerDashboardSummary();
+        if (isMounted) {
+          const payload = res?.data || res || {};
+          setSummaryData(payload);
+          setSummaryError(null);
+        }
+      } catch (err) {
+        console.error("Failed to load dashboard summary:", err);
+        if (isMounted) setSummaryError("Unable to load summary.");
+      } finally {
+        if (isMounted) setLoadingSummary(false);
+      }
+    };
+
+    fetchSummary();
+    return () => { isMounted = false; };
+  }, []);
+
+  const [verifData, setVerifData] = useState(null);
+  const [loadingVerif, setLoadingVerif] = useState(true);
+  const [verifError, setVerifError] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchVerifSummary = async () => {
+      try {
+        setLoadingVerif(true);
+        const res = await getOwnerVerificationSummary();
+        if (isMounted) {
+          const payload = res?.data || res || {};
+          setVerifData(payload);
+          setVerifError(null);
+        }
+      } catch (err) {
+        console.error("Failed to load verification summary:", err);
+        if (isMounted) setVerifError("Unable to load summary.");
+      } finally {
+        if (isMounted) setLoadingVerif(false);
+      }
+    };
+
+    fetchVerifSummary();
+    return () => { isMounted = false; };
+  }, []);
+
+  const stats = [
+    {
+      id: 'properties',
+      icon: Building2,
+      iconBg: '#E8F4F1',
+      iconColor: '#1D6A4A',
+      value: summaryData?.total_properties ?? 0,
+      label: 'Total Properties',
+      sub: 'Registered properties',
+      subColor: '#1D6A4A',
+    },
+    {
+      id: 'verification',
+      icon: ShieldCheck,
+      iconBg: '#FFF7ED',
+      iconColor: '#D97706',
+      value: summaryData?.pending_verification ?? 0,
+      label: 'Pending Verification',
+      sub: 'Under PPC review',
+      subColor: '#D97706',
+    },
+    {
+      id: 'visits',
+      icon: Calendar,
+      iconBg: '#EEF2FF',
+      iconColor: '#4F46E5',
+      value: summaryData?.upcoming_visits ?? 0,
+      label: 'Upcoming Visits',
+      sub: 'Scheduled future visits',
+      subColor: '#4F46E5',
+    },
+    {
+      id: 'transactions',
+      icon: FileText,
+      iconBg: '#ECFDF5',
+      iconColor: '#059669',
+      value: summaryData?.active_transactions ?? 0,
+      label: 'Active Transactions',
+      sub: 'In progress',
+      subColor: '#059669',
+    },
+    {
+      id: 'invoices',
+      icon: Receipt,
+      iconBg: '#FEF2F2',
+      iconColor: '#DC2626',
+      value: summaryData?.pending_invoices ?? 0,
+      label: 'Pending Invoices',
+      sub: 'Pending actions',
+      subColor: '#DC2626',
+    },
+  ];
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
@@ -251,19 +367,19 @@ const OwnerDashboard = () => {
   const displayEmail = user?.email || 'tariq.mahmood@example.com';
 
   return (
-    <div style={styles.page}>
+    <div className="w-full max-w-[1600px] mx-auto min-h-screen flex flex-col bg-[#F8FAFC] overflow-x-hidden">
       {/* ═══════════════════════════════════════════════
           TOP HEADER — search & profile greeting
       ═══════════════════════════════════════════════ */}
-      <header style={styles.topHeader}>
-        <div style={styles.headerLeft}>
-          <div style={styles.searchBar}>
+      <header className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between bg-white px-4 sm:px-8 py-4 border-b border-gray-200 sticky top-0 z-30 gap-4 w-full">
+        <div style={styles.headerLeft} className="w-full sm:w-auto">
+          <div style={styles.searchBar} className="w-full sm:w-80">
             <Search size={16} color="#9CA3AF" />
             <span style={styles.searchPlaceholder}>Search my properties, visits, transactions...</span>
           </div>
         </div>
 
-        <div style={styles.headerRight}>
+        <div style={styles.headerRight} className="w-full sm:w-auto justify-end mt-2 sm:mt-0">
           <button style={styles.bellBtn} aria-label="Notifications">
             <Bell size={20} color="#374151" strokeWidth={1.8} />
             <span style={styles.bellDot}>2</span>
@@ -290,7 +406,7 @@ const OwnerDashboard = () => {
       {/* ═══════════════════════════════════════════════
           TWO-COLUMN LAYOUT: Main + Right Sidebar
       ═══════════════════════════════════════════════ */}
-      <div style={styles.twoCol}>
+      <div className="flex flex-col xl:grid xl:grid-cols-[1fr_350px] gap-6 px-4 sm:px-6 lg:px-8 py-6 w-full items-start">
 
         {/* ────────────────────────────────────────────
             LEFT / MAIN CONTENT COLUMN
@@ -308,9 +424,9 @@ const OwnerDashboard = () => {
           </section>
 
           {/* ── Summary Cards ── */}
-          <section style={styles.statsGrid}>
-            {MOCK_OWNER_STATS.map((stat) => (
-              <StatCard key={stat.id} stat={stat} />
+          <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+            {stats.map((stat) => (
+              <StatCard key={stat.id} stat={stat} loading={loadingSummary} error={summaryError} />
             ))}
           </section>
 
@@ -318,8 +434,8 @@ const OwnerDashboard = () => {
           <section style={styles.cardSection}>
             <div style={styles.sectionHeader}>
               <div>
-                <h2 style={styles.sectionTitle}>My Properties</h2>
-                <p style={styles.sectionSub}>Properties registered under your owner account</p>
+                <h2 style={styles.sectionTitle}>New Arrivals</h2>
+                <p style={styles.sectionSub}>Your latest added properties</p>
               </div>
               <button
                 style={styles.viewAllBtn}
@@ -329,8 +445,8 @@ const OwnerDashboard = () => {
               </button>
             </div>
 
-            <div style={styles.propertiesGrid}>
-              {MOCK_OWNER_PROPERTIES.map((prop) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {MOCK_OWNER_PROPERTIES.slice(0, 3).map((prop) => (
                 <div key={prop.id} style={styles.propCard}>
                   <div style={styles.propImageWrap}>
                     <img
@@ -379,7 +495,7 @@ const OwnerDashboard = () => {
           </section>
 
           {/* ── Two Column Grid for Status / Activity ── */}
-          <div style={styles.subGrid}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
 
             {/* ── Property Verification Summary ── */}
             <div style={styles.card}>
@@ -397,7 +513,15 @@ const OwnerDashboard = () => {
                 <div style={styles.verifBox}>
                   <div style={{ ...sDot('#10B981') }} />
                   <div>
-                    <div style={styles.verifNum}>{MOCK_VERIFICATION_SUMMARY.verified}</div>
+                    <div style={styles.verifNum}>
+                      {loadingVerif ? (
+                        <div className="h-5 w-8 bg-gray-200 animate-pulse rounded"></div>
+                      ) : verifError ? (
+                        <span className="text-red-500">-</span>
+                      ) : (
+                        verifData?.verified_properties ?? 0
+                      )}
+                    </div>
                     <div style={styles.verifLabel}>PPC Verified</div>
                   </div>
                 </div>
@@ -405,7 +529,15 @@ const OwnerDashboard = () => {
                 <div style={styles.verifBox}>
                   <div style={{ ...sDot('#F59E0B') }} />
                   <div>
-                    <div style={styles.verifNum}>{MOCK_VERIFICATION_SUMMARY.underReview}</div>
+                    <div style={styles.verifNum}>
+                      {loadingVerif ? (
+                        <div className="h-5 w-8 bg-gray-200 animate-pulse rounded"></div>
+                      ) : verifError ? (
+                        <span className="text-red-500">-</span>
+                      ) : (
+                        verifData?.pending_verification ?? 0
+                      )}
+                    </div>
                     <div style={styles.verifLabel}>Under Review</div>
                   </div>
                 </div>
@@ -415,7 +547,9 @@ const OwnerDashboard = () => {
                 <div
                   style={{
                     ...styles.verifProgressFill,
-                    width: `${(MOCK_VERIFICATION_SUMMARY.verified / MOCK_VERIFICATION_SUMMARY.total) * 100}%`,
+                    width: !loadingVerif && !verifError && verifData?.total_properties > 0
+                      ? `${(verifData.verified_properties / verifData.total_properties) * 100}%`
+                      : '0%',
                   }}
                 />
               </div>
@@ -448,7 +582,7 @@ const OwnerDashboard = () => {
           </div>
 
           {/* ── Bottom Grid: Upcoming Visits & Recent Transactions ── */}
-          <div style={styles.subGrid}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
 
             {/* ── Upcoming Property Visits ── */}
             <div style={styles.card}>
@@ -521,46 +655,9 @@ const OwnerDashboard = () => {
         {/* ────────────────────────────────────────────
             RIGHT SIDEBAR PANEL
         ──────────────────────────────────────────── */}
-        <aside style={styles.rightAside}>
+        <aside style={styles.rightAside} className="xl:sticky xl:top-24">
 
-          {/* ── Owner Profile Summary Card ── */}
-          <div style={styles.profileCard}>
-            <div style={styles.avatarWrap}>
-              <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256"
-                alt={displayName}
-                style={styles.profileCardAvatar}
-                onError={(e) => {
-                  e.target.src = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80';
-                }}
-              />
-              <span style={styles.activeStatusDot} title="Account Active" />
-            </div>
-            <div style={styles.profileCardName}>{displayName}</div>
-            <div style={styles.profileCardRoleBadge}>Property Owner</div>
 
-            <div style={styles.contactList}>
-              <div style={styles.contactItem}>
-                <Mail size={14} color="#1D6A4A" />
-                <span>{displayEmail}</span>
-              </div>
-              <div style={styles.contactItem}>
-                <Phone size={14} color="#1D6A4A" />
-                <span>+92 300 9876543</span>
-              </div>
-              <div style={styles.contactItem}>
-                <MapPin size={14} color="#1D6A4A" />
-                <span>Islamabad, Pakistan</span>
-              </div>
-            </div>
-
-            <button
-              style={styles.settingsBtn}
-              onClick={() => navigate('/owner/account-settings')}
-            >
-              Account Settings
-            </button>
-          </div>
 
           {/* ── Payments & Invoices Summary ── */}
           <div style={styles.sideCard}>
@@ -714,12 +811,10 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    background: '#F8FAFC',
-    border: '1.5px solid #E2E8F0',
-    borderRadius: '10px',
-    padding: '8px 16px',
-    flex: 1,
-    maxWidth: '460px',
+    background: '#F3F4F6',
+    borderRadius: '12px',
+    padding: '10px 14px',
+    width: '100%',
   },
   searchPlaceholder: {
     fontSize: '13px',
@@ -790,25 +885,27 @@ const styles = {
   },
 
   twoCol: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 320px',
+    /* Migrated to Tailwind classes */
+  },
+  rightAside: {
+    display: 'flex',
+    flexDirection: 'column',
     gap: '24px',
-    padding: '24px 28px 28px 28px',
-    flex: 1,
-    alignItems: 'start',
+    width: '100%',
   },
   mainCol: {
     display: 'flex',
     flexDirection: 'column',
     gap: '24px',
     minWidth: 0,
+    width: '100%',
   },
 
   greetingSection: {
     paddingBottom: '4px',
   },
   greetingTitle: {
-    fontSize: '26px',
+    fontSize: 'clamp(20px, 5vw, 26px)',
     fontWeight: '800',
     color: '#111827',
     margin: 0,
@@ -822,9 +919,7 @@ const styles = {
   },
 
   statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(5, 1fr)',
-    gap: '14px',
+    /* Migrated to Tailwind Grid classes */
   },
   statCard: {
     background: '#FFFFFF',
@@ -846,7 +941,7 @@ const styles = {
     flexShrink: 0,
   },
   statValue: {
-    fontSize: '24px',
+    fontSize: 'clamp(20px, 4vw, 24px)',
     fontWeight: '800',
     color: '#111827',
     lineHeight: 1,
@@ -901,9 +996,7 @@ const styles = {
   },
 
   propertiesGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '16px',
+    /* Migrated to Tailwind Grid classes */
   },
   propCard: {
     border: '1.5px solid #E2E8F0',
@@ -979,9 +1072,7 @@ const styles = {
   },
 
   subGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '16px',
+    /* Migrated to Tailwind Grid classes */
   },
   card: {
     background: '#FFFFFF',
@@ -1026,7 +1117,7 @@ const styles = {
     padding: '10px 12px',
   },
   verifNum: {
-    fontSize: '18px',
+    fontSize: 'clamp(16px, 4vw, 18px)',
     fontWeight: '800',
     color: '#111827',
   },
@@ -1279,13 +1370,13 @@ const styles = {
     color: '#6B7280',
   },
   finValueGreen: {
-    fontSize: '18px',
+    fontSize: 'clamp(16px, 4vw, 18px)',
     fontWeight: '800',
     color: '#10B981',
     lineHeight: 1.2,
   },
   finValueAmber: {
-    fontSize: '18px',
+    fontSize: 'clamp(16px, 4vw, 18px)',
     fontWeight: '800',
     color: '#D97706',
     lineHeight: 1.2,
