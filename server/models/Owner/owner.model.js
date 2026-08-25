@@ -62,7 +62,7 @@ class OwnerModel {
 
   static async getMyProperties(ownerId, filters = {}) {
     const { search, property_type, property_status, verification_status, page = 1, limit = 10, sort } = filters;
-    
+
     let whereClause = `WHERE p.owner_id = $1 AND (p.is_deleted = false OR p.is_deleted IS NULL)`;
     const values = [ownerId];
     let paramIndex = 2;
@@ -138,7 +138,10 @@ class OwnerModel {
          WHERE v.property_id = p.property_id AND v.scheduled_at > NOW() AND vis.name IN ('Scheduled', 'Confirmed', 'Rescheduled')) AS scheduled_visits_count,
         (SELECT media_url FROM property_media pm 
          WHERE pm.property_id = p.property_id AND pm.is_primary = true AND (pm.is_deleted = false OR pm.is_deleted IS NULL) 
-         LIMIT 1) AS primary_image
+         LIMIT 1) AS primary_image,
+        (SELECT json_agg(pm.media_url ORDER BY pm.is_primary DESC, pm.created_at ASC)
+         FROM property_media pm 
+         WHERE pm.property_id = p.property_id AND (pm.is_deleted = false OR pm.is_deleted IS NULL)) AS images
       FROM properties p
       LEFT JOIN property_types pt ON p.property_type_id = pt.property_type_id
       LEFT JOIN property_statuses ps ON p.property_status_id = ps.property_status_id
@@ -446,10 +449,13 @@ class OwnerModel {
         (SELECT media_url FROM property_media pm 
          WHERE pm.property_id = p.property_id 
            AND pm.media_type_id = 1 
-           AND pm.media_status_id = 3 
            AND pm.is_primary = true 
            AND (pm.is_deleted = false OR pm.is_deleted IS NULL) 
          LIMIT 1) AS primary_image,
+        (SELECT json_agg(pm.media_url ORDER BY pm.is_primary DESC, pm.created_at ASC)
+         FROM property_media pm 
+         WHERE pm.property_id = p.property_id 
+           AND (pm.is_deleted = false OR pm.is_deleted IS NULL)) AS images,
         vs.name AS verification_status_name,
         vs.description AS verification_status_description
       FROM properties p
@@ -495,14 +501,21 @@ class OwnerModel {
 
   static async getPropertyVerificationPageSummary(ownerId) {
     const query = `
+      WITH latest_verifications AS (
+        SELECT 
+          pv.property_id,
+          pv.verification_status_id,
+          ROW_NUMBER() OVER (PARTITION BY pv.property_id ORDER BY pv.created_at DESC) as rn
+        FROM property_verifications pv
+      )
       SELECT 
         COUNT(DISTINCT p.property_id) AS total_properties,
-        COUNT(DISTINCT CASE WHEN vs.name IN ('Pending', 'In Progress') THEN p.property_id END) AS pending_verification,
+        COUNT(DISTINCT CASE WHEN vs.name IN ('Pending', 'Under Verification', 'In Progress') OR vs.name IS NULL THEN p.property_id END) AS pending_verification,
         COUNT(DISTINCT CASE WHEN vs.name = 'Verified' THEN p.property_id END) AS verified_properties,
         COUNT(DISTINCT CASE WHEN vs.name = 'Rejected' THEN p.property_id END) AS rejected_properties
       FROM properties p
-      LEFT JOIN property_verifications pv ON p.property_id = pv.property_id
-      LEFT JOIN verification_statuses vs ON pv.verification_status_id = vs.verification_status_id
+      LEFT JOIN latest_verifications lv ON p.property_id = lv.property_id AND lv.rn = 1
+      LEFT JOIN verification_statuses vs ON lv.verification_status_id = vs.verification_status_id
       WHERE p.owner_id = $1 AND (p.is_deleted = FALSE OR p.is_deleted IS NULL)
     `;
 
@@ -529,15 +542,19 @@ class OwnerModel {
     }
 
     if (status) {
-      whereClause += ` AND vs.name = $${paramIndex}`;
+      if (status === 'Pending') {
+        whereClause += ` AND (vs.name IN ($${paramIndex}, 'Under Verification', 'In Progress') OR vs.name IS NULL)`;
+      } else {
+        whereClause += ` AND vs.name = $${paramIndex}`;
+      }
       values.push(status);
       paramIndex++;
     }
 
-    let orderBy = 'ORDER BY lv.created_at DESC';
+    let orderBy = 'ORDER BY COALESCE(lv.created_at, p.created_at) DESC';
     if (sort) {
-      if (sort === 'date_asc') orderBy = 'ORDER BY lv.created_at ASC';
-      else if (sort === 'date_desc') orderBy = 'ORDER BY lv.created_at DESC';
+      if (sort === 'date_asc') orderBy = 'ORDER BY COALESCE(lv.created_at, p.created_at) ASC';
+      else if (sort === 'date_desc') orderBy = 'ORDER BY COALESCE(lv.created_at, p.created_at) DESC';
       else if (sort === 'title_asc') orderBy = 'ORDER BY p.title ASC';
       else if (sort === 'title_desc') orderBy = 'ORDER BY p.title DESC';
     }
@@ -559,13 +576,28 @@ class OwnerModel {
         pt.name AS property_type,
         p.city,
         p.address,
-        vs.name AS verification_status,
-        vs.description AS verification_status_description,
+        vs.name AS original_status,
+        COALESCE(vs.name, 'Pending') AS verification_status,
+        COALESCE(vs.description, 'Property is awaiting initial verification.') AS verification_status_description,
         lv.verified_at AS verification_date,
-        lv.updated_at AS last_updated
+        lv.updated_at AS last_updated,
+        (
+          SELECT media_url 
+          FROM property_media pm 
+          WHERE pm.property_id = p.property_id 
+            AND pm.is_primary = TRUE 
+            AND (pm.is_deleted = FALSE OR pm.is_deleted IS NULL) 
+          LIMIT 1
+        ) AS primary_image,
+        (
+          SELECT json_agg(pm.media_url ORDER BY pm.is_primary DESC, pm.created_at ASC)
+          FROM property_media pm 
+          WHERE pm.property_id = p.property_id 
+            AND (pm.is_deleted = FALSE OR pm.is_deleted IS NULL)
+        ) AS images
       FROM properties p
-      JOIN latest_verifications lv ON p.property_id = lv.property_id AND lv.rn = 1
-      JOIN verification_statuses vs ON lv.verification_status_id = vs.verification_status_id
+      LEFT JOIN latest_verifications lv ON p.property_id = lv.property_id AND lv.rn = 1
+      LEFT JOIN verification_statuses vs ON lv.verification_status_id = vs.verification_status_id
       LEFT JOIN property_types pt ON p.property_type_id = pt.property_type_id
       ${whereClause}
       ${orderBy}
@@ -580,10 +612,10 @@ class OwnerModel {
           ROW_NUMBER() OVER (PARTITION BY pv.property_id ORDER BY pv.created_at DESC) as rn
         FROM property_verifications pv
       )
-      SELECT COUNT(*) 
+      SELECT COUNT(*) as total
       FROM properties p
-      JOIN latest_verifications lv ON p.property_id = lv.property_id AND lv.rn = 1
-      JOIN verification_statuses vs ON lv.verification_status_id = vs.verification_status_id
+      LEFT JOIN latest_verifications lv ON p.property_id = lv.property_id AND lv.rn = 1
+      LEFT JOIN verification_statuses vs ON lv.verification_status_id = vs.verification_status_id
       ${whereClause}
     `;
 
@@ -592,14 +624,14 @@ class OwnerModel {
       pool.query(countQuery, values)
     ]);
 
-    const total = parseInt(countResult.rows[0].count, 10);
+    const total = parseInt(countResult.rows[0].total, 10);
     return {
       data: dataResult.rows,
       pagination: {
         total,
         page: parseInt(page, 10),
         limit: parseInt(limit, 10),
-        totalPages: Math.ceil(total / limit)
+        total_pages: Math.ceil(total / limit)
       }
     };
   }
@@ -618,15 +650,19 @@ class OwnerModel {
           SELECT media_url 
           FROM property_media pm 
           WHERE pm.property_id = p.property_id 
-            AND pm.media_type_id = 1 
-            AND pm.media_status_id = 3 
             AND pm.is_primary = TRUE 
             AND (pm.is_deleted = FALSE OR pm.is_deleted IS NULL) 
           LIMIT 1
-        ) AS property_image
+        ) AS primary_image,
+        (
+          SELECT json_agg(pm.media_url ORDER BY pm.is_primary DESC, pm.created_at ASC)
+          FROM property_media pm 
+          WHERE pm.property_id = p.property_id 
+            AND (pm.is_deleted = FALSE OR pm.is_deleted IS NULL)
+        ) AS images
       FROM properties p
-      JOIN property_verifications pv ON p.property_id = pv.property_id
-      JOIN verification_statuses vs ON pv.verification_status_id = vs.verification_status_id
+      LEFT JOIN property_verifications pv ON p.property_id = pv.property_id
+      LEFT JOIN verification_statuses vs ON pv.verification_status_id = vs.verification_status_id
       LEFT JOIN property_types pt ON p.property_type_id = pt.property_type_id
       WHERE p.property_id = $1 
         AND p.owner_id = $2 
@@ -1281,7 +1317,7 @@ class OwnerModel {
       values.push(updates.name);
       paramIndex++;
     }
-    
+
     if (updates.mobile_no !== undefined) {
       fields.push(`mobile_no = $${paramIndex}`);
       values.push(updates.mobile_no);
@@ -1303,7 +1339,7 @@ class OwnerModel {
     }
 
     values.push(ownerId);
-    
+
     const query = `
       UPDATE users 
       SET ${fields.join(', ')} 

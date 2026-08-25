@@ -1,49 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Building2, ShieldCheck, Clock, XCircle, Search, ChevronDown,
   RotateCcw, MapPin, Eye, CheckCircle2, AlertCircle, X,
 } from 'lucide-react';
-
-// ─── Mock Data ─────────────────────────────────────────────────────────────────
-const MOCK_VERIFICATIONS = [
-  {
-    property_id: 1, property_title: 'Modern Family Villa', property_location: 'Bahria Town',
-    city: 'Islamabad', property_type: 'House', ppc_id: '#PPC-10012',
-    verification_status: 'Verified', verification_date: '18 Aug 2026', updated_at: '18 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    property_id: 2, property_title: 'Luxury Apartment', property_location: 'DHA Phase 2',
-    city: 'Islamabad', property_type: 'Apartment', ppc_id: '#PPC-10011',
-    verification_status: 'Pending', verification_date: '17 Aug 2026', updated_at: '17 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    property_id: 3, property_title: 'Fully Furnished House', property_location: 'G-13',
-    city: 'Islamabad', property_type: 'House', ppc_id: '#PPC-10010',
-    verification_status: 'Verified', verification_date: '15 Aug 2026', updated_at: '16 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    property_id: 4, property_title: 'Commercial Plaza', property_location: 'Blue Area',
-    city: 'Islamabad', property_type: 'Commercial', ppc_id: '#PPC-10009',
-    verification_status: 'Rejected', verification_date: '14 Aug 2026', updated_at: '15 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    property_id: 5, property_title: 'Luxury Villa', property_location: 'F-7',
-    city: 'Islamabad', property_type: 'House', ppc_id: '#PPC-10008',
-    verification_status: 'Pending', verification_date: '12 Aug 2026', updated_at: '12 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    property_id: 6, property_title: 'Executive Bungalow', property_location: 'E-11',
-    city: 'Islamabad', property_type: 'House', ppc_id: '#PPC-10007',
-    verification_status: 'Pending', verification_date: '10 Aug 2026', updated_at: '10 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=120&q=80',
-  },
-];
+import { getOwnerVerificationSummary, getOwnerPropertyVerifications } from '../../Services/owner.services';
 
 const TYPE_COLORS = {
   House: { bg: '#E8F4F1', color: '#1D6A4A' },
@@ -57,11 +18,97 @@ const STATUS_CONFIG = {
   Rejected: { bg: '#FEF2F2', color: '#991B1B', icon: XCircle,       label: 'Rejected' },
 };
 
+// ─── Formatting Helpers ───────────────────────────────────────────────────────
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return 'N/A';
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+const getImageUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  const base = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api/v1';
+  const host = base.replace(/\/api\/v1\/?$/, '');
+  return `${host}${url}`;
+};
+
+// ─── Image Carousel Component ──────────────────────────────────────────────────
+const PropertyImageCarousel = ({ property, imgErrors, handleImageError, styles, customStyles }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Use the array of images if available, otherwise fallback to primary_image
+  const hasImagesArray = Array.isArray(property.images) && property.images.length > 0;
+  const imagesToRender = hasImagesArray 
+    ? property.images 
+    : (property.primary_image ? [property.primary_image] : []);
+
+  // Filter out images that have errored
+  const validImages = imagesToRender.filter((img, idx) => !imgErrors[`${property.property_id}-${idx}`]);
+
+  const handleNext = (e) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev === validImages.length - 1 ? 0 : prev + 1));
+  };
+
+  const handlePrev = (e) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev === 0 ? validImages.length - 1 : prev - 1));
+  };
+
+  // State: No valid images at all
+  if (validImages.length === 0) {
+    return (
+      <div style={{ ...styles.propImage, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F3F4F6', color: '#9CA3AF', fontSize: '14px', ...customStyles }}>
+        No image available
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+      <img
+        src={getImageUrl(validImages[currentIndex])}
+        alt={`${property.property_title || 'Property'} - ${currentIndex + 1}`}
+        style={{ ...styles.propImage, ...customStyles }}
+        onError={() => handleImageError(property.property_id, currentIndex)}
+      />
+      {validImages.length > 1 && (
+        <>
+          <button 
+            onClick={handlePrev}
+            style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.8)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+          >
+            ‹
+          </button>
+          <button 
+            onClick={handleNext}
+            style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.8)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+          >
+            ›
+          </button>
+          <div style={{ position: 'absolute', bottom: '8px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '4px' }}>
+            {validImages.map((_, idx) => (
+              <div 
+                key={idx}
+                style={{ width: '6px', height: '6px', borderRadius: '50%', background: idx === currentIndex ? '#FFFFFF' : 'rgba(255,255,255,0.5)', transition: 'background 0.2s' }}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 // ─── Detail Modal ─────────────────────────────────────────────────────────────
-const DetailModal = ({ prop, onClose }) => {
+const DetailModal = ({ prop, onClose, imgErrors, handleImageError }) => {
   if (!prop) return null;
   const sc = STATUS_CONFIG[prop.verification_status] || STATUS_CONFIG.Pending;
   const StatusIcon = sc.icon;
+  const ppcId = `#PPC-1000${prop.property_id}`;
+  const location = prop.address || prop.property_location || 'Unknown Location';
   return (
     <div style={S.overlay} onClick={onClose}>
       <div style={S.modal} onClick={(e) => e.stopPropagation()}>
@@ -70,21 +117,28 @@ const DetailModal = ({ prop, onClose }) => {
           <button style={S.closeBtn} onClick={onClose}><X size={18} color="#374151" /></button>
         </div>
         <div style={S.modalBody}>
-          <img src={prop.image} alt={prop.property_title} style={S.modalImg}
-            onError={(e) => { e.target.style.display = 'none'; }} />
+          <div style={{ width: '100%', height: '200px', borderRadius: '8px', overflow: 'hidden', marginBottom: '20px' }}>
+            <PropertyImageCarousel 
+              property={prop} 
+              imgErrors={imgErrors} 
+              handleImageError={handleImageError} 
+              styles={S} 
+              customStyles={{ width: '100%', height: '100%', borderRadius: '0' }}
+            />
+          </div>
           <div style={S.modalGrid}>
             <div style={S.modalRow}><span style={S.modalKey}>Property</span><span style={S.modalVal}>{prop.property_title}</span></div>
-            <div style={S.modalRow}><span style={S.modalKey}>PPC ID</span><span style={S.modalVal}>{prop.ppc_id}</span></div>
-            <div style={S.modalRow}><span style={S.modalKey}>Type</span><span style={S.modalVal}>{prop.property_type}</span></div>
-            <div style={S.modalRow}><span style={S.modalKey}>Location</span><span style={S.modalVal}>{prop.property_location}, {prop.city}</span></div>
+            <div style={S.modalRow}><span style={S.modalKey}>PPC ID</span><span style={S.modalVal}>{ppcId}</span></div>
+            <div style={S.modalRow}><span style={S.modalKey}>Type</span><span style={S.modalVal}>{prop.property_type || 'N/A'}</span></div>
+            <div style={S.modalRow}><span style={S.modalKey}>Location</span><span style={S.modalVal}>{location}, {prop.city || 'N/A'}</span></div>
             <div style={S.modalRow}>
               <span style={S.modalKey}>Status</span>
               <span style={{ ...S.statusBadge, background: sc.bg, color: sc.color }}>
                 <StatusIcon size={12} /> {sc.label}
               </span>
             </div>
-            <div style={S.modalRow}><span style={S.modalKey}>Verification Date</span><span style={S.modalVal}>{prop.verification_date}</span></div>
-            <div style={S.modalRow}><span style={S.modalKey}>Last Updated</span><span style={S.modalVal}>{prop.updated_at}</span></div>
+            <div style={S.modalRow}><span style={S.modalKey}>Verification Date</span><span style={S.modalVal}>{formatDate(prop.verification_date)}</span></div>
+            <div style={S.modalRow}><span style={S.modalKey}>Last Updated</span><span style={S.modalVal}>{formatDate(prop.last_updated)}</span></div>
           </div>
         </div>
       </div>
@@ -99,22 +153,84 @@ const OwnerPropertyVerification = () => {
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [selected, setSelected] = useState(null);
   const [page, setPage] = useState(1);
-  const PER_PAGE = 5;
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const PER_PAGE = 10;
 
-  const filtered = useMemo(() => MOCK_VERIFICATIONS.filter((p) => {
-    const q = search.toLowerCase();
-    if (q && !p.property_title.toLowerCase().includes(q) && !p.city.toLowerCase().includes(q) && !p.ppc_id.toLowerCase().includes(q)) return false;
-    if (statusFilter !== 'All Status' && p.verification_status !== statusFilter) return false;
-    return true;
-  }), [search, statusFilter]);
+  const [listData, setListData] = useState([]);
+  const [loadingList, setLoadingList] = useState(true);
+  const [listError, setListError] = useState(null);
 
-  const totalPages = Math.ceil(filtered.length / PER_PAGE);
-  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const [imgErrors, setImgErrors] = useState({});
+  const handleImageError = (propertyId, idx = 0) => {
+    setImgErrors(prev => ({ ...prev, [`${propertyId}-${idx}`]: true }));
+  };
 
-  const total = MOCK_VERIFICATIONS.length;
-  const pending = MOCK_VERIFICATIONS.filter((p) => p.verification_status === 'Pending').length;
-  const verified = MOCK_VERIFICATIONS.filter((p) => p.verification_status === 'Verified').length;
-  const rejected = MOCK_VERIFICATIONS.filter((p) => p.verification_status === 'Rejected').length;
+  const [summaryData, setSummaryData] = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(true);
+  const [summaryError, setSummaryError] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchSummary = async () => {
+      try {
+        setLoadingSummary(true);
+        const res = await getOwnerVerificationSummary();
+        if (isMounted) {
+          setSummaryData(res.data);
+          setSummaryError(null);
+        }
+      } catch (err) {
+        console.error("Failed to load verification summary:", err);
+        if (isMounted) {
+          setSummaryError("Unable to load summary data.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingSummary(false);
+        }
+      }
+    };
+    fetchSummary();
+    return () => { isMounted = false; };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const timeoutId = setTimeout(async () => {
+      try {
+        setLoadingList(true);
+        const res = await getOwnerPropertyVerifications({
+          page,
+          limit: PER_PAGE,
+          search: search || undefined,
+          status: statusFilter !== 'All Status' ? statusFilter : undefined
+        });
+        if (isMounted) {
+          setListData(res.data || []);
+          setTotalPages(res.pagination?.total_pages || 1);
+          setTotalRecords(res.pagination?.total || 0);
+          setListError(null);
+        }
+      } catch (err) {
+        console.error("Failed to load verification list:", err);
+        if (isMounted) {
+          setListError("Unable to load properties.");
+          setListData([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingList(false);
+        }
+      }
+    }, 300);
+    return () => { isMounted = false; clearTimeout(timeoutId); };
+  }, [page, search, statusFilter]);
+
+  const total = summaryData ? summaryData.total_properties : 0;
+  const pending = summaryData ? summaryData.pending_verification : 0;
+  const verified = summaryData ? summaryData.verified_properties : 0;
+  const rejected = summaryData ? summaryData.rejected_properties : 0;
 
   const handleClear = () => { setSearch(''); setStatusFilter('All Status'); setPage(1); };
 
@@ -127,26 +243,32 @@ const OwnerPropertyVerification = () => {
       </div>
 
       {/* Summary Cards */}
-      <div style={S.cards}>
-        {[
-          { label: 'Total Properties', sub: 'All your properties', val: total, icon: Building2, bg: '#E8F4F1', color: '#1D6A4A' },
-          { label: 'Pending Verification', sub: 'Awaiting approval', val: pending, icon: Clock, bg: '#FFF7ED', color: '#D97706' },
-          { label: 'Verified Properties', sub: 'Successfully verified', val: verified, icon: ShieldCheck, bg: '#DCFCE7', color: '#166534' },
-          { label: 'Rejected Properties', sub: 'Require attention', val: rejected, icon: XCircle, bg: '#FEF2F2', color: '#991B1B' },
-        ].map((c) => {
-          const Icon = c.icon;
-          return (
-            <div key={c.label} style={S.card}>
-              <div style={{ ...S.cardIcon, background: c.bg }}><Icon size={22} color={c.color} /></div>
-              <div>
-                <div style={S.cardVal}>{c.val}</div>
-                <div style={S.cardLabel}>{c.label}</div>
-                <div style={S.cardSub}>{c.sub}</div>
+      {loadingSummary ? (
+        <div style={{ textAlign: 'center', padding: '2rem 0', color: '#6B7280', fontSize: '14px' }}>Loading summary...</div>
+      ) : summaryError ? (
+        <div style={{ textAlign: 'center', padding: '2rem 0', color: '#EF4444', fontSize: '14px' }}>{summaryError}</div>
+      ) : (
+        <div style={S.cards}>
+          {[
+            { label: 'Total Properties', sub: 'All your properties', val: total, icon: Building2, bg: '#E8F4F1', color: '#1D6A4A' },
+            { label: 'Pending Verification', sub: 'Awaiting approval', val: pending, icon: Clock, bg: '#FFF7ED', color: '#D97706' },
+            { label: 'Verified Properties', sub: 'Successfully verified', val: verified, icon: ShieldCheck, bg: '#DCFCE7', color: '#166534' },
+            { label: 'Rejected Properties', sub: 'Require attention', val: rejected, icon: XCircle, bg: '#FEF2F2', color: '#991B1B' },
+          ].map((c) => {
+            const Icon = c.icon;
+            return (
+              <div key={c.label} style={S.card}>
+                <div style={{ ...S.cardIcon, background: c.bg }}><Icon size={22} color={c.color} /></div>
+                <div>
+                  <div style={S.cardVal}>{c.val}</div>
+                  <div style={S.cardLabel}>{c.label}</div>
+                  <div style={S.cardSub}>{c.sub}</div>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Filters */}
       <div style={S.filterBar}>
@@ -174,7 +296,11 @@ const OwnerPropertyVerification = () => {
 
       {/* Table */}
       <div style={S.tableWrap}>
-        {filtered.length === 0 ? (
+        {loadingList ? (
+          <div style={{ textAlign: 'center', padding: '3rem 0', color: '#6B7280' }}>Loading properties...</div>
+        ) : listError ? (
+          <div style={{ textAlign: 'center', padding: '3rem 0', color: '#EF4444' }}>{listError}</div>
+        ) : listData.length === 0 ? (
           <div style={S.emptyState}>
             <AlertCircle size={40} color="#9CA3AF" strokeWidth={1.5} />
             <p style={S.emptyTitle}>No matching properties found</p>
@@ -191,34 +317,44 @@ const OwnerPropertyVerification = () => {
                 </tr>
               </thead>
               <tbody>
-                {paginated.map((p, i) => {
+                {listData.map((p, i) => {
                   const sc = STATUS_CONFIG[p.verification_status] || STATUS_CONFIG.Pending;
                   const StatusIcon = sc.icon;
                   const tc = TYPE_COLORS[p.property_type] || { bg: '#F3F4F6', color: '#374151' };
+                  const ppcId = `#PPC-1000${p.property_id}`;
+                  const location = p.address || p.property_location || 'Unknown Location';
                   return (
                     <tr key={p.property_id} style={{ ...S.tr, background: i % 2 === 0 ? '#FFFFFF' : '#FAFAFA' }}>
                       <td style={S.td}>
                         <div style={S.propCell}>
-                          <img src={p.image} alt={p.property_title} style={S.propImg}
-                            onError={(e) => { e.target.src = 'https://placehold.co/60x48/e2e8f0/94a3b8?text=PPC'; }} />
+                          <div style={{ width: '60px', height: '48px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0 }}>
+                            {(!getImageUrl(p.primary_image) || imgErrors[`${p.property_id}-0`]) ? (
+                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F3F4F6', color: '#9CA3AF', fontSize: '10px', textAlign: 'center' }}>
+                                No image
+                              </div>
+                            ) : (
+                              <img src={getImageUrl(p.primary_image)} alt={p.property_title} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                onError={() => handleImageError(p.property_id, 0)} />
+                            )}
+                          </div>
                           <div>
                             <div style={S.propName}>{p.property_title}</div>
-                            <div style={S.propLoc}>{p.property_location}</div>
+                            <div style={S.propLoc}>{location}</div>
                           </div>
                         </div>
                       </td>
-                      <td style={S.td}><span style={S.ppcId}>{p.ppc_id}</span></td>
+                      <td style={S.td}><span style={S.ppcId}>{ppcId}</span></td>
                       <td style={S.td}>
-                        <span style={{ ...S.typeBadge, background: tc.bg, color: tc.color }}>{p.property_type}</span>
+                        <span style={{ ...S.typeBadge, background: tc.bg, color: tc.color }}>{p.property_type || 'N/A'}</span>
                       </td>
-                      <td style={S.td}><span style={S.cityTxt}>{p.property_location},<br />{p.city}</span></td>
+                      <td style={S.td}><span style={S.cityTxt}>{location},<br />{p.city || 'N/A'}</span></td>
                       <td style={S.td}>
                         <span style={{ ...S.statusBadge, background: sc.bg, color: sc.color }}>
                           <StatusIcon size={12} /> {sc.label}
                         </span>
                       </td>
-                      <td style={S.td}><span style={S.dateTxt}>{p.verification_date}</span></td>
-                      <td style={S.td}><span style={S.dateTxt}>{p.updated_at}</span></td>
+                      <td style={S.td}><span style={S.dateTxt}>{formatDate(p.verification_date)}</span></td>
+                      <td style={S.td}><span style={S.dateTxt}>{formatDate(p.last_updated)}</span></td>
                       <td style={S.td}>
                         <div style={S.actions}>
                           <button style={S.viewBtn} onClick={() => setSelected(p)}>View Details</button>
@@ -233,7 +369,7 @@ const OwnerPropertyVerification = () => {
 
             {/* Pagination */}
             <div style={S.pagination}>
-              <span style={S.paginInfo}>Showing {(page - 1) * PER_PAGE + 1} to {Math.min(page * PER_PAGE, filtered.length)} of {filtered.length} properties</span>
+              <span style={S.paginInfo}>Showing {totalRecords > 0 ? (page - 1) * PER_PAGE + 1 : 0} to {Math.min(page * PER_PAGE, totalRecords)} of {totalRecords} properties</span>
               <div style={S.paginBtns}>
                 <button style={S.paginArrow} onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>‹</button>
                 {Array.from({ length: totalPages }, (_, i) => (
@@ -248,7 +384,7 @@ const OwnerPropertyVerification = () => {
       </div>
 
       {/* Detail Modal */}
-      <DetailModal prop={selected} onClose={() => setSelected(null)} />
+      {selected && <DetailModal prop={selected} onClose={() => setSelected(null)} imgErrors={imgErrors} handleImageError={handleImageError} />}
     </div>
   );
 };

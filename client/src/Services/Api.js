@@ -331,7 +331,12 @@ export const sendApiRequest = async ({
 
     // GET and HEAD requests don't need a request body
     if (method !== "GET" && method !== "HEAD") {
-      config.body = JSON.stringify(data);
+      if (data instanceof FormData) {
+        config.body = data;
+        delete config.headers["Content-Type"];
+      } else {
+        config.body = JSON.stringify(data);
+      }
     }
 
     const response = await fetch(`${BASE_URL}${url}`, {
@@ -360,12 +365,22 @@ export const sendApiRequest = async ({
  * Reusable API methods.
  */
 const api = {
-  get: (url, params = {}) =>
-    sendApiRequest({
-      url,
+  get: (url, requestParams = {}) => {
+    // Some services pass { params: { ... } } instead of a raw object. Unwrap it if present.
+    const actualParams = requestParams.params ? requestParams.params : requestParams;
+    
+    // Clean out undefined, null, and empty string values to avoid '?status=undefined'
+    const cleanParams = Object.fromEntries(
+      Object.entries(actualParams).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    );
+    
+    const q = new URLSearchParams(cleanParams).toString();
+    const finalUrl = q ? `${url}${url.includes('?') ? '&' : '?'}${q}` : url;
+    return sendApiRequest({
+      url: finalUrl,
       method: "GET",
-      ...params,
-    }),
+    });
+  },
 
   post: (url, data = {}, params = {}) =>
     sendApiRequest({

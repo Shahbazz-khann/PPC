@@ -240,7 +240,7 @@ export const menuConfig = {
       roles: [ROLES.OWNER],
     },
     {
-      title: 'Property Verification',
+      title: 'Property Status',
       path: '/owner/property-verification',
       icon: ShieldCheck,
       roles: [ROLES.OWNER],

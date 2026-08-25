@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { connectDB } = require('./config/db');
 const logger = require('./utils/logger');
 const { errorHandler } = require('./middlewares/errorMiddleware');
@@ -31,6 +32,12 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// --------------------------------------------------
+// Static Files
+// --------------------------------------------------
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // --------------------------------------------------
 // Versioned API Router

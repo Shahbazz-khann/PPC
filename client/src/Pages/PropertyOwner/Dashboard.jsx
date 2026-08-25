@@ -23,7 +23,7 @@ import {
   Activity,
   CreditCard,
 } from 'lucide-react';
-import { getOwnerDashboardSummary, getOwnerVerificationSummary } from '../../Services/owner.services';
+import { getOwnerDashboardSummary, getOwnerVerificationSummary, getOwnerUpcomingVisits, getOwnerInspectionOverview, getOwnerRecentActivity, getOwnerProperties } from '../../Services/owner.services';
 
 // ─── Static / Mock Data (Owner-scoped) ──────────────────────────────────────────
 
@@ -80,63 +80,12 @@ const MOCK_OWNER_STATS = [
   },
 ];
 
-const MOCK_OWNER_PROPERTIES = [
-  {
-    id: 1,
-    title: 'Modern Family Villa',
-    location: 'Bahria Town, Islamabad',
-    type: 'House',
-    purpose: 'For Sale',
-    price: 'Rs. 25,000,000',
-    beds: 5,
-    baths: 6,
-    area: '1 Kanal',
-    verification: 'Verified',
-    image: '/src/assets/prop_villa.png',
-    fallback: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 2,
-    title: 'Luxury Apartment in DHA',
-    location: 'DHA Phase 2, Islamabad',
-    type: 'Apartment',
-    purpose: 'For Sale',
-    price: 'Rs. 18,500,000',
-    beds: 3,
-    baths: 3,
-    area: '1200 sqft',
-    verification: 'Verified',
-    image: '/src/assets/prop_apartment.png',
-    fallback: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 3,
-    title: 'Fully Furnished House',
-    location: 'G-13, Islamabad',
-    type: 'House',
-    purpose: 'For Rent',
-    price: 'Rs. 120,000 / mo',
-    beds: 4,
-    baths: 4,
-    area: '10 Marla',
-    verification: 'Under Review',
-    image: '/src/assets/prop_house.png',
-    fallback: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=400&q=80',
-  },
-];
+
 
 const MOCK_VERIFICATION_SUMMARY = {
   verified: 4,
   underReview: 2,
   total: 6,
-};
-
-const MOCK_RECENT_INSPECTION = {
-  property: 'Modern Family Villa',
-  location: 'Bahria Town, Islamabad',
-  date: '10 Aug 2026',
-  status: 'Completed',
-  result: 'Passed',
 };
 
 const MOCK_UPCOMING_VISITS = [
@@ -176,44 +125,7 @@ const MOCK_FINANCIAL_SUMMARY = {
   pendingInvoicesCount: 2,
 };
 
-const MOCK_RECENT_ACTIVITY = [
-  {
-    id: 1,
-    icon: ShieldCheck,
-    iconBg: '#E8F4F1',
-    iconColor: '#1D6A4A',
-    title: 'Verification Status Updated',
-    desc: 'Modern Family Villa was verified by PPC Inspector.',
-    time: 'Today, 11:30 AM',
-  },
-  {
-    id: 2,
-    icon: Calendar,
-    iconBg: '#EEF2FF',
-    iconColor: '#4F46E5',
-    title: 'Property Visit Confirmed',
-    desc: 'Visit scheduled for Luxury Apartment on 22 Aug.',
-    time: 'Yesterday, 03:45 PM',
-  },
-  {
-    id: 3,
-    icon: FileText,
-    iconBg: '#ECFDF5',
-    iconColor: '#059669',
-    title: 'Inspection Report Available',
-    desc: 'Inspection report generated for G-13 House.',
-    time: '3 days ago',
-  },
-  {
-    id: 4,
-    icon: Receipt,
-    iconBg: '#FFF7ED',
-    iconColor: '#D97706',
-    title: 'New Invoice Issued',
-    desc: 'Invoice #INV-2026-0010 issued for pending service.',
-    time: '5 days ago',
-  },
-];
+
 
 // ─── Sub-Components ────────────────────────────────────────────────────────────
 
@@ -243,11 +155,24 @@ const StatCard = ({ stat, loading, error }) => {
   );
 };
 
+const getImageUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  const base = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api/v1';
+  const host = base.replace(/\/api\/v1\/?$/, '');
+  return `${host}${url}`;
+};
+
 // ─── Main Owner Dashboard Component ───────────────────────────────────────────
 
 const OwnerDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [imgErrors, setImgErrors] = useState({});
+
+  const handleImageError = (propertyId) => {
+    setImgErrors(prev => ({ ...prev, [propertyId]: true }));
+  };
 
   const [summaryData, setSummaryData] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(true);
@@ -300,6 +225,114 @@ const OwnerDashboard = () => {
     };
 
     fetchVerifSummary();
+    return () => { isMounted = false; };
+  }, []);
+
+  const [upcomingVisits, setUpcomingVisits] = useState([]);
+  const [loadingVisits, setLoadingVisits] = useState(true);
+  const [visitsError, setVisitsError] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchVisits = async () => {
+      try {
+        setLoadingVisits(true);
+        const res = await getOwnerUpcomingVisits(1, 2);
+        if (isMounted) {
+          const payload = res?.data || res || {};
+          setUpcomingVisits(Array.isArray(payload) ? payload : (payload.data || payload.visits || []));
+          setVisitsError(null);
+        }
+      } catch (err) {
+        console.error("Failed to load upcoming visits:", err);
+        if (isMounted) setVisitsError("Unable to load visits.");
+      } finally {
+        if (isMounted) setLoadingVisits(false);
+      }
+    };
+
+    fetchVisits();
+    return () => { isMounted = false; };
+  }, []);
+
+  const [inspectionOverview, setInspectionOverview] = useState(null);
+  const [loadingInspection, setLoadingInspection] = useState(true);
+  const [inspectionError, setInspectionError] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchInspection = async () => {
+      try {
+        setLoadingInspection(true);
+        const res = await getOwnerInspectionOverview();
+        if (isMounted) {
+          const payload = res?.data?.data || res?.data || null;
+          setInspectionOverview(payload);
+          setInspectionError(null);
+        }
+      } catch (err) {
+        console.error("Failed to load inspection overview:", err);
+        if (isMounted) setInspectionError("Unable to load inspection overview.");
+      } finally {
+        if (isMounted) setLoadingInspection(false);
+      }
+    };
+
+    fetchInspection();
+    return () => { isMounted = false; };
+  }, []);
+
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [loadingActivity, setLoadingActivity] = useState(true);
+  const [activityError, setActivityError] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchActivity = async () => {
+      try {
+        setLoadingActivity(true);
+        const res = await getOwnerRecentActivity();
+        if (isMounted) {
+          const payload = res?.data?.data || res?.data || [];
+          setRecentActivity(Array.isArray(payload) ? payload : []);
+          setActivityError(null);
+        }
+      } catch (err) {
+        console.error("Failed to load recent activity:", err);
+        if (isMounted) setActivityError("Unable to load recent activity.");
+      } finally {
+        if (isMounted) setLoadingActivity(false);
+      }
+    };
+
+    fetchActivity();
+    return () => { isMounted = false; };
+  }, []);
+
+  const [newArrivals, setNewArrivals] = useState([]);
+  const [loadingArrivals, setLoadingArrivals] = useState(true);
+  const [arrivalsError, setArrivalsError] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchNewArrivals = async () => {
+      try {
+        setLoadingArrivals(true);
+        const res = await getOwnerProperties({ sort: 'newest', limit: 3 });
+        if (isMounted) {
+          const payload = res?.data?.data || res?.data || [];
+          setNewArrivals(Array.isArray(payload) ? payload : []);
+          setArrivalsError(null);
+        }
+      } catch (err) {
+        console.error("Failed to load new arrivals:", err);
+        if (isMounted) setArrivalsError("Unable to load new properties.");
+      } finally {
+        if (isMounted) setLoadingArrivals(false);
+      }
+    };
+
+    fetchNewArrivals();
     return () => { isMounted = false; };
   }, []);
 
@@ -446,51 +479,67 @@ const OwnerDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {MOCK_OWNER_PROPERTIES.slice(0, 3).map((prop) => (
-                <div key={prop.id} style={styles.propCard}>
-                  <div style={styles.propImageWrap}>
-                    <img
-                      src={prop.image}
-                      alt={prop.title}
-                      style={styles.propImage}
-                      onError={(e) => {
-                        e.target.src = prop.fallback;
-                      }}
-                    />
-                    <span style={styles.propPurposeBadge}>{prop.purpose}</span>
-                    <span
-                      style={{
-                        ...styles.propVerifBadge,
-                        background: prop.verification === 'Verified' ? '#DCFCE7' : '#FEF3C7',
-                        color: prop.verification === 'Verified' ? '#166534' : '#92400E',
-                      }}
-                    >
-                      {prop.verification === 'Verified' ? '✓ PPC Verified' : '⏳ Reviewing'}
-                    </span>
-                  </div>
-
-                  <div style={styles.propBody}>
-                    <div style={styles.propTitle}>{prop.title}</div>
-                    <div style={styles.propLocation}>
-                      <MapPin size={12} color="#9CA3AF" />
-                      <span>{prop.location}</span>
-                    </div>
-                    <div style={styles.propPrice}>{prop.price}</div>
-
-                    <div style={styles.propFeatures}>
-                      <span style={styles.propFeature}>
-                        <BedDouble size={12} color="#6B7280" /> {prop.beds} Bed
+              {loadingArrivals ? (
+                <div className="col-span-full py-6 text-center text-gray-500">Loading new arrivals...</div>
+              ) : arrivalsError ? (
+                <div className="col-span-full py-6 text-center text-red-500">{arrivalsError}</div>
+              ) : newArrivals.length === 0 ? (
+                <div className="col-span-full py-6 text-center text-gray-500">No properties added yet.</div>
+              ) : (
+                newArrivals.slice(0, 3).map((prop) => (
+                  <div key={prop.property_id} style={styles.propCard}>
+                    <div style={styles.propImageWrap}>
+                      {(!getImageUrl(prop.primary_image) && !getImageUrl(prop.image)) || imgErrors[prop.property_id] ? (
+                        <div style={{ ...styles.propImage, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F3F4F6', color: '#9CA3AF', fontSize: '14px' }}>
+                          No image available
+                        </div>
+                      ) : (
+                        <img
+                          src={getImageUrl(prop.primary_image) || getImageUrl(prop.image)}
+                          alt={prop.title}
+                          style={styles.propImage}
+                          onError={() => handleImageError(prop.property_id)}
+                        />
+                      )}
+                      <span style={styles.propPurposeBadge}>
+                        {prop.sale_price ? 'For Sale' : (prop.rent_price ? 'For Rent' : 'N/A')}
                       </span>
-                      <span style={styles.propFeature}>
-                        <Bath size={12} color="#6B7280" /> {prop.baths} Bath
-                      </span>
-                      <span style={styles.propFeature}>
-                        <Maximize size={12} color="#6B7280" /> {prop.area}
+                      <span
+                        style={{
+                          ...styles.propVerifBadge,
+                          background: prop.verification_status === 'Verified' ? '#DCFCE7' : '#FEF3C7',
+                          color: prop.verification_status === 'Verified' ? '#166534' : '#92400E',
+                        }}
+                      >
+                        {prop.verification_status === 'Verified' ? '✓ PPC Verified' : '⏳ Reviewing'}
                       </span>
                     </div>
+
+                    <div style={styles.propBody}>
+                      <div style={styles.propTitle}>{prop.title}</div>
+                      <div style={styles.propLocation}>
+                        <MapPin size={12} color="#9CA3AF" />
+                        <span>{prop.city}{prop.address ? `, ${prop.address}` : ''}</span>
+                      </div>
+                      <div style={styles.propPrice}>
+                        {prop.sale_price ? `Rs. ${Number(prop.sale_price).toLocaleString()}` : (prop.rent_price ? `Rs. ${Number(prop.rent_price).toLocaleString()} / mo` : 'N/A')}
+                      </div>
+
+                      <div style={styles.propFeatures}>
+                        <span style={styles.propFeature}>
+                          <BedDouble size={12} color="#6B7280" /> {prop.bedrooms || 0} Bed
+                        </span>
+                        <span style={styles.propFeature}>
+                          <Bath size={12} color="#6B7280" /> {prop.bathrooms || 0} Bath
+                        </span>
+                        <span style={styles.propFeature}>
+                          <Maximize size={12} color="#6B7280" /> {prop.area_value || 0} {prop.area_unit || ''}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </section>
 
@@ -568,15 +617,27 @@ const OwnerDashboard = () => {
               </div>
 
               <div style={styles.inspectionCard}>
-                <div style={styles.inspTitle}>{MOCK_RECENT_INSPECTION.property}</div>
-                <div style={styles.inspLocation}>
-                  <MapPin size={12} color="#9CA3AF" />
-                  <span>{MOCK_RECENT_INSPECTION.location}</span>
-                </div>
-                <div style={styles.inspMeta}>
-                  <span>Date: <strong>{MOCK_RECENT_INSPECTION.date}</strong></span>
-                  <span style={styles.badgeSuccess}>✓ {MOCK_RECENT_INSPECTION.result}</span>
-                </div>
+                {loadingInspection ? (
+                  <div className="py-2 text-center text-gray-500 text-sm">Loading inspection...</div>
+                ) : inspectionError ? (
+                  <div className="py-2 text-center text-red-500 text-sm">{inspectionError}</div>
+                ) : !inspectionOverview ? (
+                  <div className="py-2 text-center text-gray-500 text-sm">No recent inspections found.</div>
+                ) : (
+                  <>
+                    <div style={styles.inspTitle}>{inspectionOverview.property_title}</div>
+                    <div style={styles.inspLocation}>
+                      <MapPin size={12} color="#9CA3AF" />
+                      <span>{inspectionOverview.city}{inspectionOverview.address ? `, ${inspectionOverview.address}` : ''}</span>
+                    </div>
+                    <div style={styles.inspMeta}>
+                      <span>Date: <strong>{new Date(inspectionOverview.inspection_date).toLocaleDateString('en-GB', {
+                            day: 'numeric', month: 'short', year: 'numeric'
+                          })}</strong></span>
+                      <span style={styles.badgeSuccess}>✓ {inspectionOverview.inspection_result || inspectionOverview.inspection_status}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -597,26 +658,40 @@ const OwnerDashboard = () => {
               </div>
 
               <div style={styles.visitList}>
-                {MOCK_UPCOMING_VISITS.map((v) => (
-                  <div key={v.id} style={styles.visitItem}>
-                    <div>
-                      <div style={styles.visitProp}>{v.property}</div>
-                      <div style={styles.visitSub}>
-                        <Calendar size={12} color="#6B7280" /> {v.date} at {v.time}
+                {loadingVisits ? (
+                  <div className="py-4 text-center text-gray-500 text-sm">Loading upcoming visits...</div>
+                ) : visitsError ? (
+                  <div className="py-4 text-center text-red-500 text-sm">{visitsError}</div>
+                ) : upcomingVisits.length === 0 ? (
+                  <div className="py-4 text-center text-gray-500 text-sm">No upcoming visits scheduled.</div>
+                ) : (
+                  upcomingVisits.map((v) => (
+                    <div key={v.visit_id} style={styles.visitItem}>
+                      <div>
+                        <div style={styles.visitProp}>{v.property_title}</div>
+                        <div style={styles.visitSub}>
+                          <Calendar size={12} color="#6B7280" />{' '}
+                          {new Date(v.scheduled_at).toLocaleDateString('en-GB', {
+                            day: 'numeric', month: 'short', year: 'numeric'
+                          })} at{' '}
+                          {new Date(v.scheduled_at).toLocaleTimeString('en-US', {
+                            hour: '2-digit', minute: '2-digit'
+                          })}
+                        </div>
+                        <div style={styles.visitorText}>{v.customer_name || 'Customer'}</div>
                       </div>
-                      <div style={styles.visitorText}>{v.visitor}</div>
+                      <span
+                        style={{
+                          ...styles.badgeBase,
+                          background: v.visit_status === 'Confirmed' ? '#DCFCE7' : '#EEF2FF',
+                          color: v.visit_status === 'Confirmed' ? '#166534' : '#4F46E5',
+                        }}
+                      >
+                        {v.visit_status}
+                      </span>
                     </div>
-                    <span
-                      style={{
-                        ...styles.badgeBase,
-                        background: v.status === 'Confirmed' ? '#DCFCE7' : '#EEF2FF',
-                        color: v.status === 'Confirmed' ? '#166534' : '#4F46E5',
-                      }}
-                    >
-                      {v.status}
-                    </span>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -746,21 +821,46 @@ const OwnerDashboard = () => {
             <h3 style={styles.sideCardTitle}>Recent Activity</h3>
 
             <div style={styles.activityList}>
-              {MOCK_RECENT_ACTIVITY.map((act) => {
-                const IconComp = act.icon;
-                return (
-                  <div key={act.id} style={styles.activityItem}>
-                    <div style={{ ...styles.actIconBox, background: act.iconBg }}>
-                      <IconComp size={14} color={act.iconColor} />
+              {loadingActivity ? (
+                <div className="py-2 text-center text-gray-500 text-sm">Loading activity...</div>
+              ) : activityError ? (
+                <div className="py-2 text-center text-red-500 text-sm">{activityError}</div>
+              ) : recentActivity.length === 0 ? (
+                <div className="py-2 text-center text-gray-500 text-sm">No recent activity found.</div>
+              ) : (
+                recentActivity.map((act, index) => {
+                  let IconComp = Activity;
+                  let iconBg = '#F3F4F6';
+                  let iconColor = '#6B7280';
+                  
+                  if (act.activity_type === 'Verification') {
+                    IconComp = ShieldCheck; iconBg = '#E8F4F1'; iconColor = '#1D6A4A';
+                  } else if (act.activity_type === 'Visit') {
+                    IconComp = Calendar; iconBg = '#EEF2FF'; iconColor = '#4F46E5';
+                  } else if (act.activity_type === 'Inspection') {
+                    IconComp = FileText; iconBg = '#ECFDF5'; iconColor = '#059669';
+                  } else if (act.activity_type === 'Invoice') {
+                    IconComp = Receipt; iconBg = '#FFF7ED'; iconColor = '#D97706';
+                  }
+
+                  return (
+                    <div key={`${act.property_id}-${index}`} style={styles.activityItem}>
+                      <div style={{ ...styles.actIconBox, background: iconBg }}>
+                        <IconComp size={14} color={iconColor} />
+                      </div>
+                      <div>
+                        <div style={styles.actTitle}>{act.title}</div>
+                        <div style={styles.actDesc}>{act.description}</div>
+                        <div style={styles.actTime}>
+                          {new Date(act.activity_date).toLocaleString('en-GB', { 
+                            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                          })}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div style={styles.actTitle}>{act.title}</div>
-                      <div style={styles.actDesc}>{act.desc}</div>
-                      <div style={styles.actTime}>{act.time}</div>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
 
