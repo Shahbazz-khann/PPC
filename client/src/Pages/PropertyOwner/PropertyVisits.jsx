@@ -4,7 +4,7 @@ import {
   RotateCcw, Eye, AlertCircle, X,
 } from 'lucide-react';
 
-import { getOwnerVisitsSummary, getOwnerVisitsList, getOwnerVisitDetails } from '../../Services/owner.services';
+import { getSellingVisitsSummary, getSellingVisitsList, getSellingVisitDetails } from '../../Services/user.services';
 import './PropertyVisitsResponsive.css';
 
 // Mock data removed.
@@ -34,7 +34,7 @@ const DetailModal = ({ item, onClose }) => {
         setLoading(true);
         setError(null);
         try {
-          const res = await getOwnerVisitDetails(item.visit_id);
+          const res = await getSellingVisitDetails(item.visit_id);
           if (isMounted) {
             setDetails(res?.data?.data || res?.data || null);
           }
@@ -125,7 +125,7 @@ const OwnerPropertyVisits = () => {
         if (search) params.search = search;
         if (statusFilter !== 'All Status') params.status = statusFilter;
         
-        const res = await getOwnerVisitsList(params);
+        const res = await getSellingVisitsList(params);
         if (isMounted) {
           const payload = res?.data?.data || res?.data || [];
           setVisits(payload);
@@ -155,7 +155,7 @@ const OwnerPropertyVisits = () => {
     const fetchSummary = async () => {
       try {
         setLoadingSummary(true);
-        const res = await getOwnerVisitsSummary();
+        const res = await getSellingVisitsSummary();
         if (isMounted) {
           const payload = res?.data?.data || res?.data || {};
           setSummaryData(payload);

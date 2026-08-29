@@ -26,7 +26,7 @@ import {
   Check,
   Info,
 } from 'lucide-react';
-import { getOwnerPropertiesSummary, getOwnerProperties, getOwnerPropertyDetails, createOwnerProperty, uploadOwnerPropertyMedia } from '../../Services/owner.services';
+import { getSellingPropertiesSummary, getSellingProperties, getSellingPropertyDetails, createSellingProperty, uploadSellingPropertyMedia } from '../../Services/user.services';
 import './PropertiesResponsive.css';
 
 // ─── Owner-Scoped Initial Mock Data ───────────────────────────────────────────
@@ -141,7 +141,7 @@ const OwnerProperties = () => {
     setDetailsError(null);
     setSelectedPropertyDetails(null);
     try {
-      const res = await getOwnerPropertyDetails(propertyId);
+      const res = await getSellingPropertyDetails(propertyId);
       setSelectedPropertyDetails(res?.data?.data || res?.data);
     } catch (err) {
       console.error("Failed to load details:", err);
@@ -274,7 +274,7 @@ const OwnerProperties = () => {
         rent_price: formData.property_status === 'For Rent' ? Number(formData.rent_price) : null,
       };
 
-      const response = await createOwnerProperty(payload);
+      const response = await createSellingProperty(payload);
       const newPropertyId = response?.data?.data?.property_id || response?.data?.property_id;
 
       if (newPropertyId && selectedImages.length > 0) {
@@ -283,7 +283,7 @@ const OwnerProperties = () => {
           const mediaForm = new FormData();
           mediaForm.append('media', imgObj.file);
           mediaForm.append('is_primary', index === 0 ? 'true' : 'false');
-          return uploadOwnerPropertyMedia(newPropertyId, mediaForm);
+          return uploadSellingPropertyMedia(newPropertyId, mediaForm);
         }));
       }
 
@@ -316,18 +316,26 @@ const OwnerProperties = () => {
         if (searchText.trim()) params.search = searchText.trim();
         if (typeFilter !== 'All') params.property_type = typeFilter;
         if (purposeFilter !== 'All') params.property_status = purposeFilter;
-        if (verifFilter !== 'All') params.verification_status = verifFilter;
+        let finalVerifStatus = verifFilter !== 'All' ? verifFilter : null;
         
         // Apply summary card filter overrides
         if (selectedSummaryCard === 'Verified') {
-          params.verification_status = 'Verified';
+          finalVerifStatus = 'Verified';
         } else if (selectedSummaryCard === 'Pending') {
-          params.verification_status = 'Pending';
-        } else if (selectedSummaryCard === 'Active') {
+          finalVerifStatus = 'Pending';
+        }
+
+        // We only send 'Verified' to the backend. 'Pending'/'Under Review' are filtered locally
+        // to correctly include properties that don't have a verification record yet (NULL).
+        if (finalVerifStatus === 'Verified') {
+          params.verification_status = 'Verified';
+        }
+
+        if (selectedSummaryCard === 'Active') {
           params.property_status = 'Active';
         }
 
-        const res = await getOwnerProperties(params);
+        const res = await getSellingProperties(params);
         if (isMounted) {
           setPropertiesList(res?.data?.data?.properties || res?.data?.data || res?.data || []);
           setPropertiesError(null);
@@ -350,7 +358,16 @@ const OwnerProperties = () => {
     };
   }, [searchText, typeFilter, purposeFilter, verifFilter, refreshTrigger, selectedSummaryCard]);
 
-  const filteredProperties = propertiesList;
+  const filteredProperties = propertiesList.filter(prop => {
+    let finalVerifStatus = verifFilter !== 'All' ? verifFilter : null;
+    if (selectedSummaryCard === 'Verified') finalVerifStatus = 'Verified';
+    else if (selectedSummaryCard === 'Pending') finalVerifStatus = 'Pending';
+
+    if (finalVerifStatus === 'Pending' || finalVerifStatus === 'Under Review') {
+      return !prop.verification_status || prop.verification_status === 'Pending' || prop.verification_status === 'In Progress';
+    }
+    return true;
+  });
 
   const handleResetFilters = () => {
     setSearchText('');
@@ -370,7 +387,7 @@ const OwnerProperties = () => {
     const fetchSummary = async () => {
       try {
         setLoadingSummary(true);
-        const res = await getOwnerPropertiesSummary();
+        const res = await getSellingPropertiesSummary();
         if (isMounted) {
           setSummaryData(res?.data?.data || res?.data || null);
           setSummaryError(null);

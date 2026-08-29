@@ -101,8 +101,8 @@ const WhyChooseUs = () => {
               <span className="text-white font-bold text-base md:text-lg tracking-wide">
                 051-111-CARE-111
               </span>
-              <span className="text-white font-bold text-sm md:text-base tracking-wide">
-                (051-111-2273-111)
+              <span className="text-white font-bold text-sm md:text-lg tracking-wide">
+                +92 336 6006 060
               </span>
             </div>
           </div>

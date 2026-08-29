@@ -1,0 +1,1 @@
+require('dotenv').config(); const { pool } = require('./config/db'); pool.query('SELECT * FROM pending_users ORDER BY created_at DESC LIMIT 1').then(res => { console.log(res.rows); pool.end(); }).catch(err => { console.error(err); pool.end(); });

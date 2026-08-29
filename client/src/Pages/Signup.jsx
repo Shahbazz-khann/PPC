@@ -8,7 +8,6 @@ import { signupUser, verifyEmail } from '../Services/auth.services';
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [accountType, setAccountType] = useState('customer');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -47,7 +46,7 @@ const Signup = () => {
         country: data.country,
         mobile_no: data.mobile,
         password: data.password,
-        account_type: accountType,
+        account_type: 'user',
       };
 
 
@@ -110,16 +109,16 @@ const Signup = () => {
           </div>
 
           {/* Lower-Left Main Text */}
-          <div className="relative z-10 my-4 sm:my-8 lg:my-auto max-w-xl hidden lg:block">
-            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
-              Find, Buy, Rent,
+          <div className="relative z-10 my-4 sm:my-8 lg:my-auto max-w-xl text-center lg:text-left">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight break-words">
+              Buy, Rent, or Sell,
             </h2>
-            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#C59B27] tracking-tight mt-1 leading-tight">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#C59B27] tracking-tight mt-1 leading-tight break-words">
               Your Perfect Property
             </h2>
-            <p className="text-gray-200 text-xs sm:text-base leading-relaxed mt-3 sm:mt-4 max-w-lg font-normal drop-shadow-sm">
+            <p className="text-gray-200 text-sm sm:text-base leading-relaxed mt-3 sm:mt-4 max-w-lg font-normal drop-shadow-sm mx-auto lg:mx-0">
               Pakistan Property Care is your trusted platform<br className="hidden sm:block" />
-              to discover verified properties with ease.
+              to discover and list properties with ease.
             </p>
           </div>
 
@@ -164,8 +163,8 @@ const Signup = () => {
       </div>
 
         {/* RIGHT SECTION - White Rounded Authentication Card */}
-        <div className="relative lg:w-1/2 w-full flex items-center justify-center p-4 sm:p-8 lg:p-12 z-10 pb-12 sm:pb-16 min-h-screen">
-          <div className="w-full max-w-[520px] bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 lg:p-10 text-gray-800 my-auto mx-auto lg:mx-0 lg:mr-auto lg:ml-4 xl:ml-12 border border-gray-100">
+        <div className="relative lg:w-1/2 w-full flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12 z-10 pb-12 sm:pb-16 lg:min-h-screen">
+          <div className="w-full max-w-[520px] bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 lg:p-10 text-gray-800 my-auto mx-auto lg:mx-0 lg:mr-auto lg:ml-4 xl:ml-12 border border-gray-100">
             {/* Header */}
             <div className="mb-4 sm:mb-6">
               <h3 className="text-xl sm:text-3xl font-bold text-[#1E293B] tracking-tight">
@@ -177,7 +176,7 @@ const Signup = () => {
             </div>
 
             {formMessage.text && (
-              <div className={`mb-4 p-3 rounded-xl text-base sm:text-sm font-medium ${formMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+              <div className={`mb-4 p-3 rounded-xl text-sm sm:text-base font-medium break-words ${formMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
                 {formMessage.text}
               </div>
             )}
@@ -197,7 +196,7 @@ const Signup = () => {
                       placeholder="Enter 6-digit code"
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 sm:py-2.5 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all tracking-widest text-center font-bold"
+                      className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all tracking-widest text-center font-bold"
                     />
                   </div>
                   {verifyError && (
@@ -234,7 +233,7 @@ const Signup = () => {
                       id="fullName"
                       type="text"
                       placeholder="Enter your full name"
-                      className="w-full pl-10 pr-4 py-2.5 sm:py-2.5 border border-gray-200 rounded-xl text-base sm:text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                       autoComplete="name"
                       aria-invalid={errors.fullName ? "true" : "false"}
                       {...register('fullName', {
@@ -265,7 +264,7 @@ const Signup = () => {
                       id="email"
                       type="email"
                       placeholder="Enter your email"
-                      className="w-full pl-10 pr-4 py-2.5 sm:py-2.5 border border-gray-200 rounded-xl text-base sm:text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                       autoComplete="email"
                       aria-invalid={errors.email ? "true" : "false"}
                       {...register('email', {
@@ -292,7 +291,7 @@ const Signup = () => {
                     <Globe className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
                     <select
                       id="country"
-                      className={`w-full pl-10 pr-10 py-2.5 sm:py-2.5 border border-gray-200 rounded-xl text-base sm:text-sm text-gray-800 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all appearance-none cursor-pointer`}
+                      className={`w-full pl-10 pr-10 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all appearance-none cursor-pointer`}
                       autoComplete="country-name"
                       aria-invalid={errors.country ? "true" : "false"}
                       {...register('country', {
@@ -324,14 +323,14 @@ const Signup = () => {
                   </label>
                   <div className="relative flex items-center">
                     <Phone className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
-                    <span className="absolute left-9 text-gray-800 font-medium text-xs sm:text-sm pointer-events-none flex items-center gap-1 whitespace-nowrap">
+                    <span className="absolute left-9 text-gray-800 font-medium text-sm pointer-events-none flex items-center gap-1 whitespace-nowrap">
                       {currentDialCode} <span className="text-gray-300">|</span>
                     </span>
                     <input
                       id="mobile"
                       type="tel"
                       placeholder="3001234567"
-                      className="w-full pl-[5.5rem] pr-4 py-2.5 sm:py-2.5 border border-gray-200 rounded-xl text-base sm:text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                      className="w-full pl-[5.5rem] pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                       autoComplete="tel-national"
                       aria-invalid={errors.mobile ? "true" : "false"}
                       {...register('mobile', {
@@ -365,7 +364,7 @@ const Signup = () => {
                         id="password"
                         type={showPassword ? 'text' : 'password'}
                         placeholder="Create a password"
-                        className="w-full pl-10 pr-10 py-2.5 sm:py-2.5 border border-gray-200 rounded-xl text-base sm:text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                        className="w-full pl-10 pr-10 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                         autoComplete="new-password"
                         aria-invalid={errors.password ? "true" : "false"}
                         {...register('password', {
@@ -439,7 +438,7 @@ const Signup = () => {
                         id="confirmPassword"
                         type={showConfirmPassword ? 'text' : 'password'}
                         placeholder="Confirm password"
-                        className="w-full pl-10 pr-10 py-2.5 sm:py-2.5 border border-gray-200 rounded-xl text-base sm:text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                        className="w-full pl-10 pr-10 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                         autoComplete="new-password"
                         aria-invalid={errors.confirmPassword ? "true" : "false"}
                         {...register('confirmPassword', {
@@ -466,49 +465,7 @@ const Signup = () => {
                   </div>
                 </div>
 
-                {/* Account Type Selection - UI only, local state */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    Account Type
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {/* Option 1 – Customer */}
-                    <button
-                      type="button"
-                      onClick={() => setAccountType('customer')}
-                      className={`flex flex-col items-start gap-0.5 px-3.5 py-3 rounded-xl border text-left transition-all duration-200 ${accountType === 'customer'
-                        ? 'border-[#C59B27] bg-[#C59B27]/8 ring-1 ring-[#C59B27]'
-                        : 'border-gray-200 bg-gray-50/50 hover:border-[#C59B27]/50 hover:bg-[#C59B27]/5'
-                        }`}
-                    >
-                      <span className={`text-xs font-bold leading-snug ${accountType === 'customer' ? 'text-[#B8860B]' : 'text-gray-800'
-                        }`}>
-                        I&#39;m looking for a property
-                      </span>
-                      <span className="text-[10px] text-gray-500 font-medium leading-snug">
-                        Buy or rent properties
-                      </span>
-                    </button>
 
-                    {/* Option 2 – Owner */}
-                    <button
-                      type="button"
-                      onClick={() => setAccountType('owner')}
-                      className={`flex flex-col items-start gap-0.5 px-3.5 py-3 rounded-xl border text-left transition-all duration-200 ${accountType === 'owner'
-                        ? 'border-[#C59B27] bg-[#C59B27]/8 ring-1 ring-[#C59B27]'
-                        : 'border-gray-200 bg-gray-50/50 hover:border-[#C59B27]/50 hover:bg-[#C59B27]/5'
-                        }`}
-                    >
-                      <span className={`text-xs font-bold leading-snug ${accountType === 'owner' ? 'text-[#B8860B]' : 'text-gray-800'
-                        }`}>
-                        I&#39;m a property owner
-                      </span>
-                      <span className="text-[10px] text-gray-500 font-medium leading-snug">
-                        List properties for sale or rent
-                      </span>
-                    </button>
-                  </div>
-                </div>
 
                 {/* Full-width Gold Sign Up Button */}
                 <button

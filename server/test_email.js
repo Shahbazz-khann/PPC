@@ -1,0 +1,1 @@
+require('dotenv').config(); const { sendVerificationEmail } = require('./utils/email.js'); sendVerificationEmail('test@example.com', '123456').then(r => { console.log('Email result:', r); process.exit(0); });

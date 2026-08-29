@@ -1,0 +1,45 @@
+require('dotenv').config();
+const { pool } = require('./config/db');
+
+async function inspect() {
+  try {
+    const userRes = await pool.query('SELECT user_id, email FROM users WHERE email = $1', ['saadcoder10@gmail.com']);
+    if (userRes.rowCount === 0) {
+      console.log('User not found');
+      return;
+    }
+    const user = userRes.rows[0];
+    console.log('User:', user);
+    
+    const propRes = await pool.query('SELECT property_id, title FROM properties WHERE owner_id = $1', [user.user_id]);
+    const propertyIds = propRes.rows.map(r => r.property_id);
+    console.log('Properties:', propertyIds);
+    
+    if (propertyIds.length === 0) {
+      console.log('No properties found');
+      return;
+    }
+    
+    const fkRes = await pool.query(`
+      SELECT tc.table_name, kcu.column_name, ccu.table_name AS foreign_table_name, ccu.column_name AS foreign_column_name, rc.update_rule, rc.delete_rule 
+      FROM information_schema.table_constraints AS tc 
+      JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name 
+      JOIN information_schema.referential_constraints AS rc ON tc.constraint_name = rc.constraint_name 
+      JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name 
+      WHERE tc.constraint_type = 'FOREIGN KEY' AND ccu.table_name = 'properties'
+    `);
+    
+    console.log('Foreign Keys:', fkRes.rows);
+    
+    for (const fk of fkRes.rows) {
+      const countRes = await pool.query(`SELECT COUNT(*) FROM ${fk.table_name} WHERE ${fk.column_name} = ANY($1)`, [propertyIds]);
+      console.log(`Table: ${fk.table_name}, Column: ${fk.column_name}, Count: ${countRes.rows[0].count}, Delete Rule: ${fk.delete_rule}`);
+    }
+  } catch (err) {
+    console.error(err);
+  } finally {
+    pool.end();
+  }
+}
+
+inspect();

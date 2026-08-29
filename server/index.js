@@ -61,6 +61,10 @@ apiRouter.use('/customer', customerRoutes);
 const ownerRoutes = require('./routes/Owner/owner.routes');
 apiRouter.use('/owner', ownerRoutes);
 
+// Unified User
+const userRoutes = require('./routes/User/user.routes');
+apiRouter.use('/user', userRoutes);
+
 // Inspector
 const inspectorRoutes = require('./routes/Inspector/inspector.routes');
 apiRouter.use('/inspector', inspectorRoutes);

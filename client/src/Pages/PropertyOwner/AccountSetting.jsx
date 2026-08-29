@@ -4,7 +4,7 @@ import {
   CheckCircle2, AlertCircle, Camera, Building2,
 } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
-import { updateOwnerProfile } from '../../Services/owner.services';
+import { updateProfile, changePassword } from '../../Services/user.services';
 import './AccountSettingResponsive.css';
 
 // ─── Mock session data ────────────────────────────────────────────────────────
@@ -100,7 +100,7 @@ const OwnerAccountSetting = () => {
     }
     setProfileSaving(true);
     try {
-      const res = await updateOwnerProfile({
+      const res = await updateProfile({
         name: profile.full_name,
         mobile_no: profile.phone,
         country: profile.country,
@@ -121,7 +121,7 @@ const OwnerAccountSetting = () => {
     }
   };
 
-  const handlePasswordChange = () => {
+  const handlePasswordChange = async () => {
     if (!passwords.current || !passwords.new_pass || !passwords.confirm) {
       showToast('Please fill in all password fields.', 'error'); return;
     }
@@ -132,11 +132,24 @@ const OwnerAccountSetting = () => {
       showToast('New password and confirm password do not match.', 'error'); return;
     }
     setPassSaving(true);
-    setTimeout(() => {
+    try {
+      const res = await changePassword({
+        current_password: passwords.current,
+        new_password: passwords.new_pass,
+        confirm_password: passwords.confirm
+      });
+      if (res?.data?.success || res?.status === 200) {
+        setPasswords({ current: '', new_pass: '', confirm: '' });
+        showToast('Password changed successfully.');
+      } else {
+        showToast('Failed to change password.', 'error');
+      }
+    } catch (err) {
+      console.error('Password change error:', err);
+      showToast(err.response?.data?.message || 'Error changing password.', 'error');
+    } finally {
       setPassSaving(false);
-      setPasswords({ current: '', new_pass: '', confirm: '' });
-      showToast('Password changed successfully.');
-    }, 1000);
+    }
   };
 
   const initials = MOCK_OWNER.full_name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);

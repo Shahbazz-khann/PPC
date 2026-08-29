@@ -22,11 +22,8 @@ const validateSignup = (req, res, next) => {
     if (!mobile_no) errors.mobile_no = 'Mobile number is required.';
     if (!password) errors.password = 'Password is required.';
 
-    if (!account_type) {
-        errors.account_type = 'Account type is required.';
-    } else if (!['customer', 'owner'].includes(account_type)) {
-        errors.account_type = 'Invalid account type.';
-    }
+    // account_type is no longer required or strictly validated 
+    // because the unified User role is assigned by default.
 
     if (Object.keys(errors).length > 0) {
         return res.status(400).json({

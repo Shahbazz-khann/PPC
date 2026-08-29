@@ -57,7 +57,9 @@ const Login = () => {
         // Role-based redirect using role_name from backend response
         const role = response.data?.role_name?.trim().toLowerCase();
 
-        if (role === 'customer') {
+        if (role === 'user') {
+          navigate('/user/dashboard');
+        } else if (role === 'customer') {
           navigate('/customer/dashboard');
         } else if (role === 'owner') {
           navigate('/owner/dashboard');

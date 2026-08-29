@@ -4,7 +4,7 @@ import {
   RotateCcw, Eye, AlertCircle, X, MapPin,
 } from 'lucide-react';
 
-import { getOwnerInspectionsSummary, getOwnerInspectionsList, getOwnerInspectionDetails } from '../../Services/owner.services';
+import { getSellingInspectionsSummary, getSellingInspectionsList, getSellingInspectionDetails } from '../../Services/user.services';
 import './InspectionsResponsive.css';
 
 // Mock data removed.
@@ -39,7 +39,7 @@ const DetailModal = ({ item, onClose }) => {
         setLoading(true);
         setError(null);
         try {
-          const res = await getOwnerInspectionDetails(item.inspection_id);
+          const res = await getSellingInspectionDetails(item.inspection_id);
           if (isMounted) {
             setDetails(res?.data?.data || res?.data || null);
           }
@@ -139,7 +139,7 @@ const OwnerInspections = () => {
         if (search) params.search = search;
         if (statusFilter !== 'All Status') params.status = statusFilter;
         
-        const res = await getOwnerInspectionsList(params);
+        const res = await getSellingInspectionsList(params);
         if (isMounted) {
           const payload = res?.data?.data || res?.data || [];
           setInspections(payload);
@@ -169,7 +169,7 @@ const OwnerInspections = () => {
     const fetchSummary = async () => {
       try {
         setLoadingSummary(true);
-        const res = await getOwnerInspectionsSummary();
+        const res = await getSellingInspectionsSummary();
         if (isMounted) {
           const payload = res?.data?.data || res?.data || {};
           setSummaryData(payload);

@@ -76,6 +76,13 @@ console.log('JWT SECRET EXISTS IN MIDDLEWARE:', !!process.env.JWT_SECRET);
             role.trim().toLowerCase()
         );
 
+        // Phase 1A: Allow new 'user' role to access owner and customer routes
+        if (normalizedRoles.includes('owner') || normalizedRoles.includes('customer')) {
+            if (!normalizedRoles.includes('user')) {
+                normalizedRoles.push('user');
+            }
+        }
+
         if (!normalizedRoles.includes(userRole)) {
             return res.status(403).json({
                 success: false,

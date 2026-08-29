@@ -23,7 +23,7 @@ import {
   Activity,
   CreditCard,
 } from 'lucide-react';
-import { getOwnerDashboardSummary, getOwnerVerificationSummary, getOwnerUpcomingVisits, getOwnerInspectionOverview, getOwnerRecentActivity, getOwnerProperties } from '../../Services/owner.services';
+import { getSellingDashboardSummary, getSellingVerificationSummary, getSellingUpcomingVisits, getSellingInspectionOverview, getSellingRecentActivity, getSellingProperties } from '../../Services/user.services';
 
 // ─── Static / Mock Data (Owner-scoped) ──────────────────────────────────────────
 
@@ -183,7 +183,7 @@ const OwnerDashboard = () => {
     const fetchSummary = async () => {
       try {
         setLoadingSummary(true);
-        const res = await getOwnerDashboardSummary();
+        const res = await getSellingDashboardSummary();
         if (isMounted) {
           const payload = res?.data || res || {};
           setSummaryData(payload);
@@ -210,7 +210,7 @@ const OwnerDashboard = () => {
     const fetchVerifSummary = async () => {
       try {
         setLoadingVerif(true);
-        const res = await getOwnerVerificationSummary();
+        const res = await getSellingVerificationSummary();
         if (isMounted) {
           const payload = res?.data || res || {};
           setVerifData(payload);
@@ -237,7 +237,7 @@ const OwnerDashboard = () => {
     const fetchVisits = async () => {
       try {
         setLoadingVisits(true);
-        const res = await getOwnerUpcomingVisits(1, 2);
+        const res = await getSellingUpcomingVisits(1, 2);
         if (isMounted) {
           const payload = res?.data || res || {};
           setUpcomingVisits(Array.isArray(payload) ? payload : (payload.data || payload.visits || []));
@@ -264,7 +264,7 @@ const OwnerDashboard = () => {
     const fetchInspection = async () => {
       try {
         setLoadingInspection(true);
-        const res = await getOwnerInspectionOverview();
+        const res = await getSellingInspectionOverview();
         if (isMounted) {
           const payload = res?.data?.data || res?.data || null;
           setInspectionOverview(payload);
@@ -291,7 +291,7 @@ const OwnerDashboard = () => {
     const fetchActivity = async () => {
       try {
         setLoadingActivity(true);
-        const res = await getOwnerRecentActivity();
+        const res = await getSellingRecentActivity();
         if (isMounted) {
           const payload = res?.data?.data || res?.data || [];
           setRecentActivity(Array.isArray(payload) ? payload : []);
@@ -318,7 +318,7 @@ const OwnerDashboard = () => {
     const fetchNewArrivals = async () => {
       try {
         setLoadingArrivals(true);
-        const res = await getOwnerProperties({ sort: 'newest', limit: 3 });
+        const res = await getSellingProperties({ sort: 'newest', limit: 3 });
         if (isMounted) {
           const payload = res?.data?.data || res?.data || [];
           setNewArrivals(Array.isArray(payload) ? payload : []);
@@ -418,7 +418,7 @@ const OwnerDashboard = () => {
             <span style={styles.bellDot}>2</span>
           </button>
 
-          <div style={styles.profileChip} onClick={() => navigate('/owner/account-settings')}>
+          <div style={styles.profileChip} onClick={() => navigate('/user/account-settings')}>
             <img
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256"
               alt={displayName}
@@ -472,7 +472,7 @@ const OwnerDashboard = () => {
               </div>
               <button
                 style={styles.viewAllBtn}
-                onClick={() => navigate('/owner/properties')}
+                onClick={() => navigate('/user/selling/properties')}
               >
                 View All Properties <ArrowRight size={14} strokeWidth={2} />
               </button>
@@ -552,7 +552,7 @@ const OwnerDashboard = () => {
                 <h3 style={styles.cardTitle}>Property Verification</h3>
                 <button
                   style={styles.linkBtn}
-                  onClick={() => navigate('/owner/property-verification')}
+                  onClick={() => navigate('/user/selling/property-verification')}
                 >
                   View Details <ChevronRight size={14} />
                 </button>
@@ -610,7 +610,7 @@ const OwnerDashboard = () => {
                 <h3 style={styles.cardTitle}>Inspection Overview</h3>
                 <button
                   style={styles.linkBtn}
-                  onClick={() => navigate('/owner/inspections')}
+                  onClick={() => navigate('/user/selling/inspections')}
                 >
                   View Inspections <ChevronRight size={14} />
                 </button>
@@ -651,7 +651,7 @@ const OwnerDashboard = () => {
                 <h3 style={styles.cardTitle}>Upcoming Visits</h3>
                 <button
                   style={styles.linkBtn}
-                  onClick={() => navigate('/owner/property-visits')}
+                  onClick={() => navigate('/user/selling/property-visits')}
                 >
                   View All Visits <ChevronRight size={14} />
                 </button>
@@ -701,7 +701,7 @@ const OwnerDashboard = () => {
                 <h3 style={styles.cardTitle}>Transaction Overview</h3>
                 <button
                   style={styles.linkBtn}
-                  onClick={() => navigate('/owner/transactions')}
+                  onClick={() => navigate('/user/transactions')}
                 >
                   View Transactions <ChevronRight size={14} />
                 </button>
@@ -740,7 +740,7 @@ const OwnerDashboard = () => {
               <h3 style={styles.sideCardTitle}>Financial Summary</h3>
               <button
                 style={styles.linkBtn}
-                onClick={() => navigate('/owner/payments-invoices')}
+                onClick={() => navigate('/user/payments-invoices')}
               >
                 View All <ChevronRight size={14} />
               </button>
@@ -766,7 +766,7 @@ const OwnerDashboard = () => {
             <h3 style={styles.sideCardTitle}>Quick Actions</h3>
 
             <div style={styles.quickActionsList}>
-              <button style={styles.qaBtn} onClick={() => navigate('/owner/properties')}>
+              <button style={styles.qaBtn} onClick={() => navigate('/user/selling/properties')}>
                 <div style={{ ...styles.qaIconBox, background: '#E8F4F1', color: '#1D6A4A' }}>
                   <Building2 size={16} />
                 </div>
@@ -774,7 +774,7 @@ const OwnerDashboard = () => {
                 <ChevronRight size={14} color="#9CA3AF" />
               </button>
 
-              <button style={styles.qaBtn} onClick={() => navigate('/owner/property-verification')}>
+              <button style={styles.qaBtn} onClick={() => navigate('/user/selling/property-verification')}>
                 <div style={{ ...styles.qaIconBox, background: '#FFF7ED', color: '#D97706' }}>
                   <ShieldCheck size={16} />
                 </div>
@@ -782,7 +782,7 @@ const OwnerDashboard = () => {
                 <ChevronRight size={14} color="#9CA3AF" />
               </button>
 
-              <button style={styles.qaBtn} onClick={() => navigate('/owner/inspections')}>
+              <button style={styles.qaBtn} onClick={() => navigate('/user/selling/inspections')}>
                 <div style={{ ...styles.qaIconBox, background: '#ECFDF5', color: '#059669' }}>
                   <FileText size={16} />
                 </div>
@@ -790,7 +790,7 @@ const OwnerDashboard = () => {
                 <ChevronRight size={14} color="#9CA3AF" />
               </button>
 
-              <button style={styles.qaBtn} onClick={() => navigate('/owner/property-visits')}>
+              <button style={styles.qaBtn} onClick={() => navigate('/user/selling/property-visits')}>
                 <div style={{ ...styles.qaIconBox, background: '#EEF2FF', color: '#4F46E5' }}>
                   <Calendar size={16} />
                 </div>
@@ -798,7 +798,7 @@ const OwnerDashboard = () => {
                 <ChevronRight size={14} color="#9CA3AF" />
               </button>
 
-              <button style={styles.qaBtn} onClick={() => navigate('/owner/transactions')}>
+              <button style={styles.qaBtn} onClick={() => navigate('/user/transactions')}>
                 <div style={{ ...styles.qaIconBox, background: '#F5F3FF', color: '#7C3AED' }}>
                   <CreditCard size={16} />
                 </div>
@@ -806,7 +806,7 @@ const OwnerDashboard = () => {
                 <ChevronRight size={14} color="#9CA3AF" />
               </button>
 
-              <button style={styles.qaBtn} onClick={() => navigate('/owner/payments-invoices')}>
+              <button style={styles.qaBtn} onClick={() => navigate('/user/payments-invoices')}>
                 <div style={{ ...styles.qaIconBox, background: '#FEF2F2', color: '#DC2626' }}>
                   <Receipt size={16} />
                 </div>

@@ -33,7 +33,7 @@ console.log('Signup account type:', account_type);
             });
         }
         //   FIND ROLE
-    const roleName = account_type === 'owner' ? 'Owner' : 'Customer';
+    const roleName = 'User';
     const role = await roleModel.findRoleByName(roleName);
    if (!role) {
       return res.status(400).json({

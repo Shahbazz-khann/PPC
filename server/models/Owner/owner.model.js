@@ -16,10 +16,10 @@ class OwnerModel {
         
         (
           SELECT COUNT(*) 
-          FROM property_verifications pv
-          JOIN verification_statuses vs ON pv.verification_status_id = vs.verification_status_id
-          JOIN owner_properties op ON pv.property_id = op.property_id
-          WHERE vs.name IN ('Pending', 'In Progress')
+          FROM owner_properties op
+          LEFT JOIN property_verifications pv ON op.property_id = pv.property_id
+          LEFT JOIN verification_statuses vs ON pv.verification_status_id = vs.verification_status_id
+          WHERE vs.name IN ('Pending', 'In Progress') OR vs.name IS NULL
         ) AS pending_verification,
         
         (

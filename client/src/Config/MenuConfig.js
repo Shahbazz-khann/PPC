@@ -38,6 +38,7 @@ export const ROLES = {
   ADMIN: 'admin',
   INSPECTOR: 'inspector',
   OWNER: 'owner',
+  USER: 'user',
 };
 
 // Menu Configuration grouped by Role
@@ -246,7 +247,7 @@ export const menuConfig = {
       roles: [ROLES.OWNER],
     },
     {
-      title: 'Inspections',
+      title: 'Inspections Status',
       path: '/owner/inspections',
       icon: ClipboardCheck,
       roles: [ROLES.OWNER],
@@ -264,7 +265,7 @@ export const menuConfig = {
       roles: [ROLES.OWNER],
     },
     {
-      title: 'Payments & Invoices',
+      title: 'Payment Summary',
       path: '/owner/payments-invoices',
       icon: Receipt,
       roles: [ROLES.OWNER],
@@ -280,6 +281,81 @@ export const menuConfig = {
       path: '/owner/logout',
       icon: LogOut,
       roles: [ROLES.OWNER],
+    },
+  ],
+
+  [ROLES.USER]: [
+    {
+      title: 'Dashboard',
+      path: '/user/dashboard',
+      icon: Home,
+      roles: [ROLES.USER],
+    },
+    {
+      title: 'My Properties',
+      path: '/user/selling/properties',
+      icon: Building2,
+      roles: [ROLES.USER],
+    },
+    {
+      title: 'Property Status',
+      path: '/user/selling/property-verification',
+      icon: ShieldCheck,
+      roles: [ROLES.USER],
+    },
+    {
+      title: 'Inspections',
+      path: '/user/selling/inspections',
+      icon: ClipboardCheck,
+      roles: [ROLES.USER],
+    },
+    {
+      title: 'Property Visits',
+      path: '/user/selling/property-visits',
+      icon: Calendar,
+      roles: [ROLES.USER],
+    },
+    // {
+    //   title: 'Buying Visits',
+    //   path: '/user/buying/visits',
+    //   icon: Calendar,
+    //   roles: [ROLES.USER],
+    // },
+    // {
+    //   title: 'Buying Transactions',
+    //   path: '/user/buying/transactions',
+    //   icon: FileText,
+    //   roles: [ROLES.USER],
+    // },
+    // {
+    //   title: 'Buying Reports',
+    //   path: '/user/buying/inspection-reports',
+    //   icon: ClipboardCheck,
+    //   roles: [ROLES.USER],
+    // },
+    {
+      title: 'Transactions',
+      path: '/user/transactions',
+      icon: FileText,
+      roles: [ROLES.USER],
+    },
+    {
+      title: 'Payment Summary',
+      path: '/user/payments-invoices',
+      icon: Receipt,
+      roles: [ROLES.USER],
+    },
+    {
+      title: 'Account Settings',
+      path: '/user/account-settings',
+      icon: Settings,
+      roles: [ROLES.USER],
+    },
+    {
+      title: 'Logout',
+      path: '/user/logout',
+      icon: LogOut,
+      roles: [ROLES.USER],
     },
   ],
 };
