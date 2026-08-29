@@ -1,47 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Calendar, CheckCircle2, Clock, XCircle, Search, ChevronDown,
   RotateCcw, Eye, AlertCircle, X,
 } from 'lucide-react';
 
-// ─── Mock Data ─────────────────────────────────────────────────────────────────
-const MOCK_VISITS = [
-  {
-    visit_id: 1, ppc_id: '#VIS-2026-0071',
-    property_title: 'Modern Family Villa', property_location: 'Bahria Town', city: 'Islamabad', property_type: 'House',
-    visit_status: 'Confirmed', visit_date: '18 Aug 2026', visit_time: '04:00 PM',
-    customer_name: 'Ahmed Raza', updated_at: '16 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    visit_id: 2, ppc_id: '#VIS-2026-0068',
-    property_title: 'Luxury Apartment', property_location: 'DHA Phase 2', city: 'Islamabad', property_type: 'Apartment',
-    visit_status: 'Scheduled', visit_date: '22 Aug 2026', visit_time: '11:30 AM',
-    customer_name: 'Usman Ali', updated_at: '17 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    visit_id: 3, ppc_id: '#VIS-2026-0065',
-    property_title: 'Fully Furnished House', property_location: 'G-13', city: 'Islamabad', property_type: 'House',
-    visit_status: 'Completed', visit_date: '10 Aug 2026', visit_time: '03:00 PM',
-    customer_name: 'Sara Khan', updated_at: '10 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    visit_id: 4, ppc_id: '#VIS-2026-0060',
-    property_title: 'Smart Home Villa', property_location: 'E-11', city: 'Islamabad', property_type: 'House',
-    visit_status: 'Cancelled', visit_date: '08 Aug 2026', visit_time: '10:00 AM',
-    customer_name: 'Ali Hassan', updated_at: '08 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    visit_id: 5, ppc_id: '#VIS-2026-0055',
-    property_title: 'Premium Penthouse', property_location: 'DHA Phase 5', city: 'Lahore', property_type: 'Apartment',
-    visit_status: 'Scheduled', visit_date: '25 Aug 2026', visit_time: '02:00 PM',
-    customer_name: 'Zara Malik', updated_at: '17 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=120&q=80',
-  },
-];
+import { getOwnerVisitsSummary, getOwnerVisitsList, getOwnerVisitDetails } from '../../Services/owner.services';
+import './PropertyVisitsResponsive.css';
+
+// Mock data removed.
 
 const STATUS_CONFIG = {
   Confirmed:  { bg: '#DCFCE7', color: '#166534', icon: CheckCircle2 },
@@ -57,38 +23,78 @@ const TYPE_COLORS = {
 };
 
 const DetailModal = ({ item, onClose }) => {
+  const [details, setDetails] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (item?.visit_id) {
+      const fetchDetails = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const res = await getOwnerVisitDetails(item.visit_id);
+          if (isMounted) {
+            setDetails(res?.data?.data || res?.data || null);
+          }
+        } catch (err) {
+          console.error('Failed to load visit details:', err);
+          if (isMounted) setError('Unable to load visit details.');
+        } finally {
+          if (isMounted) setLoading(false);
+        }
+      };
+      fetchDetails();
+    }
+    return () => { isMounted = false; };
+  }, [item]);
+
   if (!item) return null;
-  const sc = STATUS_CONFIG[item.visit_status] || STATUS_CONFIG.Scheduled;
+
+  const displayData = details || item;
+  const sc = STATUS_CONFIG[displayData.visit_status] || STATUS_CONFIG.Scheduled;
   const StatusIcon = sc.icon;
+
   return (
     <div style={S.overlay} onClick={onClose}>
-      <div style={S.modal} onClick={(e) => e.stopPropagation()}>
+      <div className="responsive-modal" style={S.modal} onClick={(e) => e.stopPropagation()}>
         <div style={S.modalHeader}>
           <h3 style={S.modalTitle}>Visit Details</h3>
           <button style={S.closeBtn} onClick={onClose}><X size={18} color="#374151" /></button>
         </div>
         <div style={S.modalBody}>
-          <img src={item.image} alt={item.property_title} style={S.modalImg}
-            onError={(e) => { e.target.src = 'https://placehold.co/440x140/e2e8f0/94a3b8?text=PPC'; }} />
-          <div style={S.modalGrid}>
-            {[
-              ['Visit ID', item.ppc_id],
-              ['Property', item.property_title],
-              ['Location', `${item.property_location}, ${item.city}`],
-              ['Visit Date', item.visit_date],
-              ['Visit Time', item.visit_time],
-              ['Customer', item.customer_name],
-              ['Last Updated', item.updated_at],
-            ].map(([k, v]) => (
-              <div key={k} style={S.modalRow}>
-                <span style={S.modalKey}>{k}</span><span style={S.modalVal}>{v}</span>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#6B7280' }}>Loading details...</div>
+          ) : error ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#991B1B' }}>{error}</div>
+          ) : !details ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#6B7280' }}>Details not available</div>
+          ) : (
+            <>
+              <img src={displayData.property_image || 'https://placehold.co/440x140/e2e8f0/94a3b8?text=PPC'} alt={displayData.property_title} style={S.modalImg}
+                onError={(e) => { e.target.src = 'https://placehold.co/440x140/e2e8f0/94a3b8?text=PPC'; }} />
+              <div style={S.modalGrid}>
+                {[
+                  ['Visit ID', displayData.visit_display_id || `#VIS-${displayData.visit_id}`],
+                  ['Property', displayData.property_title],
+                  ['Location', displayData.location || displayData.city],
+                  ['Visit Date', displayData.visit_date || (displayData.scheduled_at ? new Date(displayData.scheduled_at).toLocaleDateString() : '—')],
+                  ['Visit Time', displayData.visit_time || (displayData.scheduled_at ? new Date(displayData.scheduled_at).toLocaleTimeString() : '—')],
+                  ['Customer', displayData.customer_name || 'N/A'],
+                  ['Last Updated', displayData.last_updated ? new Date(displayData.last_updated).toLocaleDateString() : '—'],
+                ].map(([k, v]) => (
+                  <div key={k} style={S.modalRow}>
+                    <span style={S.modalKey}>{k}</span><span style={S.modalVal}>{v}</span>
+                  </div>
+                ))}
+                <div style={S.modalRow}>
+                  <span style={S.modalKey}>Status</span>
+                  <span style={{ ...S.badge, background: sc.bg, color: sc.color }}><StatusIcon size={12} />{displayData.visit_status}</span>
+                </div>
               </div>
-            ))}
-            <div style={S.modalRow}>
-              <span style={S.modalKey}>Status</span>
-              <span style={{ ...S.badge, background: sc.bg, color: sc.color }}><StatusIcon size={12} />{item.visit_status}</span>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -102,52 +108,110 @@ const OwnerPropertyVisits = () => {
   const [page, setPage] = useState(1);
   const PER_PAGE = 5;
 
-  const filtered = useMemo(() => MOCK_VISITS.filter((p) => {
-    const q = search.toLowerCase();
-    if (q && !p.property_title.toLowerCase().includes(q) && !p.city.toLowerCase().includes(q) && !p.ppc_id.toLowerCase().includes(q)) return false;
-    if (statusFilter !== 'All Status' && p.visit_status !== statusFilter) return false;
-    return true;
-  }), [search, statusFilter]);
+  const [visits, setVisits] = useState([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [loadingList, setLoadingList] = useState(false);
+  const [listError, setListError] = useState(null);
 
-  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-  const totalPages = Math.ceil(filtered.length / PER_PAGE);
+  useEffect(() => {
+    let isMounted = true;
+    const fetchList = async () => {
+      try {
+        setLoadingList(true);
+        const params = {
+          page,
+          limit: PER_PAGE,
+        };
+        if (search) params.search = search;
+        if (statusFilter !== 'All Status') params.status = statusFilter;
+        
+        const res = await getOwnerVisitsList(params);
+        if (isMounted) {
+          const payload = res?.data?.data || res?.data || [];
+          setVisits(payload);
+          const pagin = res?.data?.pagination || {};
+          setTotalRecords(pagin.total || 0);
+          setListError(null);
+        }
+      } catch (err) {
+        console.error('Failed to load visits list:', err);
+        if (isMounted) setListError('Unable to load visits records.');
+      } finally {
+        if (isMounted) setLoadingList(false);
+      }
+    };
+    fetchList();
+    return () => { isMounted = false; };
+  }, [page, search, statusFilter]);
+
+  const totalPages = Math.ceil(totalRecords / PER_PAGE);
+
+  const [summaryData, setSummaryData] = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(true);
+  const [summaryError, setSummaryError] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchSummary = async () => {
+      try {
+        setLoadingSummary(true);
+        const res = await getOwnerVisitsSummary();
+        if (isMounted) {
+          const payload = res?.data?.data || res?.data || {};
+          setSummaryData(payload);
+          setSummaryError(null);
+        }
+      } catch (err) {
+        console.error('Failed to load visits summary:', err);
+        if (isMounted) setSummaryError('Unable to load visits summary.');
+      } finally {
+        if (isMounted) setLoadingSummary(false);
+      }
+    };
+    fetchSummary();
+    return () => { isMounted = false; };
+  }, []);
 
   const counts = {
-    total: MOCK_VISITS.length,
-    confirmed: MOCK_VISITS.filter((v) => v.visit_status === 'Confirmed').length,
-    scheduled: MOCK_VISITS.filter((v) => v.visit_status === 'Scheduled').length,
-    completed: MOCK_VISITS.filter((v) => v.visit_status === 'Completed').length,
+    total: summaryData?.total_visits || 0,
+    confirmed: summaryData?.confirmed || 0,
+    scheduled: summaryData?.scheduled || 0,
+    completed: summaryData?.completed || 0,
   };
 
   return (
-    <div style={S.page}>
-      <div style={S.pageHeader}>
+    <div className="responsive-page" style={S.page}>
+      <div className="responsive-header" style={S.pageHeader}>
         <h1 style={S.pageTitle}>Property Visits</h1>
         <p style={S.pageSub}>View scheduled and completed visits for your properties listed with PPC.</p>
       </div>
 
-      <div style={S.cards}>
-        {[
-          { label: 'Total Visits', sub: 'All visit records', val: counts.total, icon: Calendar, bg: '#E8F4F1', color: '#1D6A4A' },
-          { label: 'Confirmed', sub: 'Visit approved', val: counts.confirmed, icon: CheckCircle2, bg: '#DCFCE7', color: '#166534' },
-          { label: 'Scheduled', sub: 'Upcoming visits', val: counts.scheduled, icon: Clock, bg: '#EEF2FF', color: '#4338CA' },
-          { label: 'Completed', sub: 'Visit finalised', val: counts.completed, icon: CheckCircle2, bg: '#F0FDF4', color: '#15803D' },
-        ].map((c) => {
-          const Icon = c.icon;
-          return (
-            <div key={c.label} style={S.card}>
-              <div style={{ ...S.cardIcon, background: c.bg }}><Icon size={22} color={c.color} /></div>
-              <div>
-                <div style={S.cardVal}>{c.val}</div>
-                <div style={S.cardLabel}>{c.label}</div>
-                <div style={S.cardSub}>{c.sub}</div>
+      {summaryError ? (
+        <div style={{ color: 'red', margin: '10px 0' }}>{summaryError}</div>
+      ) : (
+        <div className="responsive-cards" style={S.cards}>
+          {[
+            { label: 'Total Visits', sub: 'All visit records', val: loadingSummary ? '...' : counts.total, icon: Calendar, bg: '#E8F4F1', color: '#1D6A4A' },
+            { label: 'Confirmed', sub: 'Visit approved', val: loadingSummary ? '...' : counts.confirmed, icon: CheckCircle2, bg: '#DCFCE7', color: '#166534' },
+            { label: 'Scheduled', sub: 'Upcoming visits', val: loadingSummary ? '...' : counts.scheduled, icon: Clock, bg: '#EEF2FF', color: '#4338CA' },
+            { label: 'Completed', sub: 'Visit finalised', val: loadingSummary ? '...' : counts.completed, icon: CheckCircle2, bg: '#F0FDF4', color: '#15803D' },
+          ].map((c) => {
+            const Icon = c.icon;
+            return (
+              <div key={c.label} style={S.card}>
+                <div style={{ ...S.cardIcon, background: c.bg }}><Icon size={22} color={c.color} /></div>
+                <div>
+                  <div style={S.cardVal}>{c.val}</div>
+                  <div style={S.cardLabel}>{c.label}</div>
+                  <div style={S.cardSub}>{c.sub}</div>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
-      <div style={S.filterBar}>
+      <div className="responsive-filter-bar" style={S.filterBar}>
         <div style={S.searchBox}>
           <Search size={15} color="#9CA3AF" />
           <input style={S.searchInput} placeholder="Search by property title, visit ID or city..."
@@ -171,8 +235,12 @@ const OwnerPropertyVisits = () => {
         </button>
       </div>
 
-      <div style={S.tableWrap}>
-        {filtered.length === 0 ? (
+      <div className="responsive-table-wrap" style={S.tableWrap}>
+        {loadingList ? (
+          <div style={{ padding: '20px', textAlign: 'center', color: '#6B7280' }}>Loading visit records...</div>
+        ) : listError ? (
+          <div style={{ padding: '20px', textAlign: 'center', color: '#991B1B' }}>{listError}</div>
+        ) : visits.length === 0 ? (
           <div style={S.emptyState}><AlertCircle size={40} color="#9CA3AF" strokeWidth={1.5} /><p style={S.emptyTitle}>No matching visit records found</p></div>
         ) : (
           <>
@@ -185,7 +253,7 @@ const OwnerPropertyVisits = () => {
                 </tr>
               </thead>
               <tbody>
-                {paginated.map((p, i) => {
+                {visits.map((p, i) => {
                   const sc = STATUS_CONFIG[p.visit_status] || STATUS_CONFIG.Scheduled;
                   const StatusIcon = sc.icon;
                   const tc = TYPE_COLORS[p.property_type] || { bg: '#F3F4F6', color: '#374151' };
@@ -193,21 +261,20 @@ const OwnerPropertyVisits = () => {
                     <tr key={p.visit_id} style={{ ...S.tr, background: i % 2 === 0 ? '#FFF' : '#FAFAFA' }}>
                       <td style={S.td}>
                         <div style={S.propCell}>
-                          <img src={p.image} alt={p.property_title} style={S.propImg}
+                          <img src={p.property_image || 'https://placehold.co/60x48/e2e8f0/94a3b8?text=PPC'} alt={p.property_title} style={S.propImg}
                             onError={(e) => { e.target.src = 'https://placehold.co/60x48/e2e8f0/94a3b8?text=PPC'; }} />
                           <div>
                             <div style={S.propName}>{p.property_title}</div>
-                            <div style={S.propLoc}>{p.property_location}</div>
                           </div>
                         </div>
                       </td>
-                      <td style={S.td}><span style={S.ppcId}>{p.ppc_id}</span></td>
-                      <td style={S.td}><span style={{ ...S.typeBadge, background: tc.bg, color: tc.color }}>{p.property_type}</span></td>
+                      <td style={S.td}><span style={S.ppcId}>{`#VIS-${p.visit_id}`}</span></td>
+                      <td style={S.td}><span style={{ ...S.typeBadge, background: tc.bg, color: tc.color }}>{p.property_type || 'N/A'}</span></td>
                       <td style={S.td}><span style={S.cityTxt}>{p.city}</span></td>
-                      <td style={S.td}><span style={S.dateTxt}>{p.customer_name}</span></td>
-                      <td style={S.td}><span style={S.dateTxt}>{p.visit_date}</span></td>
-                      <td style={S.td}><span style={S.dateTxt}>{p.visit_time}</span></td>
-                      <td style={S.td}><span style={{ ...S.badge, background: sc.bg, color: sc.color }}><StatusIcon size={12} />{p.visit_status}</span></td>
+                      <td style={S.td}><span style={S.dateTxt}>{p.customer_name || 'N/A'}</span></td>
+                      <td style={S.td}><span style={S.dateTxt}>{p.scheduled_at ? new Date(p.scheduled_at).toLocaleDateString() : '—'}</span></td>
+                      <td style={S.td}><span style={S.dateTxt}>{p.scheduled_at ? new Date(p.scheduled_at).toLocaleTimeString() : '—'}</span></td>
+                      <td style={S.td}><span style={{ ...S.badge, background: sc.bg, color: sc.color }}><StatusIcon size={12} />{p.visit_status || 'Scheduled'}</span></td>
                       <td style={S.td}>
                         <div style={S.actions}>
                           <button style={S.viewBtn} onClick={() => setSelected(p)}>View Details</button>
@@ -219,8 +286,8 @@ const OwnerPropertyVisits = () => {
                 })}
               </tbody>
             </table>
-            <div style={S.pagination}>
-              <span style={S.paginInfo}>Showing {(page - 1) * PER_PAGE + 1} to {Math.min(page * PER_PAGE, filtered.length)} of {filtered.length} records</span>
+            <div className="responsive-pagination" style={S.pagination}>
+              <span style={S.paginInfo}>Showing {(page - 1) * PER_PAGE + 1} to {Math.min(page * PER_PAGE, totalRecords)} of {totalRecords} records</span>
               <div style={S.paginBtns}>
                 <button style={S.paginArrow} onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>‹</button>
                 {Array.from({ length: totalPages }, (_, i) => (

@@ -1,47 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   ClipboardCheck, CheckCircle2, Clock, XCircle, Search, ChevronDown,
   RotateCcw, Eye, AlertCircle, X, MapPin,
 } from 'lucide-react';
 
-// ─── Mock Data ─────────────────────────────────────────────────────────────────
-const MOCK_INSPECTIONS = [
-  {
-    inspection_id: 1, ppc_id: '#INS-2026-0041',
-    property_title: 'Modern Family Villa', property_location: 'Bahria Town', city: 'Islamabad', property_type: 'House',
-    inspection_status: 'Completed', inspection_result: 'Passed',
-    scheduled_date: '10 Aug 2026', completed_date: '10 Aug 2026', updated_at: '10 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    inspection_id: 2, ppc_id: '#INS-2026-0039',
-    property_title: 'Luxury Apartment', property_location: 'DHA Phase 2', city: 'Islamabad', property_type: 'Apartment',
-    inspection_status: 'Scheduled', inspection_result: null,
-    scheduled_date: '22 Aug 2026', completed_date: null, updated_at: '17 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    inspection_id: 3, ppc_id: '#INS-2026-0037',
-    property_title: 'Fully Furnished House', property_location: 'G-13', city: 'Islamabad', property_type: 'House',
-    inspection_status: 'Completed', inspection_result: 'Passed',
-    scheduled_date: '15 Aug 2026', completed_date: '15 Aug 2026', updated_at: '16 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    inspection_id: 4, ppc_id: '#INS-2026-0034',
-    property_title: 'Commercial Plaza', property_location: 'Blue Area', city: 'Islamabad', property_type: 'Commercial',
-    inspection_status: 'Completed', inspection_result: 'Failed',
-    scheduled_date: '14 Aug 2026', completed_date: '14 Aug 2026', updated_at: '14 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    inspection_id: 5, ppc_id: '#INS-2026-0030',
-    property_title: 'Smart Home Villa', property_location: 'E-11', city: 'Islamabad', property_type: 'House',
-    inspection_status: 'Pending', inspection_result: null,
-    scheduled_date: null, completed_date: null, updated_at: '12 Aug 2026',
-    image: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&w=120&q=80',
-  },
-];
+import { getOwnerInspectionsSummary, getOwnerInspectionsList, getOwnerInspectionDetails } from '../../Services/owner.services';
+import './InspectionsResponsive.css';
+
+// Mock data removed.
 
 const STATUS_CONFIG = {
   Completed: { bg: '#DCFCE7', color: '#166534', icon: CheckCircle2 },
@@ -62,39 +28,79 @@ const TYPE_COLORS = {
 
 // ─── Modal ─────────────────────────────────────────────────────────────────────
 const DetailModal = ({ item, onClose }) => {
+  const [details, setDetails] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (item?.inspection_id) {
+      const fetchDetails = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const res = await getOwnerInspectionDetails(item.inspection_id);
+          if (isMounted) {
+            setDetails(res?.data?.data || res?.data || null);
+          }
+        } catch (err) {
+          console.error('Failed to load inspection details:', err);
+          if (isMounted) setError('Unable to load inspection details.');
+        } finally {
+          if (isMounted) setLoading(false);
+        }
+      };
+      fetchDetails();
+    }
+    return () => { isMounted = false; };
+  }, [item]);
+
   if (!item) return null;
-  const sc = STATUS_CONFIG[item.inspection_status] || STATUS_CONFIG.Pending;
+
+  const displayData = details || item;
+  const sc = STATUS_CONFIG[displayData.inspection_status] || STATUS_CONFIG.Pending;
   const StatusIcon = sc.icon;
-  const rc = item.inspection_result ? RESULT_CONFIG[item.inspection_result] : null;
+  const rc = displayData.inspection_result ? RESULT_CONFIG[displayData.inspection_result] : null;
+
   return (
     <div style={S.overlay} onClick={onClose}>
-      <div style={S.modal} onClick={(e) => e.stopPropagation()}>
+      <div className="responsive-modal" style={S.modal} onClick={(e) => e.stopPropagation()}>
         <div style={S.modalHeader}>
           <h3 style={S.modalTitle}>Inspection Details</h3>
           <button style={S.closeBtn} onClick={onClose}><X size={18} color="#374151" /></button>
         </div>
         <div style={S.modalBody}>
-          <img src={item.image} alt={item.property_title} style={S.modalImg}
-            onError={(e) => { e.target.src = 'https://placehold.co/440x140/e2e8f0/94a3b8?text=PPC'; }} />
-          <div style={S.modalGrid}>
-            <Row label="Inspection ID" val={item.ppc_id} />
-            <Row label="Property" val={item.property_title} />
-            <Row label="Type" val={item.property_type} />
-            <Row label="Location" val={`${item.property_location}, ${item.city}`} />
-            <div style={S.modalRow}>
-              <span style={S.modalKey}>Status</span>
-              <span style={{ ...S.badge, background: sc.bg, color: sc.color }}><StatusIcon size={12} /> {item.inspection_status}</span>
-            </div>
-            {item.inspection_result && (
-              <div style={S.modalRow}>
-                <span style={S.modalKey}>Result</span>
-                <span style={{ ...S.badge, background: rc.bg, color: rc.color }}>{item.inspection_result}</span>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#6B7280' }}>Loading details...</div>
+          ) : error ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#991B1B' }}>{error}</div>
+          ) : !details ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#6B7280' }}>Details not available</div>
+          ) : (
+            <>
+              <img src={displayData.property_image || 'https://placehold.co/440x140/e2e8f0/94a3b8?text=PPC'} alt={displayData.property_title} style={S.modalImg}
+                onError={(e) => { e.target.src = 'https://placehold.co/440x140/e2e8f0/94a3b8?text=PPC'; }} />
+              <div style={S.modalGrid}>
+                <Row label="Inspection ID" val={`#INS-${displayData.inspection_id}`} />
+                <Row label="Property" val={displayData.property_title} />
+                <Row label="Type" val={displayData.property_type || 'N/A'} />
+                <Row label="Location" val={displayData.location} />
+                <div style={S.modalRow}>
+                  <span style={S.modalKey}>Status</span>
+                  <span style={{ ...S.badge, background: sc.bg, color: sc.color }}><StatusIcon size={12} /> {displayData.inspection_status || 'Pending'}</span>
+                </div>
+                {displayData.inspection_result && (
+                  <div style={S.modalRow}>
+                    <span style={S.modalKey}>Result</span>
+                    <span style={{ ...S.badge, background: rc.bg, color: rc.color }}>{displayData.inspection_result}</span>
+                  </div>
+                )}
+                {displayData.scheduled_at && <Row label="Scheduled Date" val={new Date(displayData.scheduled_at).toLocaleDateString()} />}
+                {displayData.completed_at && <Row label="Completed Date" val={new Date(displayData.completed_at).toLocaleDateString()} />}
+                <Row label="Last Updated" val={new Date(displayData.last_updated || displayData.completed_at || displayData.scheduled_at || Date.now()).toLocaleDateString()} />
               </div>
-            )}
-            {item.scheduled_date && <Row label="Scheduled Date" val={item.scheduled_date} />}
-            {item.completed_date && <Row label="Completed Date" val={item.completed_date} />}
-            <Row label="Last Updated" val={item.updated_at} />
-          </div>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -116,52 +122,110 @@ const OwnerInspections = () => {
   const [page, setPage] = useState(1);
   const PER_PAGE = 5;
 
-  const filtered = useMemo(() => MOCK_INSPECTIONS.filter((p) => {
-    const q = search.toLowerCase();
-    if (q && !p.property_title.toLowerCase().includes(q) && !p.city.toLowerCase().includes(q) && !p.ppc_id.toLowerCase().includes(q)) return false;
-    if (statusFilter !== 'All Status' && p.inspection_status !== statusFilter) return false;
-    return true;
-  }), [search, statusFilter]);
+  const [inspections, setInspections] = useState([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [loadingList, setLoadingList] = useState(false);
+  const [listError, setListError] = useState(null);
 
-  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-  const totalPages = Math.ceil(filtered.length / PER_PAGE);
+  useEffect(() => {
+    let isMounted = true;
+    const fetchList = async () => {
+      try {
+        setLoadingList(true);
+        const params = {
+          page,
+          limit: PER_PAGE,
+        };
+        if (search) params.search = search;
+        if (statusFilter !== 'All Status') params.status = statusFilter;
+        
+        const res = await getOwnerInspectionsList(params);
+        if (isMounted) {
+          const payload = res?.data?.data || res?.data || [];
+          setInspections(payload);
+          const pagin = res?.data?.pagination || {};
+          setTotalRecords(pagin.total || 0);
+          setListError(null);
+        }
+      } catch (err) {
+        console.error('Failed to load inspections list:', err);
+        if (isMounted) setListError('Unable to load inspection records.');
+      } finally {
+        if (isMounted) setLoadingList(false);
+      }
+    };
+    fetchList();
+    return () => { isMounted = false; };
+  }, [page, search, statusFilter]);
 
-  const total = MOCK_INSPECTIONS.length;
-  const completed = MOCK_INSPECTIONS.filter((p) => p.inspection_status === 'Completed').length;
-  const scheduled = MOCK_INSPECTIONS.filter((p) => p.inspection_status === 'Scheduled').length;
-  const pending = MOCK_INSPECTIONS.filter((p) => p.inspection_status === 'Pending').length;
+  const totalPages = Math.ceil(totalRecords / PER_PAGE);
+
+  const [summaryData, setSummaryData] = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(true);
+  const [summaryError, setSummaryError] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchSummary = async () => {
+      try {
+        setLoadingSummary(true);
+        const res = await getOwnerInspectionsSummary();
+        if (isMounted) {
+          const payload = res?.data?.data || res?.data || {};
+          setSummaryData(payload);
+          setSummaryError(null);
+        }
+      } catch (err) {
+        console.error('Failed to load inspections summary:', err);
+        if (isMounted) setSummaryError('Unable to load summary.');
+      } finally {
+        if (isMounted) setLoadingSummary(false);
+      }
+    };
+    fetchSummary();
+    return () => { isMounted = false; };
+  }, []);
+
+  const total = summaryData?.total_inspections || 0;
+  const completed = summaryData?.completed || 0;
+  const scheduled = summaryData?.scheduled || 0;
+  const pending = summaryData?.pending_assignment || 0;
 
   return (
-    <div style={S.page}>
-      <div style={S.pageHeader}>
+    <div className="responsive-page" style={S.page}>
+      <div className="responsive-header" style={S.pageHeader}>
         <h1 style={S.pageTitle}>Inspections</h1>
         <p style={S.pageSub}>View inspection records for your properties managed by PPC.</p>
       </div>
 
       {/* Cards */}
-      <div style={S.cards}>
-        {[
-          { label: 'Total Inspections', sub: 'All inspection records', val: total, icon: ClipboardCheck, bg: '#E8F4F1', color: '#1D6A4A' },
-          { label: 'Completed', sub: 'Inspection finalised', val: completed, icon: CheckCircle2, bg: '#DCFCE7', color: '#166534' },
-          { label: 'Scheduled', sub: 'Upcoming inspections', val: scheduled, icon: Clock, bg: '#EEF2FF', color: '#4338CA' },
-          { label: 'Pending Assignment', sub: 'Not yet scheduled', val: pending, icon: AlertCircle, bg: '#FFF7ED', color: '#D97706' },
-        ].map((c) => {
-          const Icon = c.icon;
-          return (
-            <div key={c.label} style={S.card}>
-              <div style={{ ...S.cardIcon, background: c.bg }}><Icon size={22} color={c.color} /></div>
-              <div>
-                <div style={S.cardVal}>{c.val}</div>
-                <div style={S.cardLabel}>{c.label}</div>
-                <div style={S.cardSub}>{c.sub}</div>
+      {summaryError ? (
+        <div style={{ color: 'red', margin: '10px 0' }}>{summaryError}</div>
+      ) : (
+        <div className="responsive-cards" style={S.cards}>
+          {[
+            { label: 'Total Inspections', sub: 'All inspection records', val: loadingSummary ? '...' : total, icon: ClipboardCheck, bg: '#E8F4F1', color: '#1D6A4A' },
+            { label: 'Completed', sub: 'Inspection finalised', val: loadingSummary ? '...' : completed, icon: CheckCircle2, bg: '#DCFCE7', color: '#166534' },
+            { label: 'Scheduled', sub: 'Upcoming inspections', val: loadingSummary ? '...' : scheduled, icon: Clock, bg: '#EEF2FF', color: '#4338CA' },
+            { label: 'Pending Assignment', sub: 'Not yet scheduled', val: loadingSummary ? '...' : pending, icon: AlertCircle, bg: '#FFF7ED', color: '#D97706' },
+          ].map((c) => {
+            const Icon = c.icon;
+            return (
+              <div key={c.label} style={S.card}>
+                <div style={{ ...S.cardIcon, background: c.bg }}><Icon size={22} color={c.color} /></div>
+                <div>
+                  <div style={S.cardVal}>{c.val}</div>
+                  <div style={S.cardLabel}>{c.label}</div>
+                  <div style={S.cardSub}>{c.sub}</div>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Filters */}
-      <div style={S.filterBar}>
+      <div className="responsive-filter-bar" style={S.filterBar}>
         <div style={S.searchBox}>
           <Search size={15} color="#9CA3AF" />
           <input style={S.searchInput} placeholder="Search by property title, ID or city..."
@@ -185,8 +249,12 @@ const OwnerInspections = () => {
       </div>
 
       {/* Table */}
-      <div style={S.tableWrap}>
-        {filtered.length === 0 ? (
+      <div className="responsive-table-wrap" style={S.tableWrap}>
+        {loadingList ? (
+          <div style={{ padding: '20px', textAlign: 'center', color: '#6B7280' }}>Loading inspection records...</div>
+        ) : listError ? (
+          <div style={{ padding: '20px', textAlign: 'center', color: '#991B1B' }}>{listError}</div>
+        ) : inspections.length === 0 ? (
           <div style={S.emptyState}>
             <AlertCircle size={40} color="#9CA3AF" strokeWidth={1.5} />
             <p style={S.emptyTitle}>No matching inspection records found</p>
@@ -202,7 +270,7 @@ const OwnerInspections = () => {
                 </tr>
               </thead>
               <tbody>
-                {paginated.map((p, i) => {
+                {inspections.map((p, i) => {
                   const sc = STATUS_CONFIG[p.inspection_status] || STATUS_CONFIG.Pending;
                   const StatusIcon = sc.icon;
                   const rc = p.inspection_result ? RESULT_CONFIG[p.inspection_result] : null;
@@ -211,25 +279,25 @@ const OwnerInspections = () => {
                     <tr key={p.inspection_id} style={{ ...S.tr, background: i % 2 === 0 ? '#FFF' : '#FAFAFA' }}>
                       <td style={S.td}>
                         <div style={S.propCell}>
-                          <img src={p.image} alt={p.property_title} style={S.propImg}
+                          <img src={p.image || 'https://placehold.co/60x48/e2e8f0/94a3b8?text=PPC'} alt={p.property_title} style={S.propImg}
                             onError={(e) => { e.target.src = 'https://placehold.co/60x48/e2e8f0/94a3b8?text=PPC'; }} />
                           <div>
                             <div style={S.propName}>{p.property_title}</div>
-                            <div style={S.propLoc}>{p.property_location}</div>
+                            <div style={S.propLoc}>{p.address}</div>
                           </div>
                         </div>
                       </td>
-                      <td style={S.td}><span style={S.ppcId}>{p.ppc_id}</span></td>
-                      <td style={S.td}><span style={{ ...S.typeBadge, background: tc.bg, color: tc.color }}>{p.property_type}</span></td>
+                      <td style={S.td}><span style={S.ppcId}>{`#INS-${p.inspection_id}`}</span></td>
+                      <td style={S.td}><span style={{ ...S.typeBadge, background: tc.bg, color: tc.color }}>{p.property_type || 'N/A'}</span></td>
                       <td style={S.td}><span style={S.cityTxt}>{p.city}</span></td>
-                      <td style={S.td}><span style={{ ...S.badge, background: sc.bg, color: sc.color }}><StatusIcon size={12} /> {p.inspection_status}</span></td>
+                      <td style={S.td}><span style={{ ...S.badge, background: sc.bg, color: sc.color }}><StatusIcon size={12} /> {p.inspection_status || 'Pending'}</span></td>
                       <td style={S.td}>
                         {p.inspection_result ? (
                           <span style={{ ...S.badge, background: rc.bg, color: rc.color }}>{p.inspection_result}</span>
                         ) : <span style={S.naText}>—</span>}
                       </td>
-                      <td style={S.td}><span style={S.dateTxt}>{p.scheduled_date || '—'}</span></td>
-                      <td style={S.td}><span style={S.dateTxt}>{p.completed_date || '—'}</span></td>
+                      <td style={S.td}><span style={S.dateTxt}>{p.scheduled_at ? new Date(p.scheduled_at).toLocaleDateString() : '—'}</span></td>
+                      <td style={S.td}><span style={S.dateTxt}>{p.completed_at ? new Date(p.completed_at).toLocaleDateString() : '—'}</span></td>
                       <td style={S.td}>
                         <div style={S.actions}>
                           <button style={S.viewBtn} onClick={() => setSelected(p)}>View Details</button>
@@ -241,8 +309,8 @@ const OwnerInspections = () => {
                 })}
               </tbody>
             </table>
-            <div style={S.pagination}>
-              <span style={S.paginInfo}>Showing {(page - 1) * PER_PAGE + 1} to {Math.min(page * PER_PAGE, filtered.length)} of {filtered.length} records</span>
+            <div className="responsive-pagination" style={S.pagination}>
+              <span style={S.paginInfo}>Showing {(page - 1) * PER_PAGE + 1} to {Math.min(page * PER_PAGE, totalRecords)} of {totalRecords} records</span>
               <div style={S.paginBtns}>
                 <button style={S.paginArrow} onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>‹</button>
                 {Array.from({ length: totalPages }, (_, i) => (

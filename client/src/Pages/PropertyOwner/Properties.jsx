@@ -27,6 +27,7 @@ import {
   Info,
 } from 'lucide-react';
 import { getOwnerPropertiesSummary, getOwnerProperties, getOwnerPropertyDetails, createOwnerProperty, uploadOwnerPropertyMedia } from '../../Services/owner.services';
+import './PropertiesResponsive.css';
 
 // ─── Owner-Scoped Initial Mock Data ───────────────────────────────────────────
 const INITIAL_MOCK_PROPERTIES = []; // Removed for backend integration
@@ -398,7 +399,7 @@ const OwnerProperties = () => {
     const isResidential = formData.property_type === 'House' || formData.property_type === 'Apartment';
 
     return (
-      <div style={styles.page}>
+      <div className="responsive-page" style={styles.page}>
         {/* Top Navigation Row */}
         <div style={styles.formHeaderRow}>
           <button style={styles.backBtn} onClick={() => setIsAddingProperty(false)}>
@@ -439,7 +440,7 @@ const OwnerProperties = () => {
         </div>
 
         {/* Main Submission Form */}
-        <form onSubmit={handleSubmitProperty} style={styles.formContainer}>
+        <form onSubmit={handleSubmitProperty} className="responsive-form-container" style={styles.formContainer}>
           {/* Section 1: Basic Information */}
           <div style={styles.formCard}>
             <div style={styles.cardHeaderRow}>
@@ -447,7 +448,7 @@ const OwnerProperties = () => {
               <h3 style={styles.cardSectionTitle}>1. Basic Property Information</h3>
             </div>
 
-            <div style={styles.formGrid2}>
+            <div className="responsive-form-grid2" style={styles.formGrid2}>
               <div style={styles.fieldGroupFull}>
                 <label style={styles.label}>
                   Property Title <span style={styles.req}>*</span>
@@ -518,7 +519,7 @@ const OwnerProperties = () => {
               <h3 style={styles.cardSectionTitle}>2. Address & Location Details</h3>
             </div>
 
-            <div style={styles.formGrid2}>
+            <div className="responsive-form-grid2" style={styles.formGrid2}>
               <div style={styles.fieldGroup}>
                 <label style={styles.label}>
                   City <span style={styles.req}>*</span>
@@ -564,7 +565,7 @@ const OwnerProperties = () => {
               <h3 style={styles.cardSectionTitle}>3. Size, Rooms & Pricing Details</h3>
             </div>
 
-            <div style={styles.formGrid2}>
+            <div className="responsive-form-grid2" style={styles.formGrid2}>
               {/* Area Size & Unit */}
               <div style={styles.fieldGroup}>
                 <label style={styles.label}>
@@ -705,7 +706,7 @@ const OwnerProperties = () => {
               {selectedImages.length > 0 && (
                 <div>
                   <span style={styles.label}>Selected Images ({selectedImages.length}/6):</span>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px', marginTop: '8px' }}>
+                  <div className="responsive-image-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '12px' }}>
                     {selectedImages.map((img, idx) => (
                       <div key={idx} style={{ position: 'relative', height: '100px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #CBD5E1' }}>
                         <img src={img.preview} alt={`preview-${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -750,7 +751,7 @@ const OwnerProperties = () => {
 
   // ─── Main View (My Properties List/Grid) ──────────────────────────────────
   return (
-    <div style={styles.page}>
+    <div className="responsive-page" style={styles.page}>
       {/* Success Notification Banner */}
       {successBanner && (
         <div style={styles.successBanner}>
@@ -768,7 +769,7 @@ const OwnerProperties = () => {
       )}
 
       {/* ── Page Header ── */}
-      <div style={styles.pageHeader}>
+      <div className="responsive-header" style={styles.pageHeader}>
         <div>
           <div style={styles.headerTitleRow}>
             <h1 style={styles.pageTitle}>My Properties</h1>
@@ -787,7 +788,7 @@ const OwnerProperties = () => {
       </div>
 
       {/* ── Metric Summary Cards ── */}
-      <div style={styles.metricsGrid}>
+      <div className="responsive-metrics" style={styles.metricsGrid}>
         <div 
           style={{
             ...styles.metricCard, 
@@ -866,10 +867,10 @@ const OwnerProperties = () => {
       </div>
 
       {/* ── Search & Filters Bar ── */}
-      <div style={styles.filterCard}>
-        <div style={styles.filterRow}>
+      <div className="responsive-filter-bar" style={styles.filterCard}>
+        <div className="responsive-filter-left" style={styles.filterRow}>
           {/* Search */}
-          <div style={styles.searchWrap}>
+          <div className="responsive-search-box" style={styles.searchWrap}>
             <Search size={15} color="#9CA3AF" />
             <input
               type="text"
@@ -985,13 +986,13 @@ const OwnerProperties = () => {
         </div>
       ) : viewMode === 'grid' ? (
         /* ── Grid View ── */
-        <div style={styles.gridContainer}>
+        <div className="responsive-grid" style={styles.gridContainer}>
           {filteredProperties.map((prop) => {
             const isVerified = prop.verification_status === 'Verified';
             return (
-              <div key={prop.property_id} style={styles.gridCard}>
+              <div key={prop.property_id} className="responsive-grid-card" style={styles.gridCard}>
                 {/* Media Image */}
-                <div style={styles.cardImageWrap}>
+                <div className="responsive-card-img-wrap" style={styles.cardImageWrap}>
                   <PropertyImageCarousel 
                     property={prop} 
                     imgErrors={imgErrors} 
@@ -1089,8 +1090,8 @@ const OwnerProperties = () => {
           {filteredProperties.map((prop) => {
             const isVerified = prop.verification_status === 'Verified';
             return (
-              <div key={prop.property_id} style={styles.listCard}>
-                <div style={styles.listImgWrap}>
+              <div key={prop.property_id} className="responsive-list-card" style={styles.listCard}>
+                <div className="responsive-list-img" style={styles.listImgWrap}>
                   <PropertyImageCarousel 
                     property={prop} 
                     imgErrors={imgErrors} 
@@ -1170,7 +1171,7 @@ const OwnerProperties = () => {
       {/* ── Property Details Modal ── */}
       {detailsModalOpen && (
         <div style={styles.modalOverlay} onClick={() => setDetailsModalOpen(false)}>
-          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+          <div className="responsive-modal-container" style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Building2 size={20} color="#1D6A4A" />
@@ -1246,7 +1247,7 @@ const OwnerProperties = () => {
 
                   <div style={styles.modalSection}>
                     <h4 style={styles.modalSectionHeading}>Property Details</h4>
-                    <div style={styles.modalGrid2}>
+                    <div className="responsive-grid" style={styles.modalGrid2}>
                       <div>
                         <span style={styles.modalKey}>Property Type:</span>{' '}
                         <strong style={styles.modalVal}>{selectedPropertyDetails.property_type}</strong>

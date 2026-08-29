@@ -5,6 +5,7 @@ import {
   RotateCcw, MapPin, Eye, CheckCircle2, AlertCircle, X,
 } from 'lucide-react';
 import { getOwnerVerificationSummary, getOwnerPropertyVerifications } from '../../Services/owner.services';
+import './PropertyVerificationResponsive.css';
 
 const TYPE_COLORS = {
   House: { bg: '#E8F4F1', color: '#1D6A4A' },
@@ -111,7 +112,7 @@ const DetailModal = ({ prop, onClose, imgErrors, handleImageError }) => {
   const location = prop.address || prop.property_location || 'Unknown Location';
   return (
     <div style={S.overlay} onClick={onClose}>
-      <div style={S.modal} onClick={(e) => e.stopPropagation()}>
+      <div className="responsive-modal" style={S.modal} onClick={(e) => e.stopPropagation()}>
         <div style={S.modalHeader}>
           <h3 style={S.modalTitle}>Verification Details</h3>
           <button style={S.closeBtn} onClick={onClose}><X size={18} color="#374151" /></button>
@@ -235,9 +236,9 @@ const OwnerPropertyVerification = () => {
   const handleClear = () => { setSearch(''); setStatusFilter('All Status'); setPage(1); };
 
   return (
-    <div style={S.page}>
+    <div className="responsive-page" style={S.page}>
       {/* Header */}
-      <div style={S.pageHeader}>
+      <div className="responsive-header" style={S.pageHeader}>
         <h1 style={S.pageTitle}>Property Verification</h1>
         <p style={S.pageSub}>Track and monitor the verification status of your properties by PPC.</p>
       </div>
@@ -248,7 +249,7 @@ const OwnerPropertyVerification = () => {
       ) : summaryError ? (
         <div style={{ textAlign: 'center', padding: '2rem 0', color: '#EF4444', fontSize: '14px' }}>{summaryError}</div>
       ) : (
-        <div style={S.cards}>
+        <div className="responsive-cards" style={S.cards}>
           {[
             { label: 'Total Properties', sub: 'All your properties', val: total, icon: Building2, bg: '#E8F4F1', color: '#1D6A4A' },
             { label: 'Pending Verification', sub: 'Awaiting approval', val: pending, icon: Clock, bg: '#FFF7ED', color: '#D97706' },
@@ -270,8 +271,8 @@ const OwnerPropertyVerification = () => {
         </div>
       )}
 
-      {/* Filters */}
-      <div style={S.filterBar}>
+      {/* Search & Filter */}
+      <div className="responsive-filter-bar" style={S.filterBar}>
         <div style={S.searchBox}>
           <Search size={15} color="#9CA3AF" />
           <input style={S.searchInput} placeholder="Search by property title, ID or city..."
@@ -294,8 +295,8 @@ const OwnerPropertyVerification = () => {
         </button>
       </div>
 
-      {/* Table */}
-      <div style={S.tableWrap}>
+      {/* Table Section */}
+      <div className="responsive-table-wrap" style={S.tableWrap}>
         {loadingList ? (
           <div style={{ textAlign: 'center', padding: '3rem 0', color: '#6B7280' }}>Loading properties...</div>
         ) : listError ? (
@@ -308,7 +309,7 @@ const OwnerPropertyVerification = () => {
           </div>
         ) : (
           <>
-            <table style={S.table}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={S.thead}>
                   {['Property', 'Property ID', 'Type', 'Location', 'Verification Status', 'Verification Date', 'Last Updated', 'Action'].map((h) => (
@@ -368,7 +369,7 @@ const OwnerPropertyVerification = () => {
             </table>
 
             {/* Pagination */}
-            <div style={S.pagination}>
+            <div className="responsive-pagination" style={S.pagination}>
               <span style={S.paginInfo}>Showing {totalRecords > 0 ? (page - 1) * PER_PAGE + 1 : 0} to {Math.min(page * PER_PAGE, totalRecords)} of {totalRecords} properties</span>
               <div style={S.paginBtns}>
                 <button style={S.paginArrow} onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>‹</button>

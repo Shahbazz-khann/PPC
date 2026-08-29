@@ -92,3 +92,68 @@ export const createOwnerProperty = async (propertyData) => {
 export const uploadOwnerPropertyMedia = async (propertyId, formData) => {
   return await api.post(`/owner/properties/${propertyId}/media`, formData);
 };
+
+/**
+ * Update owner's profile settings
+ * @param {Object} profileData - name, mobile_no, country
+ * @returns {Promise<Object>}
+ */
+export const updateOwnerProfile = async (profileData) => {
+  return await api.patch('/owner/settings/profile', profileData);
+};
+
+/**
+ * Fetch owner's inspections summary stats
+ * @returns {Promise<Object>}
+ */
+export const getOwnerInspectionsSummary = async () => {
+  return await api.get('/owner/inspections/summary');
+};
+
+/**
+ * Fetch owner's inspections list
+ * @param {Object} params - Query parameters (page, limit, search, status, sort)
+ * @returns {Promise<Object>}
+ */
+export const getOwnerInspectionsList = async (params = {}) => {
+  return await api.get('/owner/inspections', { params });
+};
+
+/**
+ * Fetch owner's inspection details
+ * @param {number|string} inspectionId
+ * @returns {Promise<Object>}
+ */
+export const getOwnerInspectionDetails = async (inspectionId) => {
+  return await api.get(`/owner/inspections/${inspectionId}`);
+};
+
+/**
+ * Fetch owner's visits summary stats
+ * @returns {Promise<Object>}
+ */
+export const getOwnerVisitsSummary = async () => {
+  return await api.get('/owner/visits/summary');
+};
+
+/**
+ * Fetch owner's visits list
+ * @param {Object} params - Query parameters (page, limit, search, status, sort)
+ * @returns {Promise<Object>}
+ */
+export const getOwnerVisitsList = async (params = {}) => {
+  return await api.get('/owner/visits', { params });
+};
+
+/**
+ * Fetch owner's visit details
+ * @param {number|string} visitId
+ * @returns {Promise<Object>}
+ */
+export const getOwnerVisitDetails = async (visitId) => {
+  return await api.get(`/owner/visits/${visitId}`);
+};
+
+
+
+

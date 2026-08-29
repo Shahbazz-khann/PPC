@@ -3,6 +3,9 @@ import {
   User, Mail, Phone, MapPin, Lock, Eye, EyeOff,
   CheckCircle2, AlertCircle, Camera, Building2,
 } from 'lucide-react';
+import { useAuth } from '../../Context/AuthContext';
+import { updateOwnerProfile } from '../../Services/owner.services';
+import './AccountSettingResponsive.css';
 
 // ─── Mock session data ────────────────────────────────────────────────────────
 const MOCK_OWNER = {
@@ -70,10 +73,13 @@ const Toast = ({ msg, type }) => {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 const OwnerAccountSetting = () => {
+  const { user, login } = useAuth();
+
   const [profile, setProfile] = useState({
-    full_name: MOCK_OWNER.full_name,
-    email: MOCK_OWNER.email,
-    phone: MOCK_OWNER.phone,
+    full_name: user?.name || MOCK_OWNER.full_name,
+    email: user?.email || MOCK_OWNER.email,
+    phone: user?.mobile_no || MOCK_OWNER.phone,
+    country: user?.country || 'Pakistan',
     city: MOCK_OWNER.city,
   });
 
@@ -88,12 +94,31 @@ const OwnerAccountSetting = () => {
     setTimeout(() => setToast({ msg: '', type: '' }), 3500);
   };
 
-  const handleProfileSave = () => {
-    if (!profile.full_name.trim() || !profile.phone.trim() || !profile.city.trim()) {
-      showToast('Please fill in all required fields.', 'error'); return;
+  const handleProfileSave = async () => {
+    if (!profile.full_name.trim() || !profile.phone.trim() || !profile.country.trim()) {
+      showToast('Please fill in all required editable fields.', 'error'); return;
     }
     setProfileSaving(true);
-    setTimeout(() => { setProfileSaving(false); showToast('Profile updated successfully.'); }, 1000);
+    try {
+      const res = await updateOwnerProfile({
+        name: profile.full_name,
+        mobile_no: profile.phone,
+        country: profile.country,
+      });
+      if (res?.data?.success) {
+        showToast('Profile updated successfully.');
+        if (user) {
+          login({ user: { ...user, name: profile.full_name, mobile_no: profile.phone, country: profile.country } });
+        }
+      } else {
+        showToast('Failed to update profile.', 'error');
+      }
+    } catch (err) {
+      console.error('Profile update error:', err);
+      showToast('Error updating profile.', 'error');
+    } finally {
+      setProfileSaving(false);
+    }
   };
 
   const handlePasswordChange = () => {
@@ -121,26 +146,26 @@ const OwnerAccountSetting = () => {
       {/* Toast */}
       <div style={S.toastWrap}><Toast msg={toast.msg} type={toast.type} /></div>
 
-      <div style={S.pageHeader}>
+      <div className="account-responsive-header" style={S.pageHeader}>
         <h1 style={S.pageTitle}>Account Settings</h1>
         <p style={S.pageSub}>Manage your PPC owner account information and security settings.</p>
       </div>
 
       {/* Profile Banner */}
-      <div style={S.banner}>
+      <div className="account-responsive-banner" style={S.banner}>
         <div style={S.avatarWrap}>
           <div style={S.avatar}>{initials}</div>
           <button style={S.cameraBtn}><Camera size={14} color="#FFFFFF" /></button>
         </div>
-        <div style={S.bannerInfo}>
-          <div style={S.bannerName}>{MOCK_OWNER.full_name}</div>
-          <div style={S.bannerMeta}>{MOCK_OWNER.email}</div>
-          <div style={S.bannerTags}>
+        <div className="account-responsive-banner-info" style={S.bannerInfo}>
+          <div style={S.bannerName}>{profile.full_name}</div>
+          <div style={S.bannerMeta}>{profile.email}</div>
+          <div className="account-responsive-banner-tags" style={S.bannerTags}>
             <span style={S.roleBadge}>Property Owner</span>
-            <span style={S.joinBadge}>Member since {MOCK_OWNER.joined}</span>
+            <span style={S.joinBadge}>Member since {user?.created_at ? new Date(user.created_at).getFullYear() : MOCK_OWNER.joined}</span>
           </div>
         </div>
-        <div style={S.bannerStats}>
+        <div className="account-responsive-banner-stats" style={S.bannerStats}>
           <div style={S.statBox}>
             <Building2 size={20} color="#1D6A4A" />
             <div style={S.statNum}>{MOCK_OWNER.total_properties}</div>
@@ -149,18 +174,20 @@ const OwnerAccountSetting = () => {
         </div>
       </div>
 
-      <div style={S.grid}>
+      <div className="account-responsive-grid" style={S.grid}>
         {/* Personal Information */}
         <Card title="Personal Information" icon={User}>
-          <div style={S.fieldsGrid}>
+          <div className="account-responsive-fields-grid" style={S.fieldsGrid}>
             <Field label="Full Name *" value={profile.full_name}
               onChange={(e) => setProfile((p) => ({ ...p, full_name: e.target.value }))} />
             <Field label="Email Address" value={profile.email}
-              onChange={() => {}} readOnly placeholder="" />
+              onChange={() => { }} readOnly placeholder="" />
             <Field label="Phone Number *" value={profile.phone}
               onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} />
-            <Field label="City *" value={profile.city}
-              onChange={(e) => setProfile((p) => ({ ...p, city: e.target.value }))} />
+            <Field label="Country *" value={profile.country}
+              onChange={(e) => setProfile((p) => ({ ...p, country: e.target.value }))} />
+            <Field label="City" value={profile.city}
+              onChange={() => { }} readOnly />
           </div>
           <div style={S.readOnlySection}>
             <div style={S.roRow}>
@@ -230,12 +257,12 @@ const S = {
   statNum: { fontSize: '22px', fontWeight: '800', color: '#111827', lineHeight: 1 },
   statLbl: { fontSize: '11px', color: '#6B7280', fontWeight: '600' },
 
-  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', alignItems: 'start' },
-  card: { background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' },
+  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', alignItems: 'stretch' },
+  card: { background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' },
   cardHeader: { display: 'flex', alignItems: 'center', gap: '12px', padding: '18px 20px', borderBottom: '1px solid #F1F5F9' },
   cardIconWrap: { width: '34px', height: '34px', borderRadius: '9px', background: '#E8F4F1', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   cardTitle: { fontSize: '15px', fontWeight: '800', color: '#111827', margin: 0 },
-  cardBody: { padding: '20px' },
+  cardBody: { padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 },
 
   fieldsGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' },
   field: { display: 'flex', flexDirection: 'column', gap: '5px' },
@@ -258,7 +285,7 @@ const S = {
   eyeBtn: { position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: '2px' },
   matchWarn: { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#991B1B', marginBottom: '12px' },
 
-  saveBtn: { background: '#1D6A4A', color: '#FFFFFF', border: 'none', borderRadius: '9px', padding: '11px 22px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', marginTop: '4px', fontFamily: 'inherit', transition: 'background 0.2s', width: '100%' },
+  saveBtn: { background: '#1D6A4A', color: '#FFFFFF', border: 'none', borderRadius: '9px', padding: '11px 22px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', marginTop: 'auto', fontFamily: 'inherit', transition: 'background 0.2s', width: '100%' },
 };
 
 export default OwnerAccountSetting;
