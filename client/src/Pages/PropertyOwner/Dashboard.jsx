@@ -522,7 +522,7 @@ const OwnerDashboard = () => {
                         <span>{prop.city}{prop.address ? `, ${prop.address}` : ''}</span>
                       </div>
                       <div style={styles.propPrice}>
-                        {prop.sale_price ? `Rs. ${Number(prop.sale_price).toLocaleString()}` : (prop.rent_price ? `Rs. ${Number(prop.rent_price).toLocaleString()} / mo` : 'N/A')}
+                        {prop.sale_price ? `Rs. ${Number(prop.sale_price).toLocaleString()}` : (prop.rent_price ? `Rs. ${Number(prop.rent_price).toLocaleString()} / month` : 'N/A')}
                       </div>
 
                       <div style={styles.propFeatures}>
