@@ -1,10 +1,17 @@
-require('dotenv').config();
-const { pool } = require('./config/db');
-const fs = require('fs');
-pool.query(`
-  SELECT table_name, column_name, data_type 
-  FROM information_schema.columns 
-  WHERE table_name IN ('inspections', 'inspection_reports', 'property_visits', 'properties', 'inspection_results', 'inspection_statuses', 'users', 'property_media')
-`).then(r => {
-  fs.writeFileSync('schema_out.txt', JSON.stringify(r.rows, null, 2), 'utf-8');
-}).catch(console.error).finally(() => pool.end());
+const { Pool } = require('pg');
+const pool = new Pool({ user: 'postgres', host: 'localhost', database: 'PPC_MYDATABASE', password: 'Shabaz@123', port: 5432 });
+
+async function run() {
+  try {
+    const res = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'properties'");
+    console.log('Columns:', res.rows.map(r => r.column_name));
+    
+    const types = await pool.query("SELECT * FROM property_purposes");
+    console.log('Purposes:', types.rows);
+  } catch(e) {
+    console.error(e);
+  } finally {
+    pool.end();
+  }
+}
+run();

@@ -112,16 +112,16 @@ const Login = () => {
           </div>
 
           {/* Lower-Left Main Text */}
-          <div className="relative z-10 my-4 sm:my-8 lg:my-auto max-w-xl">
-            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
+          <div className="relative z-10 my-4 sm:my-8 lg:my-auto max-w-xl text-center lg:text-left">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight break-words">
               Find, Buy, Rent,
             </h2>
 
-            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#C59B27] tracking-tight mt-1 leading-tight">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#C59B27] tracking-tight mt-1 leading-tight break-words">
               Your Perfect Property
             </h2>
 
-            <p className="text-gray-200 text-xs sm:text-base leading-relaxed mt-3 sm:mt-4 max-w-lg font-normal drop-shadow-sm">
+            <p className="text-gray-200 text-sm sm:text-base leading-relaxed mt-3 sm:mt-4 max-w-lg font-normal drop-shadow-sm mx-auto lg:mx-0">
               Pakistan Property Care is your trusted platform
               <br className="hidden sm:block" />
               to discover verified properties with ease.
@@ -186,10 +186,9 @@ const Login = () => {
         </div>
       </div>
       
-      {/* RIGHT SECTION - Authentication Card */}
-        <div className="relative lg:w-1/2 w-full flex items-center justify-center p-4 sm:p-8 lg:p-12 z-10 pb-12 sm:pb-16 min-h-screen">
-
-          <div className="w-full max-w-[520px] bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 lg:p-10 text-gray-800 my-auto mx-auto lg:mx-0 lg:mr-auto lg:ml-4 xl:ml-12 border border-gray-100">
+      {/* RIGHT SECTION - White Rounded Authentication Card */}
+      <div className="relative lg:w-1/2 w-full flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12 z-10 pb-12 sm:pb-16 lg:min-h-screen">
+        <div className="w-full max-w-[480px] bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 lg:p-10 text-gray-800 my-auto mx-auto lg:mx-0 lg:mr-auto lg:ml-4 xl:ml-12 border border-gray-100">
 
             {/* Header */}
             <div className="text-center mb-5 sm:mb-6">
@@ -221,7 +220,7 @@ const Login = () => {
                     id="email"
                     type="email"
                     placeholder="Enter your email"
-                    className="w-full pl-10 pr-4 py-2.5 sm:py-2.5 border border-gray-200 rounded-xl text-base sm:text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                     autoComplete="email"
                     aria-invalid={errors.email ? 'true' : 'false'}
                     {...register('email', {
@@ -260,7 +259,7 @@ const Login = () => {
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
-                    className="w-full pl-10 pr-12 py-2.5 sm:py-2.5 border border-gray-200 rounded-xl text-base sm:text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                    className="w-full pl-10 pr-10 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                     autoComplete="current-password"
                     aria-invalid={errors.password ? 'true' : 'false'}
                     {...register('password', {
@@ -323,7 +322,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#B8860B] via-[#C59B27] to-[#B8860B] hover:from-[#a37609] hover:to-[#a37609] text-white font-bold text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center mt-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#B8860B] via-[#C59B27] to-[#B8860B] hover:from-[#a37609] hover:to-[#a37609] text-white font-bold text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed break-words"
               >
                 {isSubmitting ? 'Logging in...' : 'Login'}
               </button>

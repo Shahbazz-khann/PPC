@@ -221,7 +221,7 @@ const Signup = () => {
                 </div>
               </form>
             ) : (
-              <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+              <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
                 {/* Full Name Field */}
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">
@@ -233,7 +233,7 @@ const Signup = () => {
                       id="fullName"
                       type="text"
                       placeholder="Enter your full name"
-                      className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 sm:py-2 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                       autoComplete="name"
                       aria-invalid={errors.fullName ? "true" : "false"}
                       {...register('fullName', {
@@ -264,7 +264,7 @@ const Signup = () => {
                       id="email"
                       type="email"
                       placeholder="Enter your email"
-                      className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 sm:py-2 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                       autoComplete="email"
                       aria-invalid={errors.email ? "true" : "false"}
                       {...register('email', {
@@ -291,7 +291,7 @@ const Signup = () => {
                     <Globe className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
                     <select
                       id="country"
-                      className={`w-full pl-10 pr-10 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all appearance-none cursor-pointer`}
+                      className={`w-full pl-10 pr-10 py-2.5 sm:py-2 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all appearance-none cursor-pointer`}
                       autoComplete="country-name"
                       aria-invalid={errors.country ? "true" : "false"}
                       {...register('country', {

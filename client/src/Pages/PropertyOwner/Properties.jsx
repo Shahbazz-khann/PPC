@@ -315,7 +315,6 @@ const OwnerProperties = () => {
         const params = { limit: 100 };
         if (searchText.trim()) params.search = searchText.trim();
         if (typeFilter !== 'All') params.property_type = typeFilter;
-        if (purposeFilter !== 'All') params.property_status = purposeFilter;
         let finalVerifStatus = verifFilter !== 'All' ? verifFilter : null;
         
         // Apply summary card filter overrides
@@ -363,9 +362,24 @@ const OwnerProperties = () => {
     if (selectedSummaryCard === 'Verified') finalVerifStatus = 'Verified';
     else if (selectedSummaryCard === 'Pending') finalVerifStatus = 'Pending';
 
+    // Verification Filter
     if (finalVerifStatus === 'Pending' || finalVerifStatus === 'Under Review') {
-      return !prop.verification_status || prop.verification_status === 'Pending' || prop.verification_status === 'In Progress';
+      if (prop.verification_status && prop.verification_status !== 'Pending' && prop.verification_status !== 'In Progress') {
+        return false;
+      }
+    } else if (finalVerifStatus === 'Verified') {
+      if (prop.verification_status !== 'Verified') {
+        return false;
+      }
     }
+
+    // Status/Purpose Filter (For Rent / For Sale)
+    if (purposeFilter === 'For Rent') {
+      if (!prop.rent_price) return false;
+    } else if (purposeFilter === 'For Sale') {
+      if (!prop.sale_price) return false;
+    }
+
     return true;
   });
 

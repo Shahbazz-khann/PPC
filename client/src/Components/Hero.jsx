@@ -26,15 +26,15 @@ const Hero = () => {
         </div>
 
         {/* Main Heading */}
-        <h1 className="text-4xl md:text-5xl lg:text-5xl font-semibold text-white leading-tight mb-4 tracking-tight">
-          Complete Property Solution <br />
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-semibold text-white leading-tight mb-4 tracking-tight break-words">
+          Complete Property Solution <br className="hidden sm:block" />
           All Under <span className="text-[#D8A238]">One Roof</span>
         </h1>
 
         {/* Description */}
-        <p className="text-white text-base md:text-lg font-normal mb-2 max-w-2xl leading-relaxed">
-          Buy, Sell, Rent, Maintain, Renovate & Invest. <br />
-         We  Care For Your Property Like Our Own.
+        <p className="text-gray-200 text-sm sm:text-base md:text-lg font-normal mb-2 max-w-2xl leading-relaxed break-words">
+          Buy, Sell, Rent, Maintain, Renovate & Invest. <br className="hidden sm:block" />
+         We Care For Your Property Like Our Own.
         </p>
 
         {/* CTA Buttons */}
