@@ -54,26 +54,7 @@ const Login = () => {
 
         console.log('Login session saved successfully');
 
-        // Role-based redirect using role_name from backend response
-        const role = response.data?.role_name?.trim().toLowerCase();
-
-        if (role === 'user') {
-          navigate('/user/dashboard');
-        } else if (role === 'customer') {
-          navigate('/customer/dashboard');
-        } else if (role === 'owner') {
-          navigate('/owner/dashboard');
-        } else if (role === 'inspector') {
-          navigate('/inspector/dashboard');
-        } else if (role === 'admin') {
-          navigate('/admin/dashboard');
-        } else {
-          console.error('Login: unknown or missing role_name:', response.data?.role_name);
-          setError('email', {
-            type: 'server',
-            message: 'Login succeeded but your account role could not be determined. Please contact support.',
-          });
-        }
+        navigate('/');
       }
 
     } catch (error) {

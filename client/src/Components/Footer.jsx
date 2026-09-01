@@ -5,7 +5,8 @@ import {
   FaLinkedinIn,
   FaYoutube,
 } from 'react-icons/fa';
-import LogoS from '../assets/LogoS.png';
+import LogoS from '../assets/Footery.png';
+// import LogoS from '../assets/IMAGEEEEEEEEEEEEEEEEEEEE.png';
 
 
 const companyLinks = [
