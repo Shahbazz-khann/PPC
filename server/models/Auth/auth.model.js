@@ -49,23 +49,26 @@ const createUser = async (userData) => {
 
 
 /**
- * Find user by email with role information
+ * Find user by email with user_type information
  */
 const findUserByEmail = async (email) => {
     const query = `
         SELECT
             u.user_id,
-            u.name,
-            u.email,
+            u.user_type_id,
+            ut.user_type_english,
+            u.user_first_name,
+            u.user_middle_name,
+            u.user_last_name,
             u.country,
-            u.mobile_no,
-            u.password,
-            u.role_id,
-            r.role_name,
-            u.created_at
+            u.email,
+            u.mobile,
+            u.password_hash,
+            u.date_of_registration,
+            u.is_active
         FROM users u
-        LEFT JOIN roles r
-            ON u.role_id = r.role_id
+        LEFT JOIN user_types ut
+            ON u.user_type_id = ut.user_type_id
         WHERE u.email = $1
     `;
 
@@ -164,15 +167,19 @@ const updatePassword = async (
 const getUsers = async () => {
     const query = `
         SELECT
-            user_id,
-            name,
-            email,
-            country,
-            mobile_no,
-            role_id,
-            created_at
-        FROM users
-        ORDER BY user_id ASC
+            u.user_id,
+            u.user_first_name,
+            u.user_last_name,
+            u.email,
+            u.country,
+            u.mobile,
+            u.user_type_id,
+            ut.user_type_english,
+            u.date_of_registration,
+            u.is_active
+        FROM users u
+        LEFT JOIN user_types ut ON ut.user_type_id = u.user_type_id
+        ORDER BY u.user_id ASC
     `;
 
     const result = await pool.query(query);
@@ -186,21 +193,120 @@ const getUserById = async (userId) => {
         `
         SELECT
             u.user_id,
-            u.name,
+            u.user_first_name,
+            u.user_middle_name,
+            u.user_last_name,
             u.email,
             u.country,
-            u.mobile_no,
-            u.role_id,
-            r.role_name,
-            u.created_at
+            u.mobile,
+            u.user_type_id,
+            ut.user_type_english,
+            u.date_of_registration,
+            u.is_active
         FROM users u
-        JOIN roles r ON r.role_id = u.role_id
+        LEFT JOIN user_types ut ON ut.user_type_id = u.user_type_id
         WHERE u.user_id = $1
         `,
         [userId]
     );
 
     return result.rows[0];
+};
+
+/**
+ * Check if email or mobile exists in users
+ */
+const checkEmailOrMobileExists = async (email, mobile) => {
+    const query = `
+        SELECT user_id FROM users
+        WHERE email = $1 OR mobile = $2
+        LIMIT 1
+    `;
+    const result = await pool.query(query, [email, mobile]);
+    return result.rows.length > 0;
+};
+
+/**
+ * Transaction to create a customer user, their customer profile,
+ * and atomically delete the pending_users record.
+ * All 5 steps share the same client: BEGIN → INSERT users → INSERT customers → DELETE pending_users → COMMIT
+ */
+const createCustomerUserTransaction = async (pendingUser, countryName, userTypeId) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        // 1. Insert into users
+        const insertUserQuery = `
+            INSERT INTO users (
+                user_type_id,
+                employee_id,
+                user_first_name,
+                user_middle_name,
+                user_last_name,
+                country,
+                email,
+                mobile,
+                password_hash,
+                date_of_registration,
+                is_active,
+                creation_date_time,
+                update_date_time
+            )
+            VALUES ($1, NULL, $2, NULL, $3, $4, $5, $6, $7, NOW(), true, NOW(), NOW())
+            RETURNING user_id
+        `;
+        const userValues = [
+            userTypeId,
+            pendingUser.first_name,
+            pendingUser.last_name,
+            countryName,
+            pendingUser.email,
+            pendingUser.mobile,
+            pendingUser.password_hash
+        ];
+
+        const userResult = await client.query(insertUserQuery, userValues);
+        const newUserId = userResult.rows[0].user_id;
+
+        // 2. Insert into customers
+        const insertCustomerQuery = `
+            INSERT INTO customers (
+                user_id,
+                customer_first_name,
+                customer_last_name,
+                email,
+                mobile,
+                country_id,
+                date_of_registration,
+                is_active,
+                creation_date_time,
+                update_date_time
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, NOW(), true, NOW(), NOW())
+        `;
+        const customerValues = [
+            newUserId,
+            pendingUser.first_name,
+            pendingUser.last_name,
+            pendingUser.email,
+            pendingUser.mobile,
+            pendingUser.country_id
+        ];
+
+        await client.query(insertCustomerQuery, customerValues);
+
+        // 3. Delete the pending_users record inside the same transaction
+        await client.query('DELETE FROM pending_users WHERE email = $1', [pendingUser.email]);
+
+        await client.query('COMMIT');
+        return newUserId;
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
 };
 
 module.exports = {
@@ -210,6 +316,7 @@ module.exports = {
     findUserByResetToken,
     updatePassword,
     getUsers,
-    getUserById
-    
+    getUserById,
+    checkEmailOrMobileExists,
+    createCustomerUserTransaction
 };

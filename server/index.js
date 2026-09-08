@@ -49,26 +49,6 @@ const apiRouter = express.Router();
 const authRoutes = require('./routes/Auth/auth.routes');
 apiRouter.use('/auth', authRoutes);
 
-// Properties
-const propertyRoutes = require('./routes/Property/PropertyRoutes');
-apiRouter.use('/properties', propertyRoutes);
-
-// Customer
-const customerRoutes = require('./routes/Customer/customer.routes');
-apiRouter.use('/customer', customerRoutes);
-
-// Owner
-const ownerRoutes = require('./routes/Owner/owner.routes');
-apiRouter.use('/owner', ownerRoutes);
-
-// Unified User
-const userRoutes = require('./routes/User/user.routes');
-apiRouter.use('/user', userRoutes);
-
-// Inspector
-const inspectorRoutes = require('./routes/Inspector/inspector.routes');
-apiRouter.use('/inspector', inspectorRoutes);
-
 app.use(`/api/${API_VERSION}`, apiRouter);
 
 // --------------------------------------------------
@@ -99,14 +79,12 @@ app.use(errorHandler);
 // Start Server
 // --------------------------------------------------
 const http = require('http');
-const { initializeSocket } = require('./socket/socket.server');
 
 const startServer = async () => {
   try {
     await connectDB();
 
     const httpServer = http.createServer(app);
-    initializeSocket(httpServer);
 
     httpServer.listen(port, () => {
       logger.info(`PPC server running on http://localhost:${port}`);

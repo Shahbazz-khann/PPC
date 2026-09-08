@@ -5,42 +5,38 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { sendPasswordResetEmail, sendVerificationEmail } = require('../../utils/email');
 const pendingUserModel = require('../../models/Auth/pending_user.model');
-const roleModel = require('../../models/roles/role.model');
+const { pool } = require('../../config/db');
 /**
  * User Signup Controller
  */
 const signup = async (req, res, next) => {
-    
     try {
-       console.log('Signup account type:', req.body.account_type);
-         const {
-          name,
-          email,
-          country,
-          mobile_no,
-          password,
-          account_type
-       } = req.body;
+        const {
+            first_name,
+            last_name,
+            email,
+            country_id,
+            mobile,
+            password
+        } = req.body;
 
-console.log('Signup account type:', account_type);
-
-        // Check if user already exists in main users table
-        const existingUser = await authModel.findUserByEmail(email);
-        if (existingUser) {
+        // Check if user already exists with this email or mobile
+        const userExists = await authModel.checkEmailOrMobileExists(email, mobile);
+        if (userExists) {
             return res.status(409).json({
                 success: false,
-                message: 'User already exists'
+                message: 'User already exists with this email or mobile number'
             });
         }
-        //   FIND ROLE
-    const roleName = 'User';
-    const role = await roleModel.findRoleByName(roleName);
-   if (!role) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid account type'
-       });
-}
+
+        // Validate country_id
+        const countryResult = await pool.query("SELECT country_id FROM countries WHERE country_id = $1 LIMIT 1", [country_id]);
+        if (countryResult.rows.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid country selected'
+            });
+        }
 
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -56,14 +52,14 @@ console.log('Signup account type:', account_type);
 
         // Store in pending_users table
         const pendingUser = await pendingUserModel.createPendingUser({
-            name,
+            first_name,
+            last_name,
             email,
-            country,
-            mobile_no,
-            password: hashedPassword,
+            country_id,
+            mobile,
+            password_hash: hashedPassword,
             verification_code: hashedOtp,
-            verification_code_expires: otpExpires,
-            role_id: role.role_id
+            verification_code_expires: otpExpires
         });
 
         // Send email with plain text OTP
@@ -98,8 +94,6 @@ const verifyEmail = async (req, res, next) => {
     try {
         const { email, otp } = req.body;
 
-
-
         const pendingUser = await pendingUserModel.findPendingUserByEmail(email);
 
         if (!pendingUser) {
@@ -127,18 +121,22 @@ const verifyEmail = async (req, res, next) => {
             });
         }
 
-        // Create user in main users table
-        const user = await authModel.createUser({
-            name: pendingUser.name,
-            email: pendingUser.email,
-            country: pendingUser.country,
-            mobile_no: pendingUser.mobile_no,
-            password: pendingUser.password, // already hashed
-            role_id: pendingUser.role_id
-        });
+        // pool already imported at module level
 
-        // Delete from pending_users table
-        await pendingUserModel.deletePendingUser(email);
+        // Fetch user_type_id for "Customer"
+        const userTypeResult = await pool.query("SELECT user_type_id FROM user_types WHERE user_type_english = 'Customer' LIMIT 1");
+        if (userTypeResult.rows.length === 0) {
+            return res.status(500).json({ success: false, message: 'User type Customer not found in database' });
+        }
+        const userTypeId = userTypeResult.rows[0].user_type_id;
+
+        // Fetch country name
+        const countryResult = await pool.query("SELECT country_english FROM countries WHERE country_id = $1 LIMIT 1", [pendingUser.country_id]);
+        const countryName = countryResult.rows.length > 0 ? countryResult.rows[0].country_english : null;
+
+        // Create user in main users and customers table via transaction
+        // (also atomically deletes the pending_users record inside the same transaction)
+        await authModel.createCustomerUserTransaction(pendingUser, countryName, userTypeId);
 
         logger.info(`User email verified successfully: ${email}`);
 
@@ -177,7 +175,7 @@ const login = async (req, res, next) => {
         // Compare entered password with hashed password
         const isPasswordValid = await bcrypt.compare(
             password,
-            user.password
+            user.password_hash
         );
 
         if (!isPasswordValid) {
@@ -187,15 +185,15 @@ const login = async (req, res, next) => {
             });
         }
 
-        console.log('JWT SECRET EXISTS:', !!process.env.JWT_SECRET);
         // Generate JWT token
         const token = jwt.sign(
             {
                 user_id: user.user_id,
                 email: user.email,
-                name: user.name,
-                role_id: user.role_id,
-                role_name: user.role_name
+                user_first_name: user.user_first_name,
+                user_last_name: user.user_last_name,
+                user_type_id: user.user_type_id,
+                user_type: user.user_type_english
             },
             process.env.JWT_SECRET,
             {
@@ -209,16 +207,17 @@ const login = async (req, res, next) => {
         logger.info(`User logged in successfully: ${email}`);
 
         // Never send the password back to the client
-      const userData = {
-    user_id: user.user_id,
-    name: user.name,
-    email: user.email,
-    country: user.country,
-    mobile_no: user.mobile_no,
-    role_id: user.role_id,
-    role_name: user.role_name,
-    created_at: user.created_at
-};
+        const userData = {
+            user_id: user.user_id,
+            user_first_name: user.user_first_name,
+            user_last_name: user.user_last_name,
+            email: user.email,
+            country: user.country,
+            mobile: user.mobile,
+            user_type_id: user.user_type_id,
+            user_type: user.user_type_english,
+            date_of_registration: user.date_of_registration
+        };
 
         return res.status(200).json({
             success: true,

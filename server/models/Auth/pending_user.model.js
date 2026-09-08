@@ -5,50 +5,52 @@ const { pool } = require('../../config/db');
  */
 const createPendingUser = async (userData) => {
     const {
-        name,
+        first_name,
+        last_name,
         email,
-        country,
-        mobile_no,
-        password,
+        country_id,
+        mobile,
+        password_hash,
         verification_code,
-        verification_code_expires,
-        role_id
+        verification_code_expires
     } = userData;
 
     // We'll do an upsert on email so that if a user tries to sign up again 
     // before verifying, we just update their pending record with a new OTP.
     const query = `
         INSERT INTO pending_users (
-            name,
+            first_name,
+            last_name,
             email,
-            country,
-            mobile_no,
-            password,
+            country_id,
+            mobile,
+            password_hash,
             verification_code,
             verification_code_expires,
-            role_id
+            creation_date_time
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7 , $8)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
         ON CONFLICT (email) DO UPDATE SET
-            name = EXCLUDED.name,
-            country = EXCLUDED.country,
-            mobile_no = EXCLUDED.mobile_no,
-            password = EXCLUDED.password,
+            first_name = EXCLUDED.first_name,
+            last_name = EXCLUDED.last_name,
+            country_id = EXCLUDED.country_id,
+            mobile = EXCLUDED.mobile,
+            password_hash = EXCLUDED.password_hash,
             verification_code = EXCLUDED.verification_code,
             verification_code_expires = EXCLUDED.verification_code_expires,
-            role_id = EXCLUDED.role_id
+            creation_date_time = EXCLUDED.creation_date_time
         RETURNING *;
     `;
 
     const values = [
-        name,
+        first_name,
+        last_name,
         email,
-        country,
-        mobile_no,
-        password,
+        country_id,
+        mobile,
+        password_hash,
         verification_code,
-        verification_code_expires,
-        role_id
+        verification_code_expires
     ];
 
     const result = await pool.query(query, values);

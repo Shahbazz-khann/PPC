@@ -24,13 +24,13 @@ const authenticate = (req, res, next) => {
 
         // Extract token
         const token = authHeader.split(' ')[1];
-console.log('JWT SECRET EXISTS IN MIDDLEWARE:', !!process.env.JWT_SECRET);
+
         // Verify token
         const decoded = jwt.verify(
             token,
             process.env.JWT_SECRET
         );
-console.log('JWT SECRET EXISTS IN MIDDLEWARE:', !!process.env.JWT_SECRET);
+
         // Attach decoded user information to request
         req.user = decoded;
 
@@ -61,7 +61,7 @@ console.log('JWT SECRET EXISTS IN MIDDLEWARE:', !!process.env.JWT_SECRET);
     }
 };
 
-    const authorize = (...allowedRoles) => {
+const authorize = (...allowedAccess) => {
     return (req, res, next) => {
         if (!req.user) {
             return res.status(401).json({
@@ -70,27 +70,32 @@ console.log('JWT SECRET EXISTS IN MIDDLEWARE:', !!process.env.JWT_SECRET);
             });
         }
 
+        const userType = req.user.user_type?.trim().toLowerCase();
         const userRole = req.user.role_name?.trim().toLowerCase();
 
-        const normalizedRoles = allowedRoles.map((role) =>
-            role.trim().toLowerCase()
+        const normalizedAccess = allowedAccess.map((item) =>
+            item.trim().toLowerCase()
         );
 
-        // Phase 1A: Allow new 'user' role to access owner and customer routes
-        if (normalizedRoles.includes('owner') || normalizedRoles.includes('customer')) {
-            if (!normalizedRoles.includes('user')) {
-                normalizedRoles.push('user');
-            }
+        // Allow based on User Type (customer, employee, service provider)
+        if (userType && normalizedAccess.includes(userType)) {
+            return next();
         }
 
-        if (!normalizedRoles.includes(userRole)) {
-            return res.status(403).json({
-                success: false,
-                message: 'You are not authorized to access this resource'
-            });
+        // Employee role check (admin, management, inspector)
+        // Only valid when the user's type is 'employee'
+        if (
+            userType === 'employee' &&
+            userRole &&
+            normalizedAccess.includes(userRole)
+        ) {
+            return next();
         }
 
-        next();
+        return res.status(403).json({
+            success: false,
+            message: 'You are not authorized to access this resource'
+        });
     };
 };
 module.exports = {

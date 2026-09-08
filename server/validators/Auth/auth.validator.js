@@ -1,16 +1,18 @@
 const validateSignup = (req, res, next) => {
     const {
-        name,
+        first_name,
+        last_name,
         email,
-        country,
-        mobile_no,
+        country_id,
+        mobile,
         password,
-        account_type
+        confirm_password
     } = req.body;
 
     const errors = {};
 
-    if (!name) errors.name = 'Name is required.';
+    if (!first_name) errors.first_name = 'First name is required.';
+    if (!last_name) errors.last_name = 'Last name is required.';
 
     if (!email) {
         errors.email = 'Email is required.';
@@ -18,12 +20,16 @@ const validateSignup = (req, res, next) => {
         errors.email = 'Please provide a valid email address.';
     }
 
-    if (!country) errors.country = 'Country is required.';
-    if (!mobile_no) errors.mobile_no = 'Mobile number is required.';
-    if (!password) errors.password = 'Password is required.';
-
-    // account_type is no longer required or strictly validated 
-    // because the unified User role is assigned by default.
+    if (!country_id) errors.country_id = 'Country is required.';
+    if (!mobile) errors.mobile = 'Mobile number is required.';
+    
+    if (!password) {
+        errors.password = 'Password is required.';
+    }
+    
+    if (password !== confirm_password) {
+        errors.confirm_password = 'Passwords do not match.';
+    }
 
     if (Object.keys(errors).length > 0) {
         return res.status(400).json({
