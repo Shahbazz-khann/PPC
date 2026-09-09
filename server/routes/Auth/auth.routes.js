@@ -30,26 +30,6 @@ router.get(
     authenticate,
     authController.getMe
 );
-router.get(
-    '/customer-test',
-    authenticate,
-    authorize('customer'),
-    (req, res) => {
-        res.status(200).json({
-            success: true,
-            message: 'Customer authorization successful'
-        });
-    }
-);router.get(
-    '/employee-test',
-    authenticate,
-    authorize('employee'),
-    (req, res) => {
-        res.status(200).json({
-            success: true,
-            message: 'Employee authorization successful'
-        });
-    }
-);
+
 
 module.exports = router;

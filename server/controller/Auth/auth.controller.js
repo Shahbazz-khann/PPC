@@ -185,16 +185,22 @@ const login = async (req, res, next) => {
             });
         }
 
+        const jwtPayload = {
+            user_id: user.user_id,
+            email: user.email,
+            user_first_name: user.user_first_name,
+            user_last_name: user.user_last_name,
+            user_type_id: user.user_type_id,
+            user_type: user.user_type_english
+        };
+
+        if (user.user_type_english === 'Employee') {
+            jwtPayload.roles = await authModel.getUserActiveRoles(user.user_id);
+        }
+
         // Generate JWT token
         const token = jwt.sign(
-            {
-                user_id: user.user_id,
-                email: user.email,
-                user_first_name: user.user_first_name,
-                user_last_name: user.user_last_name,
-                user_type_id: user.user_type_id,
-                user_type: user.user_type_english
-            },
+            jwtPayload,
             process.env.JWT_SECRET,
             {
                 expiresIn: '24h'

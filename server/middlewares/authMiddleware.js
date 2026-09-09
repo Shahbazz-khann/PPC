@@ -71,7 +71,6 @@ const authorize = (...allowedAccess) => {
         }
 
         const userType = req.user.user_type?.trim().toLowerCase();
-        const userRole = req.user.role_name?.trim().toLowerCase();
 
         const normalizedAccess = allowedAccess.map((item) =>
             item.trim().toLowerCase()
@@ -84,12 +83,16 @@ const authorize = (...allowedAccess) => {
 
         // Employee role check (admin, management, inspector)
         // Only valid when the user's type is 'employee'
-        if (
-            userType === 'employee' &&
-            userRole &&
-            normalizedAccess.includes(userRole)
-        ) {
-            return next();
+        if (userType === 'employee') {
+            const userRoles = req.user.roles || [];
+            
+            const hasRequiredRole = userRoles.some(role => 
+                normalizedAccess.includes(role.trim().toLowerCase())
+            );
+
+            if (hasRequiredRole) {
+                return next();
+            }
         }
 
         return res.status(403).json({

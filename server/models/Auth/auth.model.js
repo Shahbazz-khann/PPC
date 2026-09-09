@@ -309,6 +309,24 @@ const createCustomerUserTransaction = async (pendingUser, countryName, userTypeI
     }
 };
 
+/**
+ * Fetch all currently active roles for a user
+ */
+const getUserActiveRoles = async (userId) => {
+    const query = `
+        SELECT r.role_english
+        FROM user_role ur
+        JOIN roles r ON ur.role_id = r.role_id
+        WHERE ur.user_id = $1
+          AND ur.is_active = true
+          AND r.is_active = true
+          AND (ur.from_date IS NULL OR ur.from_date <= CURRENT_DATE)
+          AND (ur.to_date IS NULL OR ur.to_date >= CURRENT_DATE)
+    `;
+    const result = await pool.query(query, [userId]);
+    return result.rows.map(row => row.role_english);
+};
+
 module.exports = {
     createUser,
     findUserByEmail,
@@ -318,5 +336,6 @@ module.exports = {
     getUsers,
     getUserById,
     checkEmailOrMobileExists,
-    createCustomerUserTransaction
+    createCustomerUserTransaction,
+    getUserActiveRoles
 };
