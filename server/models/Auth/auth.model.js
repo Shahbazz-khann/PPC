@@ -118,9 +118,10 @@ const findUserByResetToken = async (resetPasswordToken) => {
     const query = `
         SELECT
             user_id,
-            name,
+            user_first_name,
+            user_last_name,
             email,
-            password,
+            password_hash,
             reset_password_token,
             reset_password_expires
         FROM users
@@ -145,7 +146,7 @@ const updatePassword = async (
     const query = `
         UPDATE users
         SET
-            password = $1,
+            password_hash = $1,
             reset_password_token = NULL,
             reset_password_expires = NULL
         WHERE user_id = $2

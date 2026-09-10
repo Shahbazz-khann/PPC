@@ -349,7 +349,7 @@ export const sendApiRequest = async ({
     // Handle API errors
     if (!response.ok) {
       throw new Error(
-        responseData.message || "Something went wrong"
+        responseData.message || responseData.error || "Something went wrong"
       );
     }
 

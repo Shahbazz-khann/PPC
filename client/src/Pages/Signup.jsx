@@ -28,12 +28,8 @@ const Signup = () => {
   const selectedCountry = watch('country', 'Pakistan');
 
   const countryDialCodes = {
-    'Pakistan': '+92',
-    'United States': '+1',
-    'United Kingdom': '+44',
-    'Saudi Arabia': '+966',
-    'United Arab Emirates': '+971',
-    'Canada': '+1',
+    '2': '+92',
+    '1': '+1',
   };
   const currentDialCode = countryDialCodes[selectedCountry] || '+92';
 
@@ -41,12 +37,13 @@ const Signup = () => {
     try {
       setFormMessage({ text: "", type: "" });
       const signupData = {
-        name: data.fullName,
+        first_name: data.firstName,
+        last_name: data.lastName,
         email: data.email,
-        country: data.country,
-        mobile_no: data.mobile,
+        country_id: data.country,
+        mobile: data.mobile,
         password: data.password,
-        account_type: 'user',
+        confirm_password: data.confirmPassword
       };
 
 
@@ -60,7 +57,7 @@ const Signup = () => {
     } catch (error) {
       console.error("Signup error:", error);
       setFormMessage({
-        text: error?.response?.data?.message || "We couldn't send the verification code right now. Please try again.",
+        text: error.message || "We couldn't send the verification code right now. Please try again.",
         type: "error"
       });
     }
@@ -84,7 +81,7 @@ const Signup = () => {
       }
     } catch (error) {
       console.error("Verification error:", error);
-      setVerifyError(error?.response?.data?.message || "Verification failed. Please try again.");
+      setVerifyError(error.message || "Verification failed. Please try again.");
     } finally {
       setIsVerifyingSubmit(false);
     }
@@ -222,35 +219,68 @@ const Signup = () => {
               </form>
             ) : (
               <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
-                {/* Full Name Field */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    Full Name
-                  </label>
-                  <div className="relative flex items-center">
-                    <User className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
-                    <input
-                      id="fullName"
-                      type="text"
-                      placeholder="Enter your full name"
-                      className="w-full pl-10 pr-4 py-2.5 sm:py-2 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
-                      autoComplete="name"
-                      aria-invalid={errors.fullName ? "true" : "false"}
-                      {...register('fullName', {
-                        required: 'Full Name is required.',
-                        setValueAs: (v) => (typeof v === 'string' ? v.trim() : v),
-                        minLength: { value: 3, message: 'Minimum 3 characters required.' },
-                        maxLength: { value: 100, message: 'Maximum 100 characters allowed.' },
-                        pattern: {
-                          value: /^[a-zA-Z\s]+$/,
-                          message: 'Only alphabetic characters and spaces allowed.',
-                        }
-                      })}
-                    />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* First Name Field */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                      First Name
+                    </label>
+                    <div className="relative flex items-center">
+                      <User className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                      <input
+                        id="firstName"
+                        type="text"
+                        placeholder="First name"
+                        className="w-full pl-10 pr-4 py-2.5 sm:py-2 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                        autoComplete="given-name"
+                        aria-invalid={errors.firstName ? "true" : "false"}
+                        {...register('firstName', {
+                          required: 'First Name is required.',
+                          setValueAs: (v) => (typeof v === 'string' ? v.trim() : v),
+                          minLength: { value: 2, message: 'Min 2 chars.' },
+                          maxLength: { value: 50, message: 'Max 50 chars.' },
+                          pattern: {
+                            value: /^[a-zA-Z\s]+$/,
+                            message: 'Letters only.',
+                          }
+                        })}
+                      />
+                    </div>
+                    {errors.firstName && (
+                      <p className="text-red-500 text-[11px] sm:text-xs mt-1 font-medium">{errors.firstName.message}</p>
+                    )}
                   </div>
-                  {errors.fullName && (
-                    <p className="text-red-500 text-[11px] sm:text-xs mt-1 font-medium">{errors.fullName.message}</p>
-                  )}
+
+                  {/* Last Name Field */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                      Last Name
+                    </label>
+                    <div className="relative flex items-center">
+                      <User className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                      <input
+                        id="lastName"
+                        type="text"
+                        placeholder="Last name"
+                        className="w-full pl-10 pr-4 py-2.5 sm:py-2 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                        autoComplete="family-name"
+                        aria-invalid={errors.lastName ? "true" : "false"}
+                        {...register('lastName', {
+                          required: 'Last Name is required.',
+                          setValueAs: (v) => (typeof v === 'string' ? v.trim() : v),
+                          minLength: { value: 2, message: 'Min 2 chars.' },
+                          maxLength: { value: 50, message: 'Max 50 chars.' },
+                          pattern: {
+                            value: /^[a-zA-Z\s]+$/,
+                            message: 'Letters only.',
+                          }
+                        })}
+                      />
+                    </div>
+                    {errors.lastName && (
+                      <p className="text-red-500 text-[11px] sm:text-xs mt-1 font-medium">{errors.lastName.message}</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Email Address Field */}
@@ -297,15 +327,11 @@ const Signup = () => {
                       {...register('country', {
                         required: 'Country is required.',
                       })}
-                      defaultValue="Pakistan"
+                      defaultValue="2"
                     >
                       <option value="" disabled hidden>Select your country</option>
-                      <option value="Pakistan" className="text-gray-800">Pakistan</option>
-                      <option value="United Arab Emirates" className="text-gray-800">United Arab Emirates</option>
-                      <option value="United Kingdom" className="text-gray-800">United Kingdom</option>
-                      <option value="United States" className="text-gray-800">United States</option>
-                      <option value="Saudi Arabia" className="text-gray-800">Saudi Arabia</option>
-                      <option value="Canada" className="text-gray-800">Canada</option>
+                      <option value="2" className="text-gray-800">Pakistan</option>
+                      <option value="1" className="text-gray-800">United States</option>
                     </select>
                     <div className="absolute right-3.5 pointer-events-none text-gray-400">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -339,7 +365,7 @@ const Signup = () => {
                         validate: {
                           onlyNumbers: (v) => /^\d+$/.test(v) || 'Only numbers are allowed.',
                           exactLength: (v) => {
-                            if (selectedCountry === 'Pakistan' && v.length !== 10) return 'Must be exactly 10 digits for Pakistan.';
+                            if (selectedCountry === '2' && v.length !== 10) return 'Must be exactly 10 digits for Pakistan.';
                             return true;
                           }
                         }

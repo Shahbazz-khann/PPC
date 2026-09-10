@@ -54,7 +54,12 @@ const Login = () => {
 
         console.log('Login session saved successfully');
 
-        navigate('/');
+        // Redirect based on user_type
+        if (response.data?.user_type === 'Customer') {
+          navigate('/customer/dashboard');
+        } else {
+          navigate('/');
+        }
       }
 
     } catch (error) {
@@ -62,7 +67,7 @@ const Login = () => {
 
       setError('email', {
         type: 'server',
-        message: error?.message || 'Invalid email or password',
+        message: error.message || 'Invalid email or password',
       });
     }
   };
