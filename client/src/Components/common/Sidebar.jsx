@@ -24,12 +24,6 @@ const Sidebar = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleLogout = () => {
-    // Navigating to the existing /logout route 
-    // which is handled by the existing <Logout /> component in Approutes
-    navigate('/logout');
-  };
-
   const toggleSidebar = () => {
     setIsExpanded(!isExpanded);
   };
@@ -130,36 +124,6 @@ const Sidebar = () => {
               );
             })}
           </nav>
-        </div>
-
-        {/* Logout Area */}
-        <div className="p-3 border-t border-[#003d29] shrink-0">
-          <button
-            onClick={handleLogout}
-            className={`group relative flex items-center w-full px-3 py-3 rounded-xl text-gray-300 hover:bg-[#003624] transition-all duration-200 ${
-              isExpanded ? 'justify-start' : 'justify-center'
-            }`}
-          >
-            <LogOut size={22} className="shrink-0 text-red-400 group-hover:text-red-300" />
-            
-            <div 
-              className={`flex items-center overflow-hidden transition-all duration-300 ${
-                isExpanded ? 'w-40 opacity-100 ml-3' : 'w-0 opacity-0 ml-0'
-              }`}
-            >
-              <span className="font-medium text-sm whitespace-nowrap text-red-400 group-hover:text-red-300">
-                Logout
-              </span>
-            </div>
-
-            {/* Tooltip for collapsed mode */}
-            {!isExpanded && (
-              <div className="hidden md:block absolute left-full ml-4 px-3 py-2 bg-[#1a0f0f] text-red-400 text-xs font-medium rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap shadow-xl border border-[#3d0f0f]">
-                Logout
-                <div className="absolute top-1/2 -left-1 -translate-y-1/2 border-[5px] border-transparent border-r-[#1a0f0f]" />
-              </div>
-            )}
-          </button>
         </div>
       </div>
     </>

@@ -12,6 +12,7 @@ import {
   MoreHorizontal,
   Plus
 } from 'lucide-react';
+import CustomerAccountMenu from '../../Components/common/CustomerAccountMenu';
 
 // Assets
 import PropVilla from '../../assets/prop_villa.png';
@@ -128,21 +129,13 @@ const CustomerDashboard = () => {
               <Bell size={18} />
               <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
             </button>
-            <div className="flex items-center gap-3">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-[#1a2b25] leading-tight">Ahmed Raza</p>
-                <p className="text-[11px] font-semibold text-[#B8860B]">PPC Member</p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-[#a9b0a6] text-[#2c3e34] flex items-center justify-center font-serif font-bold text-sm tracking-wide shadow-sm">
-                AR
-              </div>
-            </div>
+            <CustomerAccountMenu />
           </div>
         </div>
 
         {/* Hero Content */}
         <div className="relative z-10 max-w-2xl mt-4">
-          <h1 className="text-4xl sm:text-5xl xl:text-6xl font-serif font-bold text-[#1a2b25] mb-4 sm:mb-2 tracking-tight leading-tight">
+          <h1 className="text-4xl sm:text-5xl xl:text-5xl font-serif font-bold text-[#1a2b25] mb-4 sm:mb-2 tracking-tight leading-tight">
             Good afternoon, {customerName}.
           </h1>
           <p className="text-lg text-gray-600 font-medium leading-relaxed max-w-xl">

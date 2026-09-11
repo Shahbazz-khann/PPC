@@ -14,42 +14,55 @@ import {
   Save,
   X,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 // Isolated Mock Data Layer for fields not currently in AuthContext
 const MOCK_PROFILE_DATA = {
-  customerTitle: '',
+  customerTitle: 'Mr.',
+  firstName: 'Ahmed',
   middleName: '',
-  identityType: '',
-  identityNumber: '',
-  registrationDate: 'Oct 15, 2025',
+  lastName: 'Raza',
+  gender: 'Male',
+  email: 'ahmed.raza@example.com',
+  country: 'Pakistan',
+  mobile: '+92 300 1234567',
+  identityType: 'National ID',
+  identityNumber: '35202-1234567-1',
+  registrationDate: '15 Oct 2025',
   mobileAllowed: true,
   webAllowed: true,
 };
 
 // Reference Data for Dropdowns
 const TITLES = ['Mr.', 'Mrs.', 'Ms.', 'Dr.', 'Prof.'];
+const GENDERS = ['Male', 'Female', 'Other'];
 const IDENTITY_TYPES = ['National ID', 'Passport', 'Driving License'];
 const COUNTRIES = ['Pakistan', 'United Arab Emirates', 'Saudi Arabia', 'United Kingdom', 'United States', 'Qatar'];
 
 const CustomerProfile = () => {
   const { user } = useAuth();
-  
-  // Merge AuthContext user with mock data
+
+  // Use purely mock data for Sir/demo review
   const [profileData, setProfileData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
-    country: user?.country || '',
-    mobile: user?.mobile || '',
     ...MOCK_PROFILE_DATA
   });
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState(profileData);
   const [completionPercentage, setCompletionPercentage] = useState(0);
+
+  // Security Form State
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
 
   // Calculate completion
   useEffect(() => {
@@ -78,6 +91,41 @@ const CustomerProfile = () => {
     setEditForm(prev => ({ ...prev, [name]: value }));
   };
 
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordForm(prev => ({ ...prev, [name]: value }));
+    setPasswordError('');
+    setPasswordSuccess('');
+  };
+
+  const handleChangePassword = () => {
+    setPasswordError('');
+    setPasswordSuccess('');
+    
+    if (!passwordForm.currentPassword) {
+      setPasswordError('Current Password is required.');
+      return;
+    }
+    if (!passwordForm.newPassword) {
+      setPasswordError('New Password is required.');
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('New Passwords do not match.');
+      return;
+    }
+
+    setIsSubmittingPassword(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setIsSubmittingPassword(false);
+      setPasswordSuccess('Password changed successfully.');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setTimeout(() => setPasswordSuccess(''), 3000);
+    }, 1000);
+  };
+
   const handleCancel = () => {
     setEditForm(profileData);
     setIsEditing(false);
@@ -98,7 +146,7 @@ const CustomerProfile = () => {
 
   return (
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
-      
+
       {/* Header Breadcrumb Area */}
       <div className="pt-6 px-4 sm:px-8 lg:px-12 xl:px-14">
         <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-8">
@@ -109,11 +157,11 @@ const CustomerProfile = () => {
       </div>
 
       <div className="px-4 sm:px-8 lg:px-12 xl:px-14 max-w-[1200px] mx-auto space-y-8">
-        
+
         {/* --- PROFILE HEADER CARD --- */}
         <div className="bg-white rounded-[24px] p-6 sm:p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-gray-100/60 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#B8860B]/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none"></div>
-          
+
           <div className="flex items-center gap-6 sm:gap-8 z-10">
             {/* Avatar */}
             <div className="relative group">
@@ -145,7 +193,7 @@ const CustomerProfile = () => {
 
           <div className="z-10 self-start md:self-center">
             {!isEditing && (
-              <button 
+              <button
                 onClick={() => setIsEditing(true)}
                 className="px-6 py-2.5 rounded-full border border-[#e4d7be] text-sm font-bold text-[#1a2b25] hover:border-[#B8860B] hover:bg-[#faf7f2] transition-colors flex items-center gap-2"
               >
@@ -158,43 +206,43 @@ const CustomerProfile = () => {
         {/* --- COMPLETION PROGRESS CARD --- */}
         {completionPercentage < 100 && !isEditing && (
           <div className="bg-white rounded-[24px] p-6 sm:p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-[#B8860B]/20 relative overflow-hidden">
-             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-                <div>
-                  <h3 className="text-xl font-serif font-bold text-[#1a2b25] mb-2 flex items-center gap-2">
-                    <ShieldCheck className="text-[#B8860B]" size={24} />
-                    Complete Your Profile
-                  </h3>
-                  <p className="text-sm font-medium text-gray-600">
-                    Your profile is {completionPercentage}% complete. Add the remaining information to complete your PPC profile.
-                  </p>
-                </div>
-                <button 
-                  onClick={() => setIsEditing(true)}
-                  className="px-6 py-2.5 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(26,43,37,0.2)] hover:bg-[#2c4232] transition-colors whitespace-nowrap"
-                >
-                  Complete Now
-                </button>
-             </div>
-             
-             <div className="mt-6 w-full bg-gray-100 rounded-full h-2.5">
-                <div 
-                  className="bg-gradient-to-r from-[#B8860B] to-[#d4af37] h-2.5 rounded-full transition-all duration-1000 ease-out"
-                  style={{ width: `${completionPercentage}%` }}
-                ></div>
-             </div>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+              <div>
+                <h3 className="text-xl font-serif font-bold text-[#1a2b25] mb-2 flex items-center gap-2">
+                  <ShieldCheck className="text-[#B8860B]" size={24} />
+                  Complete Your Profile
+                </h3>
+                <p className="text-sm font-medium text-gray-600">
+                  Your profile is {completionPercentage}% complete. Add the remaining information to complete your PPC profile.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="px-6 py-2.5 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(26,43,37,0.2)] hover:bg-[#2c4232] transition-colors whitespace-nowrap"
+              >
+                Complete Now
+              </button>
+            </div>
+
+            <div className="mt-6 w-full bg-gray-100 rounded-full h-2.5">
+              <div
+                className="bg-gradient-to-r from-[#B8860B] to-[#d4af37] h-2.5 rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${completionPercentage}%` }}
+              ></div>
+            </div>
           </div>
         )}
 
         {/* --- MAIN FORM/VIEW AREA --- */}
         <div className="bg-white rounded-[24px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-gray-100/60 overflow-hidden">
-          
+
           {/* Section: Personal Information */}
           <div className="p-6 sm:p-8 border-b border-gray-50">
             <h2 className="text-lg font-serif font-bold text-[#1a2b25] mb-6 flex items-center gap-2">
               <User size={20} className="text-[#B8860B]" /> Personal Information
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              
+
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Title</label>
                 {isEditing ? (
@@ -231,6 +279,18 @@ const CustomerProfile = () => {
                   <input type="text" name="lastName" value={editForm.lastName} onChange={handleEditChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50" />
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.lastName)}</div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Gender</label>
+                {isEditing ? (
+                  <select name="gender" value={editForm.gender} onChange={handleEditChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50">
+                    <option value="">Select Gender</option>
+                    {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
+                  </select>
+                ) : (
+                  <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.gender)}</div>
                 )}
               </div>
             </div>
@@ -295,7 +355,7 @@ const CustomerProfile = () => {
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1"><Mail size={14} /> Email</label>
                 {isEditing ? (
-                  <input type="email" name="email" value={editForm.email} onChange={handleEditChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50" />
+                  <input type="email" name="email" value={editForm.email} readOnly disabled className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed outline-none transition-all text-sm font-semibold" title="Email cannot be changed" />
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.email)}</div>
                 )}
@@ -330,16 +390,79 @@ const CustomerProfile = () => {
             </div>
           </div>
 
+          {/* Section: Security */}
+          <div className="p-6 sm:p-8 border-b border-gray-50">
+            <h2 className="text-lg font-serif font-bold text-[#1a2b25] mb-6 flex items-center gap-2">
+              <Lock size={20} className="text-[#B8860B]" /> Security
+            </h2>
+            <div className="max-w-md space-y-5">
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Current Password</label>
+                <input 
+                  type="password" 
+                  name="currentPassword" 
+                  value={passwordForm.currentPassword} 
+                  onChange={handlePasswordChange} 
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50" 
+                  placeholder="Enter current password"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">New Password</label>
+                <input 
+                  type="password" 
+                  name="newPassword" 
+                  value={passwordForm.newPassword} 
+                  onChange={handlePasswordChange} 
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50" 
+                  placeholder="Enter new password"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Confirm New Password</label>
+                <input 
+                  type="password" 
+                  name="confirmPassword" 
+                  value={passwordForm.confirmPassword} 
+                  onChange={handlePasswordChange} 
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50" 
+                  placeholder="Confirm new password"
+                />
+              </div>
+              
+              {passwordError && (
+                <div className="text-red-500 text-sm font-semibold flex items-center gap-1.5 mt-2">
+                  <XCircle size={16} /> {passwordError}
+                </div>
+              )}
+              {passwordSuccess && (
+                <div className="text-emerald-600 text-sm font-semibold flex items-center gap-1.5 mt-2">
+                  <CheckCircle2 size={16} /> {passwordSuccess}
+                </div>
+              )}
+              
+              <div className="pt-2">
+                <button
+                  onClick={handleChangePassword}
+                  disabled={isSubmittingPassword}
+                  className="px-6 py-2.5 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(26,43,37,0.2)] hover:bg-[#2c4232] transition-colors flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isSubmittingPassword ? 'Changing...' : 'Change Password'}
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Edit Actions Footer */}
           {isEditing && (
             <div className="p-6 bg-[#fcfbfa] border-t border-gray-100 flex items-center justify-end gap-4">
-              <button 
+              <button
                 onClick={handleCancel}
                 className="px-6 py-2.5 rounded-full text-sm font-bold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors flex items-center gap-2"
               >
                 <X size={16} /> Cancel
               </button>
-              <button 
+              <button
                 onClick={handleSave}
                 className="px-6 py-2.5 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-md hover:bg-[#2c4232] transition-colors flex items-center gap-2"
               >
