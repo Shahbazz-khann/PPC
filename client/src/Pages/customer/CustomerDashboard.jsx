@@ -108,7 +108,7 @@ const CustomerDashboard = () => {
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
       
       {/* --- HERO AREA --- */}
-      <div className="relative w-full bg-[#FAF8F3] pt-6 pb-20 sm:pb-28 px-4 sm:px-8 lg:px-12 xl:px-14 overflow-hidden">
+      <div className="relative w-full bg-[#FAF8F3] pt-4 pb-20 sm:pb-28 px-4 sm:px-8 lg:px-12 xl:px-16 overflow-hidden">
         
         {/* Background Image & Gradient */}
         <div className="absolute top-0 right-0 w-full lg:w-[60%] h-full z-0">
@@ -134,8 +134,8 @@ const CustomerDashboard = () => {
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 max-w-2xl mt-4">
-          <h1 className="text-4xl sm:text-5xl xl:text-5xl font-serif font-bold text-[#1a2b25] mb-4 sm:mb-2 tracking-tight leading-tight">
+        <div className="relative z-10 max-w-2xl mt-4  ">
+          <h1 className="text-2xl sm:text-3xl xl:text-4xl font-serif font-bold text-[#1a2b25] mb-4 sm:mb-0.5 tracking-tight leading-tight">
             Good afternoon, {customerName}.
           </h1>
           <p className="text-lg text-gray-600 font-medium leading-relaxed max-w-xl">
@@ -143,7 +143,7 @@ const CustomerDashboard = () => {
             two listings are live, one service request is in progress.
           </p>
           
-          <div className="mt-8 flex flex-wrap items-center gap-4">
+          <div className="mt-2 flex flex-wrap items-center gap-4">
             <Link to="/customer/properties" className="flex items-center gap-2 px-6 py-3 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(26,43,37,0.2)] hover:bg-[#2c4232] hover:-translate-y-0.5 transition-all duration-300">
               <Plus size={18} />
               Add Property
@@ -160,7 +160,7 @@ const CustomerDashboard = () => {
       <div className="px-4 sm:px-8 lg:px-12 xl:px-16 max-w-[1600px] mx-auto">
         
         {/* Summary Stats (Overlapping Hero) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative z-20 mt-4 sm:-mt-12 lg:-mt-20 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative z-20 mt-4 sm:-mt-12 lg:-mt-20 mb-6">
           <SummaryCard
             title="For Sale"
             value="02"

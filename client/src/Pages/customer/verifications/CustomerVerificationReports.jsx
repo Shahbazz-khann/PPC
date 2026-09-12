@@ -6,7 +6,7 @@ import { mockPropertiesList } from '../properties/mockPropertyData';
 
 // Helper for badge styling
 export const getApprovalBadge = (stage) => {
-  switch(stage) {
+  switch (stage) {
     case 'Approved':
       return { bg: 'bg-[#1E5631]', text: 'text-white', icon: <CheckCircle2 size={12} /> };
     case 'Pending':
@@ -26,16 +26,16 @@ const VerificationCard = ({ verification }) => {
   const badge = getApprovalBadge(stage);
 
   return (
-    <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden flex flex-col lg:flex-row hover:shadow-md transition-shadow min-h-[180px]">
-      
+    <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row hover:shadow-md transition-shadow min-h-[180px]">
+
       {/* LEFT: Property Image */}
-      <div className="relative w-full lg:w-[300px] h-56 lg:h-auto shrink-0 bg-gray-100 flex flex-col items-center justify-center">
+      <div className="relative w-full md:w-[35%] xl:w-[28%] shrink-0 h-56 md:h-auto bg-gray-100 flex flex-col items-center justify-center">
         {property?.image ? (
           <img src={property.image} alt="Property" className="w-full h-full object-cover" />
         ) : (
           <span className="text-gray-400 font-medium">No Image</span>
         )}
-        
+
         <div className="absolute top-4 left-4 flex flex-col gap-2">
           <span className={`px-3 py-1.5 ${badge.bg} ${badge.text} text-[11px] font-bold uppercase tracking-wider rounded-lg shadow-sm flex items-center gap-1.5 w-max backdrop-blur-sm bg-opacity-95`}>
             {badge.icon} {stage}
@@ -46,76 +46,80 @@ const VerificationCard = ({ verification }) => {
         </div>
       </div>
 
-      {/* CENTER: Property & Verification Info */}
-      <div className="p-6 lg:p-8 flex-1 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-gray-100">
-        
-        <div className="mb-6">
-          <h3 className="text-xl font-serif font-bold text-[#1a2b25] mb-2">
-            {property ? `${property.propertyType} in ${property.society}` : 'Unknown Property'}
-          </h3>
-          <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-gray-500">
-            <span className="flex items-center gap-1.5 text-gray-600">
-              <MapPin size={16} className="text-gray-400" />
-              {property ? `${property.society}, ${property.city}` : 'No location'}
-            </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-            <span>{property?.propertyType || 'Unknown'}</span>
-            {property?.propertySize && (
+      {/* RIGHT WRAPPER (Info + Actions) */}
+      <div className="flex-1 flex flex-col xl:flex-row min-w-0">
+
+        {/* CENTER: Property & Verification Info */}
+        <div className="p-5 lg:p-6 flex-1 flex flex-col justify-center border-b xl:border-b-0 xl:border-r border-gray-100 min-w-0">
+
+          <div className="mb-6">
+            <h3 className="text-xl font-serif font-bold text-[#1a2b25] mb-2 leading-snug break-words">
+              {property ? `${property.propertyType} in ${property.society}` : 'Unknown Property'}
+            </h3>
+            <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-gray-500">
+              <span className="flex items-center gap-1.5 text-gray-600">
+                <MapPin size={16} className="text-gray-400" />
+                {property ? `${property.society}, ${property.city}` : 'No location'}
+              </span>
+              <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+              <span>{property?.propertyType || 'Unknown'}</span>
+              {property?.propertySize && (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                  <span>{property.propertySize} {property.sizeUom}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-x-12 gap-y-6">
+            {verification.verificationDate ? (
               <>
-                <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                <span>{property.propertySize} {property.sizeUom}</span>
+                <div>
+                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Verification Date</span>
+                  <span className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <Calendar size={14} className="text-[#B8860B]" /> {verification.verificationDate}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Verification Time</span>
+                  <span className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <Clock size={14} className="text-[#B8860B]" /> {verification.verificationTime}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Verified By</span>
+                  <span className="text-sm font-bold text-[#1a2b25] flex items-center gap-2">
+                    <User size={14} className="text-[#1E5631]" /> {verification.verifiedBy?.name}
+                  </span>
+                </div>
               </>
+            ) : (
+              <div className="flex items-center h-full py-2">
+                <span className="text-sm font-medium text-gray-500 italic">
+                  {stage === 'Pending' ? 'Verification has not started yet. Waiting for PPC review.' : 'Verification details will appear once recorded.'}
+                </span>
+              </div>
             )}
           </div>
+
         </div>
 
-        <div className="flex flex-wrap gap-x-12 gap-y-6">
-          {verification.verificationDate ? (
-            <>
-              <div>
-                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Verification Date</span>
-                <span className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                  <Calendar size={14} className="text-[#B8860B]" /> {verification.verificationDate}
-                </span>
-              </div>
-              <div>
-                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Verification Time</span>
-                <span className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                  <Clock size={14} className="text-[#B8860B]" /> {verification.verificationTime}
-                </span>
-              </div>
-              <div>
-                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Verified By</span>
-                <span className="text-sm font-bold text-[#1a2b25] flex items-center gap-2">
-                  <User size={14} className="text-[#1E5631]" /> {verification.verifiedBy?.name} 
-                </span>
-              </div>
-            </>
-          ) : (
-            <div className="flex items-center h-full py-2">
-              <span className="text-sm font-medium text-gray-500 italic">
-                {stage === 'Pending' ? 'Verification has not started yet. Waiting for PPC review.' : 'Verification details will appear once recorded.'}
-              </span>
-            </div>
-          )}
+        {/* RIGHT: Actions */}
+        <div className="p-5 lg:p-6 w-full xl:w-[280px] shrink-0 flex flex-col justify-center bg-gray-50/30 gap-3">
+          <Link
+            to={`/customer/verification-reports/${verification.propertyId}`} // Routing primarily via property reference for verifications
+            className="w-full text-center py-3 rounded-xl bg-[#1a2b25] text-white text-sm font-bold shadow-md hover:bg-[#2c4232] transition-colors flex items-center justify-center gap-2"
+          >
+            <ShieldCheck size={16} /> View Verification Report
+          </Link>
+          <Link
+            to={`/customer/properties/${verification.propertyId}`}
+            className="w-full text-center py-3 rounded-xl border border-gray-200 text-[#1a2b25] bg-white text-sm font-bold shadow-sm hover:bg-gray-50 transition-colors"
+          >
+            View Property
+          </Link>
         </div>
-
-      </div>
-
-      {/* RIGHT: Actions */}
-      <div className="p-6 lg:p-8 w-full lg:w-[280px] shrink-0 flex flex-col justify-center bg-gray-50/30 gap-3">
-        <Link 
-          to={`/customer/verification-reports/${verification.propertyId}`} // Routing primarily via property reference for verifications
-          className="w-full text-center py-3 rounded-xl bg-[#1a2b25] text-white text-sm font-bold shadow-md hover:bg-[#2c4232] transition-colors flex items-center justify-center gap-2"
-        >
-          <ShieldCheck size={16} /> View Verification Report
-        </Link>
-        <Link 
-          to={`/customer/properties/${verification.propertyId}`}
-          className="w-full text-center py-3 rounded-xl border border-gray-200 text-[#1a2b25] bg-white text-sm font-bold shadow-sm hover:bg-gray-50 transition-colors"
-        >
-          View Property
-        </Link>
       </div>
 
     </div>
@@ -140,25 +144,18 @@ const CustomerVerificationReports = () => {
 
   return (
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
-      <div className=" px-4 sm:px-8 lg:px-12 xl:px-4">
-        
-        {/* Breadcrumbs */}
-        <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-8">
-          <Link to="/customer/dashboard" className="hover:text-gray-900 transition-colors">Dashboard</Link>
-          <ChevronRight size={14} className="text-gray-400" />
-          <span className="text-[#1a2b25]">Verification Reports</span>
-        </div>
+      <div className=" px-4 sm:px-8 lg:px-12 xl:px-4 ">
 
-        <div className="mb-10">
-          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#1a2b25] mb-2">Verification Reports</h1>
+        <div className="mb-4">
+          <h1 className="text-3xl sm:text-3xl font-serif font-bold text-[#1a2b25] mb-1">Verification Reports</h1>
           <p className="text-gray-600 font-medium max-w-2xl">
             Track PPC verification and approval status for your properties.
           </p>
         </div>
 
         {/* Summary Cards (Filters) */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
-          
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+
           <button onClick={() => setActiveFilter('All')} className={`text-left rounded-2xl shadow-sm p-5 flex flex-col justify-between min-h-[110px] transition-all focus:outline-none focus:ring-2 focus:ring-[#1a2b25] ${activeFilter === 'All' ? 'bg-[#1a2b25] text-white' : 'bg-white border border-gray-100 hover:border-gray-300'}`}>
             <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${activeFilter === 'All' ? 'text-gray-300' : 'text-gray-400'}`}>Total Properties</p>
             <div className="flex items-end justify-between">

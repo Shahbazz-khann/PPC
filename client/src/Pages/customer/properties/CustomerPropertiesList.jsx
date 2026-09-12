@@ -49,21 +49,12 @@ const CustomerPropertiesList = () => {
   return (
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
       
-      {/* Header Breadcrumb Area */}
-      <div className=" px-4 sm:px-8 lg:px-12 xl:px-4">
-        <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-8">
-          <Link to="/customer/dashboard" className="hover:text-gray-900 transition-colors">Dashboard</Link>
-          <ChevronRight size={14} className="text-gray-400" />
-          <span className="text-[#1a2b25]">My Properties</span>
-        </div>
-      </div>
-
-      <div className="px-4 sm:px-8 lg:px-12 xl:px-4 max-w-[1400px] mx-auto space-y-8">
+      <div className="px-4 sm:px-8 lg:px-12 xl:px-4 max-w-[1400px] mx-auto space-y-3">
         
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#1a2b25] mb-2 tracking-tight">
+            <h1 className="text-3xl sm:text-3xl font-serif font-bold text-[#1a2b25] mb-2 tracking-tight">
               My Properties
             </h1>
             <p className="text-gray-500 font-medium text-sm max-w-md">

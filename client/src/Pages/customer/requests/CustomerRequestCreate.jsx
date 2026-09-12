@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
+import {
   ChevronRight, CheckCircle2, Home, Wrench, FileText, MapPin, AudioLines, UploadCloud, X,
   Sparkles, Droplets, Zap, Paintbrush, Hammer, Wind, Bug, Leaf, PenTool, DollarSign
 } from 'lucide-react';
@@ -71,11 +71,11 @@ const CustomerRequestCreate = () => {
       if (isPropertyRequired() && !formData.propertyId) {
         newErrors.propertyId = 'Please select a property for this request'; isValid = false;
       }
-      
+
       if (formData.propertyId && (formData.purpose === 'Sale' || formData.purpose === 'Rent')) {
         const propertyDemands = mockPropertyDemands.filter(d => d.propertyId === formData.propertyId);
         propertyDemands.sort((a, b) => new Date(b.effectiveDate) - new Date(a.effectiveDate));
-        
+
         const latestDemand = propertyDemands.length > 0 ? propertyDemands[0] : null;
         let currentPurpose = null;
         if (latestDemand) {
@@ -203,7 +203,7 @@ const CustomerRequestCreate = () => {
     const propertyDemands = mockPropertyDemands.filter(d => d.propertyId === formData.propertyId);
     propertyDemands.sort((a, b) => new Date(b.effectiveDate) - new Date(a.effectiveDate));
     const latest = propertyDemands.length > 0 ? propertyDemands[0] : null;
-    
+
     if (!latest) return null;
     if (latest.saleAmount !== null && latest.saleAmount !== undefined) return { purpose: 'Sale', amount: latest.saleAmount };
     if (latest.rentAmount !== null && latest.rentAmount !== undefined) return { purpose: 'Rent', amount: latest.rentAmount };
@@ -236,7 +236,7 @@ const CustomerRequestCreate = () => {
 
   return (
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
-      <div className="pt-6 px-4 sm:px-8 lg:px-12 xl:px-14">
+      <div className="pt-6 px-4 sm:px-8 lg:px-12 xl:px-4">
         <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-8">
           <Link to="/customer/dashboard" className="hover:text-gray-900 transition-colors">Dashboard</Link>
           <ChevronRight size={14} className="text-gray-400" />
@@ -246,7 +246,7 @@ const CustomerRequestCreate = () => {
         </div>
       </div>
 
-      <div className="px-4 sm:px-8 lg:px-12 xl:px-14 max-w-[1000px] mx-auto">
+      <div className="px-4 sm:px-8 lg:px-12 xl:px-4 max-w-[1000px] mx-auto">
         <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 flex flex-col md:flex-row overflow-hidden">
 
           {/* Stepper Sidebar */}
@@ -260,7 +260,7 @@ const CustomerRequestCreate = () => {
                 return (
                   <div key={step.id} className={`flex items-center gap-3 shrink-0 md:shrink transition-opacity ${isActive ? 'opacity-100' : isCompleted ? 'opacity-70' : 'opacity-40'}`}>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors ${isActive ? 'bg-[#1a2b25] border-[#1a2b25] text-white' :
-                        isCompleted ? 'bg-[#eaf1ec] border-[#eaf1ec] text-[#1E5631]' : 'border-gray-300 text-gray-400'
+                      isCompleted ? 'bg-[#eaf1ec] border-[#eaf1ec] text-[#1E5631]' : 'border-gray-300 text-gray-400'
                       }`}>
                       {isCompleted ? <CheckCircle2 size={16} /> : step.id}
                     </div>
@@ -345,16 +345,14 @@ const CustomerRequestCreate = () => {
                           return (
                             <button
                               key={service}
-                              onClick={() => { setFormData(prev => ({...prev, service})); setErrors({}); }}
-                              className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-start gap-3 text-left group ${
-                                isSelected 
-                                  ? 'border-[#B8860B] bg-[#faf7f2] shadow-sm' 
+                              onClick={() => { setFormData(prev => ({ ...prev, service })); setErrors({}); }}
+                              className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-start gap-3 text-left group ${isSelected
+                                  ? 'border-[#B8860B] bg-[#faf7f2] shadow-sm'
                                   : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50 bg-white'
-                              }`}
+                                }`}
                             >
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                                isSelected ? 'bg-[#f4ebd0] text-[#B8860B]' : 'bg-gray-100 text-gray-500 group-hover:text-gray-700'
-                              }`}>
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isSelected ? 'bg-[#f4ebd0] text-[#B8860B]' : 'bg-gray-100 text-gray-500 group-hover:text-gray-700'
+                                }`}>
                                 <ServiceIcon size={20} />
                               </div>
                               <div>
@@ -427,7 +425,7 @@ const CustomerRequestCreate = () => {
                         <DollarSign size={20} />
                         <h4 className="font-bold text-sm">Pricing & Demand</h4>
                       </div>
-                      
+
                       {(() => {
                         const info = getLatestDemandInfo();
                         if (info && info.purpose === formData.purpose) {
@@ -435,7 +433,7 @@ const CustomerRequestCreate = () => {
                             <div>
                               <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Current {formData.purpose} Demand</p>
                               <p className="text-2xl font-bold text-[#1a2b25]">{formatCurrency(info.amount)}</p>
-                              <p className="text-sm text-emerald-600 font-semibold mt-2 flex items-center gap-1.5"><CheckCircle2 size={16}/> Ready to proceed</p>
+                              <p className="text-sm text-emerald-600 font-semibold mt-2 flex items-center gap-1.5"><CheckCircle2 size={16} /> Ready to proceed</p>
                             </div>
                           );
                         } else {
@@ -443,12 +441,12 @@ const CustomerRequestCreate = () => {
                           return (
                             <div>
                               <p className="text-sm font-semibold text-red-600 mb-4">{errors.demand || `No ${formData.purpose} Demand has been set for this property.`}</p>
-                              
+
                               {!hasWrongDemand && (
                                 showInlineDemandInput ? (
                                   <div className="space-y-4">
-                                    <input 
-                                      type="number" 
+                                    <input
+                                      type="number"
                                       value={inlineDemandAmount}
                                       onChange={(e) => setInlineDemandAmount(e.target.value)}
                                       placeholder={`Enter ${formData.purpose} Amount (PKR)`}
@@ -464,7 +462,7 @@ const CustomerRequestCreate = () => {
                                     </div>
                                   </div>
                                 ) : (
-                                  <button 
+                                  <button
                                     onClick={() => setShowInlineDemandInput(true)}
                                     className="px-6 py-2.5 bg-[#1a2b25] text-white text-sm font-bold rounded-xl shadow-sm hover:bg-[#2c4232] transition-colors"
                                   >
@@ -601,8 +599,8 @@ const CustomerRequestCreate = () => {
                   onClick={handleNext}
                   disabled={currentStep === 1 && !formData.category}
                   className={`px-8 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-all ${(currentStep === 1 && !formData.category)
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-[#1a2b25] text-white shadow-md hover:bg-[#2c4232]'
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-[#1a2b25] text-white shadow-md hover:bg-[#2c4232]'
                     }`}
                 >
                   Continue <ChevronRight size={16} />

@@ -148,7 +148,7 @@ const CustomerProfile = () => {
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
 
       {/* Header Breadcrumb Area */}
-      <div className="pt-6 px-4 sm:px-8 lg:px-12 xl:px-14">
+      <div className="pt-6 px-4 sm:px-8 lg:px-12 xl:px-4">
         <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-8">
           <Link to="/customer/dashboard" className="hover:text-gray-900 transition-colors">Dashboard</Link>
           <ChevronRight size={14} className="text-gray-400" />
@@ -156,7 +156,7 @@ const CustomerProfile = () => {
         </div>
       </div>
 
-      <div className="px-4 sm:px-8 lg:px-12 xl:px-14 max-w-[1200px] mx-auto space-y-8">
+      <div className="px-4 sm:px-8 lg:px-12 xl:px-4 max-w-[1200px] mx-auto space-y-8">
 
         {/* --- PROFILE HEADER CARD --- */}
         <div className="bg-white rounded-[24px] p-6 sm:p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-gray-100/60 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">

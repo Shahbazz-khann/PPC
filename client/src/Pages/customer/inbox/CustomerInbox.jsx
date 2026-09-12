@@ -36,19 +36,12 @@ const CustomerInbox = () => {
 
   return (
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
-      <div className=" px-4 sm:px-8 lg:px-12 xl:px-4">
+      <div className=" px-4 sm:px-8 lg:px-12 xl:px-4 ">
         
-        {/* Breadcrumbs */}
-        <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-8">
-          <Link to="/customer/dashboard" className="hover:text-gray-900 transition-colors">Dashboard</Link>
-          <ChevronRight size={14} className="text-gray-400" />
-          <span className="text-[#1a2b25]">Messages</span>
-        </div>
-
         {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#1a2b25] mb-2 flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#1a2b25] mb-2 flex items-center gap-3">
               Messages
               {unreadCount > 0 && (
                 <span className="px-3 py-1 bg-[#1E5631] text-white text-xs font-bold rounded-full align-middle">

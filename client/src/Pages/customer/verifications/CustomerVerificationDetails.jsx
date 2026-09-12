@@ -39,7 +39,7 @@ const CustomerVerificationDetails = () => {
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
       
       {/* Breadcrumb */}
-      <div className="pt-6 px-4 sm:px-8 lg:px-12 xl:px-14">
+      <div className="pt-6 px-4 sm:px-8 lg:px-12 xl:px-4">
         <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-6">
           <Link to="/customer/dashboard" className="hover:text-gray-900 transition-colors">Dashboard</Link>
           <ChevronRight size={14} className="text-gray-400" />
@@ -49,7 +49,7 @@ const CustomerVerificationDetails = () => {
         </div>
       </div>
 
-      <div className="px-4 sm:px-8 lg:px-12 xl:px-14 max-w-[1400px] mx-auto space-y-6">
+      <div className="px-4 sm:px-8 lg:px-12 xl:px-4 max-w-[1400px] mx-auto space-y-6">
         
         {/* 1. VERIFICATION REPORT HEADER */}
         <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center p-6 sm:p-8 min-h-[140px]">

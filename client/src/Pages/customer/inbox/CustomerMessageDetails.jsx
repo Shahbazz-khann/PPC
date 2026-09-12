@@ -48,7 +48,7 @@ const CustomerMessageDetails = () => {
 
   return (
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
-      <div className="pt-6 px-4 sm:px-8 lg:px-12 xl:px-14 max-w-[1200px] mx-auto">
+      <div className="pt-6 px-4 sm:px-8 lg:px-12 xl:px-4 max-w-[1200px] mx-auto">
         
         {/* Breadcrumbs */}
         <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-8">
