@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { forgotPassword } from '../Services/auth.services';
@@ -13,18 +13,20 @@ import bgImage from '../assets/FaisalMosque.png';
 import logoImg from '../assets/Logo3.png';
 
 const ForgotPassword = () => {
- const {
-  register,
-  handleSubmit,
-  setError,
-  formState: { errors, isSubmitting },
-} = useForm();
+  const [isSuccess, setIsSuccess] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm();
 
   const onSubmit = async (data) => {
     try {
       const response = await forgotPassword(data.email);
 
       console.log('Forgot password response:', response);
+      setIsSuccess(true);
 
     } catch (error) {
       console.error('Forgot password error:', error);
@@ -201,7 +203,7 @@ const ForgotPassword = () => {
               disabled={isSubmitting}
               className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#B8860B] via-[#C59B27] to-[#B8860B] hover:from-[#a37609] hover:to-[#a37609] text-white font-bold text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center mt-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Sending...' : 'Send Reset Link'}
+              {isSubmitting ? 'Sending...' : isSuccess ? 'Resend Reset Link' : 'Send Reset Link'}
             </button>
 
           </form>

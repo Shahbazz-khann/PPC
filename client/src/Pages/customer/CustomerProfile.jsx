@@ -15,7 +15,9 @@ import {
   X,
   ChevronRight,
   ShieldCheck,
-  Lock
+  Lock,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -53,6 +55,7 @@ const CustomerProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState(profileData);
   const [completionPercentage, setCompletionPercentage] = useState(0);
+  const [errors, setErrors] = useState({});
 
   // Security Form State
   const [passwordForm, setPasswordForm] = useState({
@@ -63,6 +66,11 @@ const CustomerProfile = () => {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
+  
+  // Password Visibility State
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Calculate completion
   useEffect(() => {
@@ -86,9 +94,73 @@ const CustomerProfile = () => {
     setCompletionPercentage(percentage);
   }, [profileData]);
 
+  const validateField = (name, value) => {
+    let error = '';
+    const valStr = typeof value === 'string' ? value.trim() : '';
+
+    switch (name) {
+      case 'customerTitle':
+        if (!valStr || !TITLES.includes(valStr)) error = 'Please select a title.';
+        break;
+      case 'firstName':
+        if (!valStr) error = 'First name is required.';
+        else if (valStr.length < 2 || valStr.length > 50) error = 'Must be 2-50 characters.';
+        else if (!/^[a-zA-Z\s'-]+$/.test(valStr)) error = 'Enter a valid first name.';
+        break;
+      case 'middleName':
+        if (valStr) {
+          if (valStr.length > 50) error = 'Must be max 50 characters.';
+          else if (!/^[a-zA-Z\s'-]+$/.test(valStr)) error = 'Enter a valid middle name.';
+        }
+        break;
+      case 'lastName':
+        if (!valStr) error = 'Last name is required.';
+        else if (valStr.length < 2 || valStr.length > 50) error = 'Must be 2-50 characters.';
+        else if (!/^[a-zA-Z\s'-]+$/.test(valStr)) error = 'Enter a valid last name.';
+        break;
+      case 'gender':
+        if (valStr && !GENDERS.includes(valStr)) error = 'Select a valid gender.';
+        break;
+      case 'identityType':
+        if (!valStr || !IDENTITY_TYPES.includes(valStr)) error = 'Please select an identity type.';
+        break;
+      case 'identityNumber':
+        if (!valStr) break;
+        if (!/^\d+$/.test(valStr)) error = 'Identity number must contain only numbers.';
+        else if (valStr.length < 4 || valStr.length > 30) error = 'Must be 4-30 characters.';
+        break;
+      case 'country':
+        if (!valStr || !COUNTRIES.includes(valStr)) error = 'Please select a country.';
+        break;
+      case 'mobile':
+        if (!valStr) error = 'Mobile number is required.';
+        else if (valStr.length < 7 || valStr.length > 20) error = 'Must be 7-20 characters.';
+        break;
+      default:
+        break;
+    }
+    return error;
+  };
+
   const handleEditChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+
+    // Prevent typing alphabets in identityNumber and mobile
+    if (name === 'identityNumber' || name === 'mobile') {
+      value = value.replace(/[a-zA-Z]/g, '');
+    }
+
     setEditForm(prev => ({ ...prev, [name]: value }));
+    // Clear error immediately on change
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    const error = validateField(name, value);
+    setErrors(prev => ({ ...prev, [name]: error }));
   };
 
   const handlePasswordChange = (e) => {
@@ -98,20 +170,40 @@ const CustomerProfile = () => {
     setPasswordSuccess('');
   };
 
+  const validatePasswordRules = (pass) => {
+    if (pass.length < 8 || pass.length > 128) return 'Password must be 8-128 characters.';
+    if (!/[A-Z]/.test(pass) || !/[a-z]/.test(pass) || !/\d/.test(pass) || !/[^a-zA-Z\d]/.test(pass)) {
+      return 'Password must contain:\n• One uppercase letter\n• One lowercase letter\n• One number\n• One special character';
+    }
+    return '';
+  };
+
   const handleChangePassword = () => {
     setPasswordError('');
     setPasswordSuccess('');
     
     if (!passwordForm.currentPassword) {
-      setPasswordError('Current Password is required.');
+      setPasswordError('Current password is required.');
       return;
     }
     if (!passwordForm.newPassword) {
-      setPasswordError('New Password is required.');
+      setPasswordError('New password is required.');
       return;
     }
+    
+    const rulesError = validatePasswordRules(passwordForm.newPassword);
+    if (rulesError) {
+      setPasswordError(rulesError);
+      return;
+    }
+
+    if (passwordForm.newPassword === passwordForm.currentPassword) {
+      setPasswordError('New password must be different from your current password.');
+      return;
+    }
+
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordError('New Passwords do not match.');
+      setPasswordError('Passwords do not match.');
       return;
     }
 
@@ -122,18 +214,51 @@ const CustomerProfile = () => {
       setIsSubmittingPassword(false);
       setPasswordSuccess('Password changed successfully.');
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setShowCurrentPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
       setTimeout(() => setPasswordSuccess(''), 3000);
     }, 1000);
   };
 
   const handleCancel = () => {
     setEditForm(profileData);
+    setErrors({});
     setIsEditing(false);
   };
 
   const handleSave = () => {
+    // Validate all editable fields
+    const fieldsToValidate = ['customerTitle', 'firstName', 'middleName', 'lastName', 'gender', 'identityType', 'identityNumber', 'country', 'mobile'];
+    const newErrors = {};
+    let hasError = false;
+
+    // Trim all values before saving
+    const trimmedForm = { ...editForm };
+
+    fieldsToValidate.forEach(field => {
+      const val = trimmedForm[field];
+      if (typeof val === 'string') {
+        trimmedForm[field] = val.trim();
+      }
+      const err = validateField(field, trimmedForm[field]);
+      if (err) {
+        newErrors[field] = err;
+        hasError = true;
+      }
+    });
+
+    if (hasError) {
+      setErrors(newErrors);
+      // Let the first error field focus natively if possible
+      const firstErrorField = Object.keys(newErrors)[0];
+      const el = document.getElementsByName(firstErrorField)[0];
+      if (el) el.focus();
+      return;
+    }
+
     // Frontend mock save
-    setProfileData(editForm);
+    setProfileData(trimmedForm);
     setIsEditing(false);
   };
 
@@ -246,10 +371,13 @@ const CustomerProfile = () => {
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Title</label>
                 {isEditing ? (
-                  <select name="customerTitle" value={editForm.customerTitle} onChange={handleEditChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50">
-                    <option value="">Select Title</option>
-                    {TITLES.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
+                  <>
+                    <select name="customerTitle" value={editForm.customerTitle} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.customerTitle ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 focus:ring-1`}>
+                      <option value="">Select Title</option>
+                      {TITLES.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                    {errors.customerTitle && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.customerTitle}</p>}
+                  </>
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.customerTitle)}</div>
                 )}
@@ -258,7 +386,10 @@ const CustomerProfile = () => {
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">First Name</label>
                 {isEditing ? (
-                  <input type="text" name="firstName" value={editForm.firstName} onChange={handleEditChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50" />
+                  <>
+                    <input type="text" name="firstName" value={editForm.firstName} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.firstName ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 focus:ring-1`} />
+                    {errors.firstName && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.firstName}</p>}
+                  </>
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.firstName)}</div>
                 )}
@@ -267,7 +398,10 @@ const CustomerProfile = () => {
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Middle Name <span className="normal-case font-medium text-gray-300">(Optional)</span></label>
                 {isEditing ? (
-                  <input type="text" name="middleName" value={editForm.middleName} onChange={handleEditChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50" />
+                  <>
+                    <input type="text" name="middleName" value={editForm.middleName} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.middleName ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 focus:ring-1`} />
+                    {errors.middleName && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.middleName}</p>}
+                  </>
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.middleName)}</div>
                 )}
@@ -276,7 +410,10 @@ const CustomerProfile = () => {
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Last Name</label>
                 {isEditing ? (
-                  <input type="text" name="lastName" value={editForm.lastName} onChange={handleEditChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50" />
+                  <>
+                    <input type="text" name="lastName" value={editForm.lastName} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.lastName ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 focus:ring-1`} />
+                    {errors.lastName && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.lastName}</p>}
+                  </>
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.lastName)}</div>
                 )}
@@ -285,10 +422,13 @@ const CustomerProfile = () => {
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Gender</label>
                 {isEditing ? (
-                  <select name="gender" value={editForm.gender} onChange={handleEditChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50">
-                    <option value="">Select Gender</option>
-                    {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
-                  </select>
+                  <>
+                    <select name="gender" value={editForm.gender} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.gender ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 focus:ring-1`}>
+                      <option value="">Select Gender</option>
+                      {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
+                    </select>
+                    {errors.gender && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.gender}</p>}
+                  </>
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.gender)}</div>
                 )}
@@ -305,10 +445,13 @@ const CustomerProfile = () => {
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Identity Type</label>
                 {isEditing ? (
-                  <select name="identityType" value={editForm.identityType} onChange={handleEditChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-white">
-                    <option value="">Select Type</option>
-                    {IDENTITY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
+                  <>
+                    <select name="identityType" value={editForm.identityType} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.identityType ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-white focus:ring-1`}>
+                      <option value="">Select Type</option>
+                      {IDENTITY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                    {errors.identityType && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.identityType}</p>}
+                  </>
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.identityType)}</div>
                 )}
@@ -317,7 +460,10 @@ const CustomerProfile = () => {
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Identity Number</label>
                 {isEditing ? (
-                  <input type="text" name="identityNumber" value={editForm.identityNumber} onChange={handleEditChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-white" />
+                  <>
+                    <input type="text" name="identityNumber" value={editForm.identityNumber} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.identityNumber ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-white focus:ring-1`} />
+                    {errors.identityNumber && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.identityNumber}</p>}
+                  </>
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.identityNumber)}</div>
                 )}
@@ -334,10 +480,13 @@ const CustomerProfile = () => {
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1"><Globe size={14} /> Country</label>
                 {isEditing ? (
-                  <select name="country" value={editForm.country} onChange={handleEditChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50">
-                    <option value="">Select Country</option>
-                    {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  <>
+                    <select name="country" value={editForm.country} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.country ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 focus:ring-1`}>
+                      <option value="">Select Country</option>
+                      {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    {errors.country && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.country}</p>}
+                  </>
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.country)}</div>
                 )}
@@ -346,7 +495,10 @@ const CustomerProfile = () => {
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1"><Phone size={14} /> Mobile</label>
                 {isEditing ? (
-                  <input type="tel" name="mobile" value={editForm.mobile} onChange={handleEditChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50" />
+                  <>
+                    <input type="tel" name="mobile" value={editForm.mobile} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.mobile ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 focus:ring-1`} />
+                    {errors.mobile && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.mobile}</p>}
+                  </>
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.mobile)}</div>
                 )}
@@ -398,38 +550,65 @@ const CustomerProfile = () => {
             <div className="max-w-md space-y-5">
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Current Password</label>
-                <input 
-                  type="password" 
-                  name="currentPassword" 
-                  value={passwordForm.currentPassword} 
-                  onChange={handlePasswordChange} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50" 
-                  placeholder="Enter current password"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    name="currentPassword"
+                    value={passwordForm.currentPassword}
+                    onChange={handlePasswordChange}
+                    className="w-full px-4 pr-10 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50"
+                    placeholder="Enter current password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 p-1.5 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                  >
+                    {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">New Password</label>
-                <input 
-                  type="password" 
-                  name="newPassword" 
-                  value={passwordForm.newPassword} 
-                  onChange={handlePasswordChange} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50" 
-                  placeholder="Enter new password"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    name="newPassword"
+                    value={passwordForm.newPassword}
+                    onChange={handlePasswordChange}
+                    className="w-full px-4 pr-10 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50"
+                    placeholder="Enter new password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 p-1.5 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                  >
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Confirm New Password</label>
-                <input 
-                  type="password" 
-                  name="confirmPassword" 
-                  value={passwordForm.confirmPassword} 
-                  onChange={handlePasswordChange} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50" 
-                  placeholder="Confirm new password"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={passwordForm.confirmPassword}
+                    onChange={handlePasswordChange}
+                    className="w-full px-4 pr-10 py-2.5 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50"
+                    placeholder="Confirm new password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 p-1.5 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
-              
+
               {passwordError && (
                 <div className="text-red-500 text-sm font-semibold flex items-center gap-1.5 mt-2">
                   <XCircle size={16} /> {passwordError}
@@ -440,7 +619,7 @@ const CustomerProfile = () => {
                   <CheckCircle2 size={16} /> {passwordSuccess}
                 </div>
               )}
-              
+
               <div className="pt-2">
                 <button
                   onClick={handleChangePassword}
