@@ -73,13 +73,13 @@ const SummaryCard = ({ title, value, subtitle, icon: Icon, colorClass, iconBgCol
   <div className="bg-white p-6 rounded-[24px] shadow-sm border border-gray-100/50 flex flex-col justify-between relative overflow-hidden group cursor-pointer transition-all hover:shadow-md h-[180px]">
     {/* Decorative shape top right */}
     <div className={`absolute -top-12 -right-12 w-40 h-40 rounded-full opacity-[0.15] transition-transform group-hover:scale-110 ${colorClass.split(' ')[0]}`}></div>
-    
+
     <div className="flex justify-between items-start z-10">
       <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${iconBgColor}`}>
         <Icon size={24} className={colorClass.split(' ')[1]} />
       </div>
     </div>
-    
+
     <div className="z-10 mt-auto">
       <p className="text-[13px] font-semibold text-gray-600 mb-1">{title}</p>
       <div className="flex items-end justify-between">
@@ -96,6 +96,7 @@ const SummaryCard = ({ title, value, subtitle, icon: Icon, colorClass, iconBgCol
 const CustomerDashboard = () => {
   const [activeTab, setActiveTab] = useState('All');
   const customerName = 'Ahmed';
+  const [language, setLanguage] = useState('en');
 
   const filteredRequests = mockRequests.filter(req => {
     if (activeTab === 'All') return true;
@@ -106,10 +107,10 @@ const CustomerDashboard = () => {
 
   return (
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
-      
+
       {/* --- HERO AREA --- */}
       <div className="relative w-full bg-[#FAF8F3] pt-4 pb-20 sm:pb-28 px-4 sm:px-8 lg:px-12 xl:px-16 overflow-hidden">
-        
+
         {/* Background Image & Gradient */}
         <div className="absolute top-0 right-0 w-full lg:w-[60%] h-full z-0">
           <img src={HeroBg} alt="Hero background" className="w-full h-full object-cover object-right" />
@@ -123,8 +124,32 @@ const CustomerDashboard = () => {
             <ChevronRight size={14} className="text-gray-400" />
             <span className="text-gray-700">Dashboard</span>
           </div>
-          
-          <div className="flex items-center gap-6">
+
+          <div className="flex items-center gap-4 sm:gap-6">
+            {/* Temporary Language Toggle */}
+            <div className="hidden sm:flex bg-white border border-gray-200 rounded-full p-1 shadow-sm items-center">
+              <button 
+                onClick={() => setLanguage('en')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all duration-200 ${
+                  language === 'en' 
+                    ? 'bg-[#1a2b25] text-white shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                English
+              </button>
+              <button 
+                onClick={() => setLanguage('ur')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all duration-200 ${
+                  language === 'ur' 
+                    ? 'bg-[#1a2b25] text-white shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                اردو
+              </button>
+            </div>
+
             <button className="relative p-2.5 text-gray-600 hover:text-gray-900 bg-white rounded-full shadow-sm border border-gray-100">
               <Bell size={18} />
               <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
@@ -139,16 +164,16 @@ const CustomerDashboard = () => {
             Good afternoon, {customerName}.
           </h1>
           <p className="text-lg text-gray-600 font-medium leading-relaxed max-w-xl">
-            Here's what's happening across your properties this week — <br className="hidden sm:block"/>
+            Here's what's happening across your properties this week — <br className="hidden sm:block" />
             two listings are live, one service request is in progress.
           </p>
-          
+
           <div className="mt-2 flex flex-wrap items-center gap-4">
-            <Link to="/customer/properties" className="flex items-center gap-2 px-6 py-3 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(26,43,37,0.2)] hover:bg-[#2c4232] hover:-translate-y-0.5 transition-all duration-300">
+            <Link to="/customer/properties/new" className="flex items-center gap-2 px-6 py-3 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(26,43,37,0.2)] hover:bg-[#2c4232] hover:-translate-y-0.5 transition-all duration-300">
               <Plus size={18} />
               Add Property
             </Link>
-            <Link to="/customer/requests" className="flex items-center gap-2 px-6 py-3 bg-white text-[#1a2b25] border border-[#e4d7be] rounded-full font-bold text-sm shadow-sm hover:bg-[#faf7f2] hover:border-[#B8860B] hover:text-[#B8860B] hover:-translate-y-0.5 transition-all duration-300">
+            <Link to="/customer/requests/new" className="flex items-center gap-2 px-6 py-3 bg-white text-[#1a2b25] border border-[#e4d7be] rounded-full font-bold text-sm shadow-sm hover:bg-[#faf7f2] hover:border-[#B8860B] hover:text-[#B8860B] hover:-translate-y-0.5 transition-all duration-300">
               <Plus size={18} />
               Create Request
             </Link>
@@ -158,7 +183,7 @@ const CustomerDashboard = () => {
 
       {/* --- MAIN CONTENT AREA --- */}
       <div className="px-4 sm:px-8 lg:px-12 xl:px-16 max-w-[1600px] mx-auto">
-        
+
         {/* Summary Stats (Overlapping Hero) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative z-20 mt-4 sm:-mt-12 lg:-mt-20 mb-6">
           <SummaryCard
@@ -197,7 +222,7 @@ const CustomerDashboard = () => {
 
         {/* 2-Column Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-[1.3fr_1fr] gap-8">
-          
+
           {/* LEFT: MY PROPERTIES */}
           <section className="space-y-5">
             <div className="flex items-center justify-between px-1 mb-2">
@@ -223,7 +248,7 @@ const CustomerDashboard = () => {
                     <button className="absolute top-1 right-1 text-gray-300 hover:text-gray-500">
                       <MoreHorizontal size={20} />
                     </button>
-                    
+
                     <div className="text-[10px] font-bold text-[#B8860B] uppercase tracking-[0.2em] mb-2">
                       {property.type}
                     </div>
@@ -267,11 +292,10 @@ const CustomerDashboard = () => {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`px-5 py-2 rounded-full text-[13px] font-bold transition-all ${
-                      activeTab === tab
+                    className={`px-5 py-2 rounded-full text-[13px] font-bold transition-all ${activeTab === tab
                         ? 'bg-[#2c4232] text-white shadow-sm'
                         : 'bg-[#f4f2ef] text-gray-600 hover:bg-[#ebe7e1]'
-                    }`}
+                      }`}
                   >
                     {tab}
                   </button>
@@ -284,9 +308,8 @@ const CustomerDashboard = () => {
                   <React.Fragment key={req.id}>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between group cursor-pointer p-3 hover:bg-[#faf9f7] rounded-2xl transition-colors gap-4">
                       <div className="flex items-start sm:items-center gap-4 sm:gap-5 w-full sm:w-auto">
-                        <div className={`w-[46px] h-[46px] rounded-full flex items-center justify-center ${
-                          req.type === 'Property Request' ? 'bg-[#faebe9] text-[#c46a62]' : 'bg-[#eaf1ec] text-[#36684a]'
-                        }`}>
+                        <div className={`w-[46px] h-[46px] rounded-full flex items-center justify-center ${req.type === 'Property Request' ? 'bg-[#faebe9] text-[#c46a62]' : 'bg-[#eaf1ec] text-[#36684a]'
+                          }`}>
                           {req.type === 'Property Request' ? <Home size={18} /> : <Wrench size={18} />}
                         </div>
                         <div>
@@ -313,7 +336,7 @@ const CustomerDashboard = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="mt-8 flex justify-end items-center gap-4 text-[9px] font-bold text-gray-300 uppercase tracking-[0.25em]">
                 <span className="hover:text-gray-400 cursor-pointer transition-colors">People</span>
                 <span className="hover:text-gray-400 cursor-pointer transition-colors">Properties</span>

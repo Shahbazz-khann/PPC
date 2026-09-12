@@ -1,13 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, ExternalLink } from 'lucide-react';
 import CustomerAccountMenu from './CustomerAccountMenu';
 
 const Topbar = () => {
+  const [language, setLanguage] = useState('en');
+
   return (
     <header className="h-[72px] bg-[#FAF8F3] border-b border-gray-200/60 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] flex items-center justify-end px-4 sm:px-8 z-50 sticky top-0 transition-all">
       <div className="flex items-center gap-4 sm:gap-6">
         
+        {/* Temporary Language Toggle */}
+        <div className="hidden sm:flex bg-white border border-gray-200 rounded-full p-1 shadow-sm items-center">
+          <button 
+            onClick={() => setLanguage('en')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all duration-200 ${
+              language === 'en' 
+                ? 'bg-[#1a2b25] text-white shadow-sm' 
+                : 'text-gray-500 hover:text-gray-800'
+            }`}
+          >
+            English
+          </button>
+          <button 
+            onClick={() => setLanguage('ur')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all duration-200 ${
+              language === 'ur' 
+                ? 'bg-[#1a2b25] text-white shadow-sm' 
+                : 'text-gray-500 hover:text-gray-800'
+            }`}
+          >
+            اردو
+          </button>
+        </div>
+
         {/* Go to Website Link */}
         <Link 
           to="/" 
