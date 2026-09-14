@@ -14,9 +14,9 @@ const Home = () => {
       <Hero />
       <PropertySearch />
       <FeaturedProperties />
-       <AISection />
-      <Categories />
+      <AISection />
       <Services />
+      <Categories />
       <HowItWorks />
       <WhyChooseUs />
       <Footer />

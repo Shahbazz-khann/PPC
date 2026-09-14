@@ -1,11 +1,12 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, ChevronDown, Search, SlidersHorizontal, Check } from 'lucide-react';
+import  { useState, useRef, useEffect } from 'react';
+import { MapPin, ChevronDown, Search, SlidersHorizontal, Check, Info } from 'lucide-react';
 
 const CITIES = ['Islamabad', 'Lahore', 'Rawalpindi', 'Karachi', 'Peshawar', 'Quetta', 'Multan'];
 const PROPERTY_TYPES = ['All Types', 'House', 'Apartment', 'Commercial', 'Plot', 'Agricultural'];
 
 const PropertySearch = () => {
+  const [showToast, setShowToast] = useState(false);
   const [city, setCity] = useState('Islamabad');
   const [isCityOpen, setIsCityOpen] = useState(false);
   const [intent, setIntent] = useState('Buy');
@@ -38,13 +39,32 @@ const PropertySearch = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const handleAdvancedSearchClick = () => {
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
   return (
     <div className="relative max-w-7xl mx-auto px-6 md:px-12 -mt-10 md:-mt-42 z-30 mb-8">
-      <div className="bg-white rounded-2xl shadow-xl p-6 md:p-4">
-        {/* Title */}
-        <h2 className="text-[#063B29] font-bold text-xs md:text-sm tracking-wider uppercase mb-2">
-          FIND YOUR PERFECT PROPERTY
-        </h2>
+      {/* Under Development Toast */}
+      {showToast && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-[#1E5631] text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
+          <Info size={20} /> 
+          <div>
+            <div className="text-sm font-bold">Advanced Search is under development.</div>
+            <div className="text-[11px] font-medium opacity-90 mt-0.5">This feature will be available soon.</div>
+          </div>
+        </div>
+      )}
+
+      <div className="relative bg-white rounded-2xl shadow-xl p-6 md:p-4 pt-12 md:pt-10">
+        {/* Top Search Properties Button */}
+        <div className="absolute left-1/2 -translate-x-1/2 -top-6 z-20 w-max">
+          <button className="bg-[#063B29]  text-white text-xs md:text-sm font-bold tracking-wider uppercase px-6 py-3.5 rounded-md shadow-[0_4px_12px_rgba(0,0,0,0.15)] ">
+            SEARCH PROPERTIES
+          </button>
+        </div>
+        
 
         {/* Tabs & Advanced Search */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -65,7 +85,10 @@ const PropertySearch = () => {
           </div>
 
           {/* Advanced Search */}
-          <div className="flex items-center space-x-2 text-slate-800 font-bold text-xs md:text-sm cursor-pointer">
+          <div 
+            onClick={handleAdvancedSearchClick}
+            className="flex items-center space-x-2 text-slate-800 font-bold text-xs md:text-sm cursor-pointer hover:text-[#063B29] transition-colors"
+          >
             <span>Advanced Search</span>
             <SlidersHorizontal className="w-4 h-4 text-[#063B29]" />
           </div>

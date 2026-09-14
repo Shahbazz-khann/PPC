@@ -36,6 +36,13 @@ const featuresData = [
 const Categories = () => {
   return (
     <section className="max-w-7xl mx-auto px-6 md:px-12 mb-10">
+      {/* Section Title */}
+      <div className="flex items-center justify-between mb-6 md:mb-8">
+        <h2 className="text-[#063B29] font-bold text-lg md:text-xl tracking-tight uppercase">
+          SPECIAL FEATURES
+        </h2>
+      </div>
+
       <div className="bg-[#FAFBF9] border border-gray-200/70 rounded-2xl py-8 px-4 shadow-sm">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 divide-y lg:divide-y-0 lg:divide-x divide-gray-200/80">
           {featuresData.map((feature) => {
