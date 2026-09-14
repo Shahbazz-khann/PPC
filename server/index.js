@@ -49,6 +49,14 @@ const apiRouter = express.Router();
 const authRoutes = require('./routes/Auth/auth.routes');
 apiRouter.use('/auth', authRoutes);
 
+// Customer
+const customerRoutes = require('./routes/Customer');
+apiRouter.use('/customer', customerRoutes);
+
+// Reference Data
+const referenceRoutes = require('./routes/Reference');
+apiRouter.use('/reference', referenceRoutes);
+
 app.use(`/api/${API_VERSION}`, apiRouter);
 
 // --------------------------------------------------

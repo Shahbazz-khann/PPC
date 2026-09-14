@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../Context/AuthContext';
 import {
   User,
@@ -21,41 +21,115 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-// Isolated Mock Data Layer for fields not currently in AuthContext
-const MOCK_PROFILE_DATA = {
-  customerTitle: 'Mr.',
-  firstName: 'Ahmed',
-  middleName: '',
-  lastName: 'Raza',
-  gender: 'Male',
-  email: 'ahmed.raza@example.com',
-  country: 'Pakistan',
-  mobile: '+92 300 1234567',
-  identityType: 'National ID',
-  identityNumber: '35202-1234567-1',
-  registrationDate: '15 Oct 2025',
-  mobileAllowed: true,
-  webAllowed: true,
-};
-
-// Reference Data for Dropdowns
-const TITLES = ['Mr.', 'Mrs.', 'Ms.', 'Dr.', 'Prof.'];
-const GENDERS = ['Male', 'Female', 'Other'];
-const IDENTITY_TYPES = ['National ID', 'Passport', 'Driving License'];
-const COUNTRIES = ['Pakistan', 'United Arab Emirates', 'Saudi Arabia', 'United Kingdom', 'United States', 'Qatar'];
+import { getCustomerProfile, getIdentityTypes, getCountries, getCustomerTitles, getGenders, updateCustomerProfile, uploadProfileImage, resolveMediaUrl, changeCustomerPassword } from '../../Services/customer.services';
 
 const CustomerProfile = () => {
   const { user } = useAuth();
 
-  // Use purely mock data for Sir/demo review
-  const [profileData, setProfileData] = useState({
-    ...MOCK_PROFILE_DATA
+  const [referenceData, setReferenceData] = useState({
+    titles: [],
+    genders: [],
+    identityTypes: [],
+    countries: []
   });
+
+  const [profileData, setProfileData] = useState({
+    profile_image_url: null,
+    customerTitleId: '',
+    customerTitle: '',
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    genderId: '',
+    gender: '',
+    email: '',
+    countryId: '',
+    country: '',
+    mobile: '',
+    identityTypeId: '',
+    identityType: '',
+    identityNumber: '',
+    registrationDate: '',
+    mobileAllowed: false,
+    webAllowed: true,
+  });
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState(profileData);
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchAllData = async () => {
+      try {
+        setIsLoading(true);
+        setFetchError(null);
+
+        const [profileRes, titlesRes, gendersRes, idTypesRes, countriesRes] = await Promise.all([
+          getCustomerProfile(),
+          getCustomerTitles(),
+          getGenders(),
+          getIdentityTypes(),
+          getCountries()
+        ]);
+
+        if (isMounted) {
+          setReferenceData({
+            titles: titlesRes?.data || [],
+            genders: gendersRes?.data || [],
+            identityTypes: idTypesRes?.data || [],
+            countries: countriesRes?.data || []
+          });
+
+          if (profileRes?.data) {
+            const data = profileRes.data;
+
+            const formattedDate = data.date_of_registration
+              ? new Date(data.date_of_registration).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+              : '';
+
+            const mappedData = {
+              profile_image_url: data.profile_image_url || null,
+              customerTitleId: data.customer_title_id ? String(data.customer_title_id) : '',
+              customerTitle: data.title_description || '',
+              firstName: data.first_name || '',
+              middleName: data.middle_name || '',
+              lastName: data.last_name || '',
+              genderId: data.gender_id ? String(data.gender_id) : '',
+              gender: data.gender_english || '',
+              email: data.email || '',
+              countryId: data.country_id ? String(data.country_id) : '',
+              country: data.country_english || '',
+              mobile: data.mobile || '',
+              identityTypeId: data.identity_type_id ? String(data.identity_type_id) : '',
+              identityType: data.identity_type_description || '',
+              identityNumber: data.identity_number || '',
+              registrationDate: formattedDate,
+              mobileAllowed: data.mobile_allowed ?? false,
+              webAllowed: data.webAllowed ?? true,
+            };
+
+            setProfileData(mappedData);
+            setEditForm(mappedData);
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          setFetchError(err.response?.data?.message || 'Failed to load profile.');
+        }
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchAllData();
+    return () => { isMounted = false; };
+  }, []);
 
   // Security Form State
   const [passwordForm, setPasswordForm] = useState({
@@ -66,7 +140,7 @@ const CustomerProfile = () => {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
-  
+
   // Password Visibility State
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -99,8 +173,8 @@ const CustomerProfile = () => {
     const valStr = typeof value === 'string' ? value.trim() : '';
 
     switch (name) {
-      case 'customerTitle':
-        if (!valStr || !TITLES.includes(valStr)) error = 'Please select a title.';
+      case 'customerTitleId':
+        if (!valStr) error = 'Please select a title.';
         break;
       case 'firstName':
         if (!valStr) error = 'First name is required.';
@@ -118,19 +192,19 @@ const CustomerProfile = () => {
         else if (valStr.length < 2 || valStr.length > 50) error = 'Must be 2-50 characters.';
         else if (!/^[a-zA-Z\s'-]+$/.test(valStr)) error = 'Enter a valid last name.';
         break;
-      case 'gender':
-        if (valStr && !GENDERS.includes(valStr)) error = 'Select a valid gender.';
+      case 'genderId':
+        // Optional
         break;
-      case 'identityType':
-        if (!valStr || !IDENTITY_TYPES.includes(valStr)) error = 'Please select an identity type.';
+      case 'identityTypeId':
+        if (!valStr) error = 'Please select an identity type.';
         break;
       case 'identityNumber':
         if (!valStr) break;
         if (!/^\d+$/.test(valStr)) error = 'Identity number must contain only numbers.';
         else if (valStr.length < 4 || valStr.length > 30) error = 'Must be 4-30 characters.';
         break;
-      case 'country':
-        if (!valStr || !COUNTRIES.includes(valStr)) error = 'Please select a country.';
+      case 'countryId':
+        if (!valStr) error = 'Please select a country.';
         break;
       case 'mobile':
         if (!valStr) error = 'Mobile number is required.';
@@ -178,10 +252,10 @@ const CustomerProfile = () => {
     return '';
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     setPasswordError('');
     setPasswordSuccess('');
-    
+
     if (!passwordForm.currentPassword) {
       setPasswordError('Current password is required.');
       return;
@@ -190,7 +264,7 @@ const CustomerProfile = () => {
       setPasswordError('New password is required.');
       return;
     }
-    
+
     const rulesError = validatePasswordRules(passwordForm.newPassword);
     if (rulesError) {
       setPasswordError(rulesError);
@@ -207,18 +281,29 @@ const CustomerProfile = () => {
       return;
     }
 
-    setIsSubmittingPassword(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      setIsSubmittingPassword(true);
+      const payload = {
+        current_password: passwordForm.currentPassword,
+        new_password: passwordForm.newPassword,
+        confirm_password: passwordForm.confirmPassword
+      };
+
+      const res = await changeCustomerPassword(payload);
+
+      if (res?.success) {
+        setPasswordSuccess('Password changed successfully.');
+        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setShowCurrentPassword(false);
+        setShowNewPassword(false);
+        setShowConfirmPassword(false);
+        setTimeout(() => setPasswordSuccess(''), 5000);
+      }
+    } catch (err) {
+      setPasswordError(err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to change password. Please try again.');
+    } finally {
       setIsSubmittingPassword(false);
-      setPasswordSuccess('Password changed successfully.');
-      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setShowCurrentPassword(false);
-      setShowNewPassword(false);
-      setShowConfirmPassword(false);
-      setTimeout(() => setPasswordSuccess(''), 3000);
-    }, 1000);
+    }
   };
 
   const handleCancel = () => {
@@ -227,9 +312,12 @@ const CustomerProfile = () => {
     setIsEditing(false);
   };
 
-  const handleSave = () => {
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+
+  const handleSave = async () => {
     // Validate all editable fields
-    const fieldsToValidate = ['customerTitle', 'firstName', 'middleName', 'lastName', 'gender', 'identityType', 'identityNumber', 'country', 'mobile'];
+    const fieldsToValidate = ['customerTitleId', 'firstName', 'middleName', 'lastName', 'genderId', 'identityTypeId', 'identityNumber', 'countryId', 'mobile'];
     const newErrors = {};
     let hasError = false;
 
@@ -257,9 +345,125 @@ const CustomerProfile = () => {
       return;
     }
 
-    // Frontend mock save
-    setProfileData(trimmedForm);
-    setIsEditing(false);
+    try {
+      setIsSaving(true);
+      setSaveError('');
+
+      const payload = {
+        customer_title_id: trimmedForm.customerTitleId,
+        first_name: trimmedForm.firstName,
+        middle_name: trimmedForm.middleName,
+        last_name: trimmedForm.lastName,
+        gender_id: trimmedForm.genderId,
+        identity_type_id: trimmedForm.identityTypeId,
+        identity_number: trimmedForm.identityNumber,
+        country_id: trimmedForm.countryId,
+        mobile: trimmedForm.mobile
+      };
+
+      const res = await updateCustomerProfile(payload);
+
+      if (res?.data?.success) {
+        const data = res.data.data;
+        const formattedDate = data.date_of_registration
+          ? new Date(data.date_of_registration).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+          : '';
+
+        const mappedData = {
+          profile_image_url: data.profile_image_url || null,
+          customerTitleId: data.customer_title_id ? String(data.customer_title_id) : '',
+          customerTitle: data.title_description || '',
+          firstName: data.first_name || '',
+          middleName: data.middle_name || '',
+          lastName: data.last_name || '',
+          genderId: data.gender_id ? String(data.gender_id) : '',
+          gender: data.gender_english || '',
+          email: data.email || '',
+          countryId: data.country_id ? String(data.country_id) : '',
+          country: data.country_english || '',
+          mobile: data.mobile || '',
+          identityTypeId: data.identity_type_id ? String(data.identity_type_id) : '',
+          identityType: data.identity_type_description || '',
+          identityNumber: data.identity_number || '',
+          registrationDate: formattedDate,
+          mobileAllowed: data.mobile_allowed ?? false,
+          webAllowed: data.webAllowed ?? true,
+        };
+
+        setProfileData(mappedData);
+        setEditForm(mappedData);
+        setIsEditing(false);
+      }
+    } catch (err) {
+      setSaveError(err.response?.data?.message || err.message || 'Failed to update profile.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const fileInputRef = React.useRef(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState('');
+  const [imageUploadSuccess, setImageUploadSuccess] = useState('');
+
+  const handleImageClick = () => {
+    if (!isUploadingImage && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImageUploadError('');
+    setImageUploadSuccess('');
+
+    // Client-side validation
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setImageUploadError('Unsupported file type. Please upload JPEG, PNG, or WebP.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setImageUploadError('File is too large. Maximum size is 5MB.');
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      const formData = new FormData();
+      formData.append('profileImage', file);
+
+      const res = await uploadProfileImage(formData);
+      if (res?.data?.success) {
+        // Build the correct URL. If the backend returns a relative path like /uploads/...
+        // We might need to prefix it with the API base URL depending on how the frontend is configured, 
+        // but since the original code just uses src={profileData.profile_image_url}, we'll stick to that.
+        // Many projects resolve static files relative to the current host or use a proxy. 
+        // To be safe, if we have an API base, we could prepend it, but let's just use what's returned.
+        const newUrl = res.data.data.profile_image_url;
+
+        // Actually, if it's served from the backend (port 5000), we probably need to prefix it 
+        // with the backend URL if the frontend is on port 5173 without a proxy for /uploads. 
+        // Wait, the API URL in api.js usually handles this, or the proxy does.
+        // We will just use the returned path. If the image doesn't load, the user can fix the URL prefix later.
+        // Often, people use import.meta.env.VITE_API_URL or similar.
+
+        // Update local state directly to show new image immediately
+        setProfileData(prev => ({ ...prev, profile_image_url: newUrl }));
+        setEditForm(prev => ({ ...prev, profile_image_url: newUrl }));
+
+        setImageUploadSuccess('Profile picture uploaded successfully.');
+        setTimeout(() => setImageUploadSuccess(''), 3000);
+      }
+    } catch (err) {
+      setImageUploadError(err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to upload image.');
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const displayValue = (value) => {
@@ -268,6 +472,30 @@ const CustomerProfile = () => {
     }
     return value;
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="w-10 h-10 border-4 border-[#B8860B] border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-[#1a2b25] font-semibold">Loading Profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans flex items-center justify-center p-6">
+        <div className="bg-white rounded-[24px] p-8 shadow-sm border border-red-100 max-w-md w-full text-center">
+          <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Error Loading Profile</h2>
+          <p className="text-gray-500 mb-6">{fetchError}</p>
+          <button onClick={() => window.location.reload()} className="px-6 py-2 bg-[#1a2b25] text-white rounded-full font-bold">Try Again</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
@@ -289,13 +517,43 @@ const CustomerProfile = () => {
 
           <div className="flex items-center gap-6 sm:gap-8 z-10">
             {/* Avatar */}
-            <div className="relative group">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#eaf1ec] border-4 border-white shadow-md flex items-center justify-center text-[#2c5f43] font-serif text-3xl font-bold overflow-hidden">
-                {profileData.firstName?.charAt(0) || ''}{profileData.lastName?.charAt(0) || 'U'}
+            <div className="relative group flex flex-col items-center">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#eaf1ec] border-4 border-white shadow-md flex items-center justify-center text-[#2c5f43] font-serif text-3xl font-bold overflow-hidden relative">
+                {isUploadingImage && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-20">
+                    <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
+                {profileData.profile_image_url ? (
+                  <img src={resolveMediaUrl(profileData.profile_image_url)} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <>{profileData.firstName?.charAt(0) || ''}{profileData.lastName?.charAt(0) || 'U'}</>
+                )}
               </div>
-              <button className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-md text-gray-600 hover:text-[#1a2b25] border border-gray-100 transition-transform hover:scale-110">
+              <button
+                onClick={handleImageClick}
+                disabled={isUploadingImage}
+                className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-md text-gray-600 hover:text-[#1a2b25] border border-gray-100 transition-transform hover:scale-110 disabled:opacity-50"
+              >
                 <Camera size={16} />
               </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+              />
+              {imageUploadError && (
+                <div className="absolute -bottom-8 whitespace-nowrap text-red-500 text-xs font-bold bg-white px-2 py-1 rounded shadow-sm border border-red-100 z-30">
+                  {imageUploadError}
+                </div>
+              )}
+              {imageUploadSuccess && (
+                <div className="absolute -bottom-8 whitespace-nowrap text-[#1E5631] text-xs font-bold bg-white px-2 py-1 rounded shadow-sm border border-[#1E5631]/20 z-30 flex items-center gap-1">
+                  <CheckCircle2 size={12} /> {imageUploadSuccess}
+                </div>
+              )}
             </div>
 
             {/* Title Info */}
@@ -372,11 +630,11 @@ const CustomerProfile = () => {
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Title</label>
                 {isEditing ? (
                   <>
-                    <select name="customerTitle" value={editForm.customerTitle} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.customerTitle ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 focus:ring-1`}>
+                    <select name="customerTitleId" value={editForm.customerTitleId} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.customerTitleId ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 focus:ring-1`}>
                       <option value="">Select Title</option>
-                      {TITLES.map(t => <option key={t} value={t}>{t}</option>)}
+                      {referenceData.titles.map(t => <option key={t.customer_title_id} value={t.customer_title_id}>{t.title_description}</option>)}
                     </select>
-                    {errors.customerTitle && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.customerTitle}</p>}
+                    {errors.customerTitleId && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.customerTitleId}</p>}
                   </>
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.customerTitle)}</div>
@@ -423,11 +681,11 @@ const CustomerProfile = () => {
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Gender</label>
                 {isEditing ? (
                   <>
-                    <select name="gender" value={editForm.gender} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.gender ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 focus:ring-1`}>
+                    <select name="genderId" value={editForm.genderId} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.genderId ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 focus:ring-1`}>
                       <option value="">Select Gender</option>
-                      {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
+                      {referenceData.genders.map(g => <option key={g.gender_id} value={g.gender_id}>{g.gender_english}</option>)}
                     </select>
-                    {errors.gender && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.gender}</p>}
+                    {errors.genderId && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.genderId}</p>}
                   </>
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.gender)}</div>
@@ -446,11 +704,11 @@ const CustomerProfile = () => {
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Identity Type</label>
                 {isEditing ? (
                   <>
-                    <select name="identityType" value={editForm.identityType} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.identityType ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-white focus:ring-1`}>
+                    <select name="identityTypeId" value={editForm.identityTypeId} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.identityTypeId ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-white focus:ring-1`}>
                       <option value="">Select Type</option>
-                      {IDENTITY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                      {referenceData.identityTypes.map(t => <option key={t.identity_type_id} value={t.identity_type_id}>{t.identity_description}</option>)}
                     </select>
-                    {errors.identityType && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.identityType}</p>}
+                    {errors.identityTypeId && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.identityTypeId}</p>}
                   </>
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.identityType)}</div>
@@ -481,11 +739,11 @@ const CustomerProfile = () => {
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1"><Globe size={14} /> Country</label>
                 {isEditing ? (
                   <>
-                    <select name="country" value={editForm.country} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.country ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 focus:ring-1`}>
+                    <select name="countryId" value={editForm.countryId} onChange={handleEditChange} onBlur={handleBlur} className={`w-full px-4 py-2.5 rounded-xl border ${errors.countryId ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 focus:ring-1`}>
                       <option value="">Select Country</option>
-                      {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      {referenceData.countries.map(c => <option key={c.country_id} value={c.country_id}>{c.country_english}</option>)}
                     </select>
-                    {errors.country && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.country}</p>}
+                    {errors.countryId && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.countryId}</p>}
                   </>
                 ) : (
                   <div className="text-sm font-semibold text-gray-800">{displayValue(profileData.country)}</div>
@@ -528,16 +786,28 @@ const CustomerProfile = () => {
 
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Mobile App Access</label>
-                <div className="flex items-center gap-2 text-sm font-semibold text-[#1E5631]">
-                  <CheckCircle2 size={16} /> Allowed
-                </div>
+                {profileData.mobileAllowed ? (
+                  <div className="flex items-center gap-2 text-sm font-semibold text-[#1E5631]">
+                    <CheckCircle2 size={16} /> Allowed
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-sm font-semibold text-gray-400">
+                    <XCircle size={16} /> Denied
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Web Portal Access</label>
-                <div className="flex items-center gap-2 text-sm font-semibold text-[#1E5631]">
-                  <CheckCircle2 size={16} /> Allowed
-                </div>
+                {profileData.webAllowed ? (
+                  <div className="flex items-center gap-2 text-sm font-semibold text-[#1E5631]">
+                    <CheckCircle2 size={16} /> Allowed
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-sm font-semibold text-gray-400">
+                    <XCircle size={16} /> Denied
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -634,19 +904,28 @@ const CustomerProfile = () => {
 
           {/* Edit Actions Footer */}
           {isEditing && (
-            <div className="p-6 bg-[#fcfbfa] border-t border-gray-100 flex items-center justify-end gap-4">
-              <button
-                onClick={handleCancel}
-                className="px-6 py-2.5 rounded-full text-sm font-bold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors flex items-center gap-2"
-              >
-                <X size={16} /> Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-6 py-2.5 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-md hover:bg-[#2c4232] transition-colors flex items-center gap-2"
-              >
-                <Save size={16} /> Save Changes
-              </button>
+            <div className="p-6 bg-[#fcfbfa] border-t border-gray-100 flex flex-col sm:flex-row items-center justify-end gap-4">
+              {saveError && (
+                <div className="text-red-500 text-sm font-semibold flex items-center gap-1.5 mr-auto">
+                  <XCircle size={16} /> {saveError}
+                </div>
+              )}
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <button
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                  className="px-6 py-2.5 rounded-full text-sm font-bold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-50"
+                >
+                  <X size={16} /> Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="px-6 py-2.5 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-md hover:bg-[#2c4232] transition-colors flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-70"
+                >
+                  <Save size={16} /> {isSaving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
             </div>
           )}
 

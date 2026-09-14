@@ -15,15 +15,15 @@ const STEPS = [
   { id: 2, title: 'Location', icon: MapPin },
   { id: 3, title: 'Size & Area', icon: Maximize },
   { id: 4, title: 'Particulars', icon: List },
-  { id: 5, title: 'Features', icon: CheckSquare },
-  { id: 6, title: 'Media', icon: ImageIcon },
+  { id: 5, title: 'Features and Amenities', icon: CheckSquare },
+  { id: 6, title: 'Pictures and Videos', icon: ImageIcon },
   { id: 7, title: 'Review', icon: FileText }
 ];
 
 const BACKUP_TYPES = ['None', 'UPS', 'Generator', 'Solar', 'UPS + Generator', 'Other'];
 
 // Move components outside to prevent React remounting them on every render, which loses focus.
-const InputField = ({ label, name, value, onChange, error, type = "text", required, placeholder, isNumber }) => (
+const InputField = ({ label, name, value, onChange, error, type = "text", required, placeholder, isNumber, disabled }) => (
   <div className="space-y-2">
     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">
       {label} {required && <span className="text-red-500">*</span>}
@@ -35,13 +35,14 @@ const InputField = ({ label, name, value, onChange, error, type = "text", requir
       onChange={onChange}
       placeholder={placeholder}
       min={isNumber ? "0" : undefined}
-      className={`w-full px-4 py-3 rounded-xl border ${error ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50`}
+      disabled={disabled}
+      className={`w-full px-4 py-3 rounded-xl border ${error ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold ${disabled ? 'text-gray-500 bg-gray-100 cursor-not-allowed opacity-70' : 'text-gray-800 bg-gray-50/50'}`}
     />
     {error && <p className="text-xs text-red-500 font-semibold mt-1">{error}</p>}
   </div>
 );
 
-const SelectField = ({ label, name, value, onChange, options, required, error }) => (
+const SelectField = ({ label, name, value, onChange, options, required, error, disabled }) => (
   <div className="space-y-2">
     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">
       {label} {required && <span className="text-red-500">*</span>}
@@ -50,7 +51,8 @@ const SelectField = ({ label, name, value, onChange, options, required, error })
       name={name}
       value={value}
       onChange={onChange}
-      className={`w-full px-4 py-3 rounded-xl border ${error ? 'border-red-400' : 'border-gray-200'} focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50`}
+      disabled={disabled}
+      className={`w-full px-4 py-3 rounded-xl border ${error ? 'border-red-400' : 'border-gray-200'} focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold ${disabled ? 'text-gray-500 bg-gray-100 cursor-not-allowed opacity-70' : 'text-gray-800 bg-gray-50/50'}`}
     >
       <option value="">Select {label}</option>
       {options.map(opt => (
@@ -61,7 +63,7 @@ const SelectField = ({ label, name, value, onChange, options, required, error })
   </div>
 );
 
-const TagInput = ({ label, tags, suggestions, onAdd, onRemove }) => {
+const TagInput = ({ label, tags, suggestions, onAdd, onRemove, disabled }) => {
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -92,52 +94,57 @@ const TagInput = ({ label, tags, suggestions, onAdd, onRemove }) => {
       </label>
       <div className="flex flex-wrap gap-2 mb-2">
         {tags.map((tag, idx) => (
-          <span key={idx} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#eaf1ec] border border-[#1E5631]/20 rounded-lg text-sm font-semibold text-[#1E5631]">
+          <span key={idx} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold ${disabled ? 'bg-gray-100 text-gray-500 border border-gray-200 opacity-70' : 'bg-[#eaf1ec] border border-[#1E5631]/20 text-[#1E5631]'}`}>
             {tag}
-            <button type="button" onClick={() => onRemove(tag)} className="hover:text-red-600 transition-colors">
-              <X size={14} />
-            </button>
+            {!disabled && (
+              <button type="button" onClick={() => onRemove(tag)} className="hover:text-red-600 transition-colors">
+                <X size={14} />
+              </button>
+            )}
           </span>
         ))}
+        {tags.length === 0 && disabled && <span className="text-sm text-gray-400 italic">None</span>}
       </div>
-      <div className="relative">
-        <div className="flex items-center">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => {
-              setInputValue(e.target.value);
-              setShowSuggestions(true);
-            }}
-            onKeyDown={handleKeyDown}
-            onFocus={() => setShowSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            placeholder="Type and press Enter to add..."
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 pr-12"
-          />
-          <button 
-            type="button" 
-            onClick={() => addTag()} 
-            className="absolute right-2 p-1.5 bg-gray-100 text-gray-600 hover:bg-[#B8860B] hover:text-white rounded-lg transition-colors"
-          >
-            <Plus size={16} />
-          </button>
-        </div>
-        {showSuggestions && filteredSuggestions.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-            {filteredSuggestions.map(suggestion => (
-              <button
-                key={suggestion}
-                type="button"
-                className="w-full text-left px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
-                onClick={() => addTag(suggestion)}
-              >
-                {suggestion}
-              </button>
-            ))}
+      {!disabled && (
+        <div className="relative">
+          <div className="flex items-center">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => {
+                setInputValue(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onKeyDown={handleKeyDown}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              placeholder="Type and press Enter to add..."
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold text-gray-800 bg-gray-50/50 pr-12"
+            />
+            <button 
+              type="button" 
+              onClick={() => addTag()} 
+              className="absolute right-2 p-1.5 bg-gray-100 text-gray-600 hover:bg-[#B8860B] hover:text-white rounded-lg transition-colors"
+            >
+              <Plus size={16} />
+            </button>
           </div>
-        )}
-      </div>
+          {showSuggestions && filteredSuggestions.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+              {filteredSuggestions.map(suggestion => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  className="w-full text-left px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                  onClick={() => addTag(suggestion)}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -168,6 +175,11 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
     coveredAreaSqFt: '',
     openAreaSqFt: '',
     
+    propertySizeFront: '',
+    propertySizeBack: '',
+    propertySizeLeft: '',
+    propertySizeRight: '',
+    
     roadFrontFt: '',
     roadLeftFt: '',
     roadRightFt: '',
@@ -195,6 +207,8 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
   });
   
   const [errors, setErrors] = useState({});
+  const [editingSection, setEditingSection] = useState(null);
+  const [backupData, setBackupData] = useState(null);
 
   useEffect(() => {
     if (initialData) {
@@ -221,6 +235,12 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
       if (!formData.sizeUom) { newErrors.sizeUom = 'Required'; isValid = false; }
       if (formData.coveredAreaSqFt && formData.coveredAreaSqFt < 0) { newErrors.coveredAreaSqFt = 'Cannot be negative'; isValid = false; }
       if (formData.openAreaSqFt && formData.openAreaSqFt < 0) { newErrors.openAreaSqFt = 'Cannot be negative'; isValid = false; }
+      ['propertySizeFront', 'propertySizeBack', 'propertySizeLeft', 'propertySizeRight'].forEach(field => {
+        if (formData[field] !== '' && formData[field] !== undefined && formData[field] <= 0) {
+          newErrors[field] = 'Must be greater than 0';
+          isValid = false;
+        }
+      });
     }
     if (step === 4) {
       ['rooms', 'bathrooms', 'floors', 'lounges', 'kitchens', 'drawingRooms', 'roadFrontFt', 'roadLeftFt', 'roadRightFt', 'roadBackFt'].forEach(field => {
@@ -343,6 +363,247 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
     });
   };
 
+  const handleEditSection = (sectionId) => {
+    setBackupData({ ...formData });
+    setEditingSection(sectionId);
+    setErrors({});
+  };
+
+  const handleCancelSection = () => {
+    setFormData(backupData);
+    setEditingSection(null);
+    setBackupData(null);
+    setErrors({});
+  };
+
+  const handleSaveSection = (sectionId) => {
+    if (validateStep(sectionId)) {
+      setEditingSection(null);
+      setBackupData(null);
+    }
+  };
+
+  const renderStep1 = (disabled) => (
+    <div className={`grid grid-cols-1 sm:grid-cols-2 gap-6 ${!disabled ? 'animate-fadeIn' : ''}`}>
+      <SelectField label="Property Type" name="propertyType" value={formData.propertyType} onChange={handleChange} options={PROPERTY_TYPES} error={errors.propertyType} required disabled={disabled} />
+      <SelectField label="Property Use" name="propertyUse" value={formData.propertyUse} onChange={handleChange} options={PROPERTY_USES} error={errors.propertyUse} required disabled={disabled} />
+    </div>
+  );
+
+  const renderStep2 = (disabled) => (
+    <div className={`space-y-6 ${!disabled ? 'animate-fadeIn' : ''}`}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+        <SelectField label="Country" name="country" value={formData.country} onChange={handleChange} options={COUNTRIES} disabled={disabled} />
+        <SelectField label="Province" name="province" value={formData.province} onChange={handleChange} options={PROVINCES} disabled={disabled} />
+        
+        <SelectField label="District" name="district" value={formData.district} onChange={handleChange} options={formData.province ? ['Lahore District', 'Karachi South', 'Islamabad District'] : []} error={errors.district} required disabled={disabled} />
+        <SelectField label="Tehsil" name="tehsil" value={formData.tehsil} onChange={handleChange} options={formData.district ? TEHSILS[formData.district] || [] : []} disabled={disabled} />
+        
+        <SelectField label="City" name="city" value={formData.city} onChange={handleChange} options={formData.province ? CITIES[formData.province] || [] : []} disabled={disabled} />
+        <SelectField label="Society" name="society" value={formData.society} onChange={handleChange} options={formData.tehsil ? SOCIETIES[formData.tehsil] || [] : []} disabled={disabled} />
+        
+        <InputField label="Area / Block" name="area" value={formData.area} onChange={handleChange} placeholder="e.g. Sector W" disabled={disabled} />
+        <SelectField label="Property Location Type" name="propertyLocation" value={formData.propertyLocation} onChange={handleChange} options={PROPERTY_LOCATIONS} disabled={disabled} />
+      </div>
+    </div>
+  );
+
+  const renderStep3 = (disabled) => (
+    <div className={`space-y-6 ${!disabled ? 'animate-fadeIn' : ''}`}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <InputField label="Primary Size" name="propertySize" value={formData.propertySize} onChange={handleChange} error={errors.propertySize} type="number" isNumber required placeholder="e.g. 10" disabled={disabled} />
+        <SelectField label="Size UOM" name="sizeUom" value={formData.sizeUom} onChange={handleChange} error={errors.sizeUom} options={SIZE_UOM} required disabled={disabled} />
+        <SelectField label="Marla Size" name="marlaSize" value={formData.marlaSize} onChange={handleChange} options={MARLA_SIZES} disabled={disabled} />
+      </div>
+      
+      <div className="border-t border-gray-100 pt-6">
+        <h4 className="text-sm font-bold text-gray-800 mb-4">Calculated Total Areas</h4>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+          <InputField label="Area (Marla)" name="areaMarla" value={formData.areaMarla} onChange={handleChange} type="number" isNumber disabled={disabled} />
+          <InputField label="Area (Kanal)" name="areaKanal" value={formData.areaKanal} onChange={handleChange} type="number" isNumber disabled={disabled} />
+          <InputField label="Area (Acre)" name="areaAcre" value={formData.areaAcre} onChange={handleChange} type="number" isNumber disabled={disabled} />
+          <InputField label="Area (Sq Ft)" name="areaSqFt" value={formData.areaSqFt} onChange={handleChange} type="number" isNumber disabled={disabled} />
+          <InputField label="Area (Sq Yard)" name="areaSqYard" value={formData.areaSqYard} onChange={handleChange} type="number" isNumber disabled={disabled} />
+        </div>
+      </div>
+
+      <div className="border-t border-gray-100 pt-6">
+        <h4 className="text-sm font-bold text-gray-800 mb-4">Property Dimensions</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <InputField label="Property Size Front" name="propertySizeFront" value={formData.propertySizeFront} onChange={handleChange} error={errors.propertySizeFront} type="number" isNumber placeholder="e.g. 50" disabled={disabled} />
+          <InputField label="Property Size Back" name="propertySizeBack" value={formData.propertySizeBack} onChange={handleChange} error={errors.propertySizeBack} type="number" isNumber placeholder="e.g. 50" disabled={disabled} />
+          <InputField label="Property Size Left" name="propertySizeLeft" value={formData.propertySizeLeft} onChange={handleChange} error={errors.propertySizeLeft} type="number" isNumber placeholder="e.g. 90" disabled={disabled} />
+          <InputField label="Property Size Right" name="propertySizeRight" value={formData.propertySizeRight} onChange={handleChange} error={errors.propertySizeRight} type="number" isNumber placeholder="e.g. 90" disabled={disabled} />
+        </div>
+      </div>
+
+      <div className="border-t border-gray-100 pt-6">
+        <h4 className="text-sm font-bold text-gray-800 mb-4">Construction Areas</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <InputField label="Covered Area (Sq Ft)" name="coveredAreaSqFt" value={formData.coveredAreaSqFt} onChange={handleChange} error={errors.coveredAreaSqFt} type="number" isNumber disabled={disabled} />
+          <InputField label="Open Area (Sq Ft)" name="openAreaSqFt" value={formData.openAreaSqFt} onChange={handleChange} error={errors.openAreaSqFt} type="number" isNumber disabled={disabled} />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStep4 = (disabled) => (
+    <div className={`space-y-8 ${!disabled ? 'animate-fadeIn' : ''}`}>
+      <div>
+        <h4 className="text-sm font-bold text-[#B8860B] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Rooms & Sections</h4>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+          <InputField label="Rooms" name="rooms" value={formData.rooms} onChange={handleChange} error={errors.rooms} type="number" isNumber disabled={disabled} />
+          <InputField label="Bathrooms" name="bathrooms" value={formData.bathrooms} onChange={handleChange} error={errors.bathrooms} type="number" isNumber disabled={disabled} />
+          <InputField label="Floors" name="floors" value={formData.floors} onChange={handleChange} error={errors.floors} type="number" isNumber disabled={disabled} />
+          <InputField label="Lounges" name="lounges" value={formData.lounges} onChange={handleChange} error={errors.lounges} type="number" isNumber disabled={disabled} />
+          <InputField label="Kitchens" name="kitchens" value={formData.kitchens} onChange={handleChange} error={errors.kitchens} type="number" isNumber disabled={disabled} />
+          <InputField label="Drawing Rooms" name="drawingRooms" value={formData.drawingRooms} onChange={handleChange} error={errors.drawingRooms} type="number" isNumber disabled={disabled} />
+        </div>
+      </div>
+      <div>
+        <h4 className="text-sm font-bold text-[#B8860B] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Road / Access Dimensions (ft)</h4>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+          <InputField label="Front Road" name="roadFrontFt" value={formData.roadFrontFt} onChange={handleChange} error={errors.roadFrontFt} type="number" isNumber disabled={disabled} />
+          <InputField label="Back Road" name="roadBackFt" value={formData.roadBackFt} onChange={handleChange} error={errors.roadBackFt} type="number" isNumber disabled={disabled} />
+          <InputField label="Left Road" name="roadLeftFt" value={formData.roadLeftFt} onChange={handleChange} error={errors.roadLeftFt} type="number" isNumber disabled={disabled} />
+          <InputField label="Right Road" name="roadRightFt" value={formData.roadRightFt} onChange={handleChange} error={errors.roadRightFt} type="number" isNumber disabled={disabled} />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStep5 = (disabled) => (
+    <div className={`space-y-8 ${!disabled ? 'animate-fadeIn' : ''}`}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className={`flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-gray-50/50 ${disabled ? 'opacity-70' : ''}`}>
+          <input type="checkbox" id="swimmingPool" name="swimmingPool" checked={formData.swimmingPool} onChange={handleChange} className={`w-5 h-5 accent-[#1a2b25] rounded ${disabled ? 'cursor-not-allowed' : ''}`} disabled={disabled} />
+          <label htmlFor="swimmingPool" className={`text-sm font-semibold text-gray-800 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>Swimming Pool</label>
+        </div>
+        <div className={`flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-gray-50/50 ${disabled ? 'opacity-70' : ''}`}>
+          <input type="checkbox" id="mediaRoom" name="mediaRoom" checked={formData.mediaRoom} onChange={handleChange} className={`w-5 h-5 accent-[#1a2b25] rounded ${disabled ? 'cursor-not-allowed' : ''}`} disabled={disabled} />
+          <label htmlFor="mediaRoom" className={`text-sm font-semibold text-gray-800 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>Media Room</label>
+        </div>
+        <div className={`flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-gray-50/50 ${disabled ? 'opacity-70' : ''}`}>
+          <input type="checkbox" id="solarInstalled" name="solarInstalled" checked={formData.solarInstalled} onChange={handleChange} className={`w-5 h-5 accent-[#1a2b25] rounded ${disabled ? 'cursor-not-allowed' : ''}`} disabled={disabled} />
+          <label htmlFor="solarInstalled" className={`text-sm font-semibold text-gray-800 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>Solar Installed</label>
+        </div>
+        {formData.solarInstalled && (
+          <InputField label="Solar Capacity (e.g. 10kW)" name="solarCapacity" value={formData.solarCapacity} onChange={handleChange} disabled={disabled} />
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-gray-50">
+        <InputField label="Electric Meters" name="electricMeters" value={formData.electricMeters} onChange={handleChange} type="number" isNumber disabled={disabled} />
+        <InputField label="Gas Meters" name="gasMeters" value={formData.gasMeters} onChange={handleChange} type="number" isNumber disabled={disabled} />
+        <SelectField label="Electricity Backup" name="electricityBackup" value={formData.electricityBackup} onChange={handleChange} options={BACKUP_TYPES} disabled={disabled} />
+        {formData.electricityBackup === 'Other' && (
+          <InputField label="Specify Other Backup" name="otherBackup" value={formData.otherBackup} onChange={handleChange} disabled={disabled} />
+        )}
+      </div>
+
+      <div className="pt-4 border-t border-gray-50">
+        <TagInput 
+          label="Amenities" 
+          tags={formData.amenities} 
+          suggestions={AMENITIES}
+          onAdd={(tag) => handleAddTag('amenities', tag)} 
+          onRemove={(tag) => handleRemoveTag('amenities', tag)}
+          disabled={disabled} 
+        />
+      </div>
+
+      <div className="pt-4 border-t border-gray-50">
+        <TagInput 
+          label="Additional Features" 
+          tags={formData.additionalFeatures} 
+          suggestions={['Double Glazed Windows', 'Central Heating', 'Parking Space', 'Smart Home System']}
+          onAdd={(tag) => handleAddTag('additionalFeatures', tag)} 
+          onRemove={(tag) => handleRemoveTag('additionalFeatures', tag)}
+          disabled={disabled}
+        />
+      </div>
+    </div>
+  );
+
+  const renderStep6 = (disabled) => (
+    <div className={`space-y-8 ${!disabled ? 'animate-fadeIn' : ''}`}>
+      {/* Pictures */}
+      <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+          <h4 className="text-sm font-bold text-gray-800 flex items-center gap-2"><ImageIcon size={16} className="text-[#B8860B]"/> Property Pictures</h4>
+          {!disabled && (
+            <div className="text-left sm:text-right">
+              <span className="text-xs font-semibold text-gray-500 block">Max 5MB per image. JPG, PNG only.</span>
+              <span className="text-[11px] font-medium text-gray-400">Upload good quality pictures with proper lighting.</span>
+            </div>
+          )}
+        </div>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {formData.media.pictures.map((pic, idx) => (
+            <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 group">
+              <img src={pic.url || pic} alt="Property" className="w-full h-full object-cover" />
+              {!disabled && (
+                <button onClick={() => removeMedia('pictures', idx)} className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          ))}
+          {!disabled && (
+            <>
+              <button onClick={() => fileInputRef.current?.click()} className="aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-[#B8860B] hover:text-[#B8860B] transition-colors bg-gray-50/50">
+                <UploadCloud size={24} className="mb-2" />
+                <span className="text-xs font-bold uppercase">Add Photo</span>
+              </button>
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple onChange={handleImageUpload} />
+            </>
+          )}
+          {disabled && formData.media.pictures.length === 0 && (
+            <div className="text-sm font-semibold text-gray-400 col-span-2">No pictures provided</div>
+          )}
+        </div>
+      </div>
+
+      {/* Videos */}
+      <div className="pt-6 border-t border-gray-100">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-sm font-bold text-gray-800 flex items-center gap-2"><Video size={16} className="text-[#B8860B]"/> Property Videos</h4>
+          {!disabled && <span className="text-xs font-semibold text-gray-400">Max 50MB per video</span>}
+        </div>
+
+        <div className="space-y-3">
+          {formData.media.videos.map((vid, idx) => (
+            <div key={idx} className="flex items-center justify-between p-3 border border-gray-200 rounded-xl bg-gray-50">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="w-10 h-10 bg-[#eef2f9] text-[#4d70a3] rounded-lg flex items-center justify-center shrink-0">
+                  <Video size={18} />
+                </div>
+                <span className="text-sm font-semibold text-gray-700 truncate">{vid.name || `Video ${idx+1}`}</span>
+              </div>
+              {!disabled && (
+                <button onClick={() => removeMedia('videos', idx)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                  <X size={18} />
+                </button>
+              )}
+            </div>
+          ))}
+          {!disabled && (
+            <>
+              <button onClick={() => videoInputRef.current?.click()} className="w-full py-4 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center gap-2 text-gray-500 font-bold hover:border-[#B8860B] hover:text-[#B8860B] transition-colors bg-white">
+                <UploadCloud size={18} /> Upload Video
+              </button>
+              <input type="file" ref={videoInputRef} className="hidden" accept="video/*" multiple onChange={handleVideoUpload} />
+            </>
+          )}
+          {disabled && formData.media.videos.length === 0 && (
+            <div className="text-sm font-semibold text-gray-400">No videos provided</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="w-full max-w-[1200px] mx-auto bg-white rounded-[24px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-gray-100/60 overflow-hidden flex flex-col md:flex-row">
       
@@ -387,234 +648,59 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
           <div className="space-y-6">
             
             {/* STEP 1: CLASSIFICATION */}
-            {currentStep === 1 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-fadeIn">
-                <SelectField label="Property Type" name="propertyType" value={formData.propertyType} onChange={handleChange} options={PROPERTY_TYPES} error={errors.propertyType} required />
-                <SelectField label="Property Use" name="propertyUse" value={formData.propertyUse} onChange={handleChange} options={PROPERTY_USES} error={errors.propertyUse} required />
-              </div>
-            )}
+            {currentStep === 1 && renderStep1(false)}
 
             {/* STEP 2: LOCATION */}
-            {currentStep === 2 && (
-              <div className="animate-fadeIn space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-                  <SelectField label="Country" name="country" value={formData.country} onChange={handleChange} options={COUNTRIES} />
-                  <SelectField label="Province" name="province" value={formData.province} onChange={handleChange} options={PROVINCES} />
-                  
-                  <SelectField label="District" name="district" value={formData.district} onChange={handleChange} options={formData.province ? ['Lahore District', 'Karachi South', 'Islamabad District'] : []} error={errors.district} required />
-                  <SelectField label="Tehsil" name="tehsil" value={formData.tehsil} onChange={handleChange} options={formData.district ? TEHSILS[formData.district] || [] : []} />
-                  
-                  <SelectField label="City" name="city" value={formData.city} onChange={handleChange} options={formData.province ? CITIES[formData.province] || [] : []} />
-                  <SelectField label="Society" name="society" value={formData.society} onChange={handleChange} options={formData.tehsil ? SOCIETIES[formData.tehsil] || [] : []} />
-                  
-                  <InputField label="Area / Block" name="area" value={formData.area} onChange={handleChange} placeholder="e.g. Sector W" />
-                  <SelectField label="Property Location Type" name="propertyLocation" value={formData.propertyLocation} onChange={handleChange} options={PROPERTY_LOCATIONS} />
-                </div>
-              </div>
-            )}
+            {currentStep === 2 && renderStep2(false)}
 
             {/* STEP 3: SIZE & AREA */}
-            {currentStep === 3 && (
-              <div className="animate-fadeIn space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                  <InputField label="Primary Size" name="propertySize" value={formData.propertySize} onChange={handleChange} error={errors.propertySize} type="number" isNumber required placeholder="e.g. 10" />
-                  <SelectField label="Size UOM" name="sizeUom" value={formData.sizeUom} onChange={handleChange} error={errors.sizeUom} options={SIZE_UOM} required />
-                  <SelectField label="Marla Size" name="marlaSize" value={formData.marlaSize} onChange={handleChange} options={MARLA_SIZES} />
-                </div>
-                
-                <div className="border-t border-gray-100 pt-6">
-                  <h4 className="text-sm font-bold text-gray-800 mb-4">Calculated Total Areas</h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                    <InputField label="Area (Marla)" name="areaMarla" value={formData.areaMarla} onChange={handleChange} type="number" isNumber />
-                    <InputField label="Area (Kanal)" name="areaKanal" value={formData.areaKanal} onChange={handleChange} type="number" isNumber />
-                    <InputField label="Area (Acre)" name="areaAcre" value={formData.areaAcre} onChange={handleChange} type="number" isNumber />
-                    <InputField label="Area (Sq Ft)" name="areaSqFt" value={formData.areaSqFt} onChange={handleChange} type="number" isNumber />
-                    <InputField label="Area (Sq Yard)" name="areaSqYard" value={formData.areaSqYard} onChange={handleChange} type="number" isNumber />
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-100 pt-6">
-                  <h4 className="text-sm font-bold text-gray-800 mb-4">Construction Areas</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <InputField label="Covered Area (Sq Ft)" name="coveredAreaSqFt" value={formData.coveredAreaSqFt} onChange={handleChange} error={errors.coveredAreaSqFt} type="number" isNumber />
-                    <InputField label="Open Area (Sq Ft)" name="openAreaSqFt" value={formData.openAreaSqFt} onChange={handleChange} error={errors.openAreaSqFt} type="number" isNumber />
-                  </div>
-                </div>
-              </div>
-            )}
+            {currentStep === 3 && renderStep3(false)}
 
             {/* STEP 4: PARTICULARS */}
-            {currentStep === 4 && (
-              <div className="animate-fadeIn space-y-8">
-                <div>
-                  <h4 className="text-sm font-bold text-[#B8860B] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Rooms & Sections</h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                    <InputField label="Rooms" name="rooms" value={formData.rooms} onChange={handleChange} error={errors.rooms} type="number" isNumber />
-                    <InputField label="Bathrooms" name="bathrooms" value={formData.bathrooms} onChange={handleChange} error={errors.bathrooms} type="number" isNumber />
-                    <InputField label="Floors" name="floors" value={formData.floors} onChange={handleChange} error={errors.floors} type="number" isNumber />
-                    <InputField label="Lounges" name="lounges" value={formData.lounges} onChange={handleChange} error={errors.lounges} type="number" isNumber />
-                    <InputField label="Kitchens" name="kitchens" value={formData.kitchens} onChange={handleChange} error={errors.kitchens} type="number" isNumber />
-                    <InputField label="Drawing Rooms" name="drawingRooms" value={formData.drawingRooms} onChange={handleChange} error={errors.drawingRooms} type="number" isNumber />
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-[#B8860B] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Road / Access Dimensions (ft)</h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                    <InputField label="Front Road" name="roadFrontFt" value={formData.roadFrontFt} onChange={handleChange} error={errors.roadFrontFt} type="number" isNumber />
-                    <InputField label="Back Road" name="roadBackFt" value={formData.roadBackFt} onChange={handleChange} error={errors.roadBackFt} type="number" isNumber />
-                    <InputField label="Left Road" name="roadLeftFt" value={formData.roadLeftFt} onChange={handleChange} error={errors.roadLeftFt} type="number" isNumber />
-                    <InputField label="Right Road" name="roadRightFt" value={formData.roadRightFt} onChange={handleChange} error={errors.roadRightFt} type="number" isNumber />
-                  </div>
-                </div>
-              </div>
-            )}
+            {currentStep === 4 && renderStep4(false)}
 
             {/* STEP 5: FEATURES */}
-            {currentStep === 5 && (
-              <div className="animate-fadeIn space-y-8">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-gray-50/50">
-                    <input type="checkbox" id="swimmingPool" name="swimmingPool" checked={formData.swimmingPool} onChange={handleChange} className="w-5 h-5 accent-[#1a2b25] rounded" />
-                    <label htmlFor="swimmingPool" className="text-sm font-semibold text-gray-800 cursor-pointer">Swimming Pool</label>
-                  </div>
-                  <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-gray-50/50">
-                    <input type="checkbox" id="mediaRoom" name="mediaRoom" checked={formData.mediaRoom} onChange={handleChange} className="w-5 h-5 accent-[#1a2b25] rounded" />
-                    <label htmlFor="mediaRoom" className="text-sm font-semibold text-gray-800 cursor-pointer">Media Room</label>
-                  </div>
-                  <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-gray-50/50">
-                    <input type="checkbox" id="solarInstalled" name="solarInstalled" checked={formData.solarInstalled} onChange={handleChange} className="w-5 h-5 accent-[#1a2b25] rounded" />
-                    <label htmlFor="solarInstalled" className="text-sm font-semibold text-gray-800 cursor-pointer">Solar Installed</label>
-                  </div>
-                  {formData.solarInstalled && (
-                    <InputField label="Solar Capacity (e.g. 10kW)" name="solarCapacity" value={formData.solarCapacity} onChange={handleChange} />
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-gray-50">
-                  <InputField label="Electric Meters" name="electricMeters" value={formData.electricMeters} onChange={handleChange} type="number" isNumber />
-                  <InputField label="Gas Meters" name="gasMeters" value={formData.gasMeters} onChange={handleChange} type="number" isNumber />
-                  <SelectField label="Electricity Backup" name="electricityBackup" value={formData.electricityBackup} onChange={handleChange} options={BACKUP_TYPES} />
-                  {formData.electricityBackup === 'Other' && (
-                    <InputField label="Specify Other Backup" name="otherBackup" value={formData.otherBackup} onChange={handleChange} />
-                  )}
-                </div>
-
-                <div className="pt-4 border-t border-gray-50">
-                  <TagInput 
-                    label="Amenities" 
-                    tags={formData.amenities} 
-                    suggestions={AMENITIES}
-                    onAdd={(tag) => handleAddTag('amenities', tag)} 
-                    onRemove={(tag) => handleRemoveTag('amenities', tag)} 
-                  />
-                </div>
-
-                <div className="pt-4 border-t border-gray-50">
-                  <TagInput 
-                    label="Additional Features" 
-                    tags={formData.additionalFeatures} 
-                    suggestions={['Double Glazed Windows', 'Central Heating', 'Parking Space', 'Smart Home System']}
-                    onAdd={(tag) => handleAddTag('additionalFeatures', tag)} 
-                    onRemove={(tag) => handleRemoveTag('additionalFeatures', tag)} 
-                  />
-                </div>
-              </div>
-            )}
+            {currentStep === 5 && renderStep5(false)}
 
             {/* STEP 6: MEDIA */}
-            {currentStep === 6 && (
-              <div className="animate-fadeIn space-y-8">
-                {/* Pictures */}
-                <div>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-                    <h4 className="text-sm font-bold text-gray-800 flex items-center gap-2"><ImageIcon size={16} className="text-[#B8860B]"/> Property Pictures</h4>
-                    <div className="text-left sm:text-right">
-                      <span className="text-xs font-semibold text-gray-500 block">Max 5MB per image. JPG, PNG only.</span>
-                      <span className="text-[11px] font-medium text-gray-400">Upload good quality pictures with proper lighting.</span>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    {formData.media.pictures.map((pic, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 group">
-                        <img src={pic.url || pic} alt="Property" className="w-full h-full object-cover" />
-                        <button onClick={() => removeMedia('pictures', idx)} className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                    <button onClick={() => fileInputRef.current?.click()} className="aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-[#B8860B] hover:text-[#B8860B] transition-colors bg-gray-50/50">
-                      <UploadCloud size={24} className="mb-2" />
-                      <span className="text-xs font-bold uppercase">Add Photo</span>
-                    </button>
-                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple onChange={handleImageUpload} />
-                  </div>
-                </div>
-
-                {/* Videos */}
-                <div className="pt-6 border-t border-gray-100">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-sm font-bold text-gray-800 flex items-center gap-2"><Video size={16} className="text-[#B8860B]"/> Property Videos</h4>
-                    <span className="text-xs font-semibold text-gray-400">Max 50MB per video</span>
-                  </div>
-
-                  <div className="space-y-3">
-                    {formData.media.videos.map((vid, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-3 border border-gray-200 rounded-xl bg-gray-50">
-                        <div className="flex items-center gap-3 overflow-hidden">
-                          <div className="w-10 h-10 bg-[#eef2f9] text-[#4d70a3] rounded-lg flex items-center justify-center shrink-0">
-                            <Video size={18} />
-                          </div>
-                          <span className="text-sm font-semibold text-gray-700 truncate">{vid.name || `Video ${idx+1}`}</span>
-                        </div>
-                        <button onClick={() => removeMedia('videos', idx)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                          <X size={18} />
-                        </button>
-                      </div>
-                    ))}
-                    <button onClick={() => videoInputRef.current?.click()} className="w-full py-4 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center gap-2 text-gray-500 font-bold hover:border-[#B8860B] hover:text-[#B8860B] transition-colors bg-white">
-                      <UploadCloud size={18} /> Upload Video
-                    </button>
-                    <input type="file" ref={videoInputRef} className="hidden" accept="video/*" multiple onChange={handleVideoUpload} />
-                  </div>
-                </div>
-              </div>
-            )}
+            {currentStep === 6 && renderStep6(false)}
 
             {/* STEP 7: REVIEW */}
             {currentStep === 7 && (
               <div className="animate-fadeIn space-y-6">
                 
-                <div className="bg-[#FAF8F3] p-6 rounded-2xl border border-[#e4d7be]">
-                  <div className="flex items-start justify-between mb-4">
-                    <h4 className="text-lg font-serif font-bold text-[#1a2b25]">Basic Information</h4>
-                    <button onClick={() => setCurrentStep(1)} className="text-xs font-bold text-[#B8860B] hover:underline uppercase tracking-wider">Edit</button>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 text-sm">
-                    <div><span className="text-gray-400 block mb-1">Type</span><span className="font-semibold text-gray-800">{formData.propertyType}</span></div>
-                    <div><span className="text-gray-400 block mb-1">Use</span><span className="font-semibold text-gray-800">{formData.propertyUse}</span></div>
-                    <div><span className="text-gray-400 block mb-1">Location</span><span className="font-semibold text-gray-800">{formData.society || formData.district || 'N/A'}</span></div>
-                  </div>
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-serif font-bold text-[#1a2b25]">Review Property</h3>
+                  <p className="text-gray-500 font-medium mt-2">Please review all property information before registration.</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                  <div className="flex items-start justify-between mb-4">
-                    <h4 className="text-lg font-serif font-bold text-[#1a2b25]">Detailed Breakdown</h4>
+                {[
+                  { id: 1, title: 'Classification', icon: Home, render: renderStep1 },
+                  { id: 2, title: 'Location', icon: MapPin, render: renderStep2 },
+                  { id: 3, title: 'Size & Area', icon: Maximize, render: renderStep3 },
+                  { id: 4, title: 'Property Particulars', icon: List, render: renderStep4 },
+                  { id: 5, title: 'Features & Amenities', icon: CheckSquare, render: renderStep5 },
+                  { id: 6, title: 'Pictures & Videos', icon: ImageIcon, render: renderStep6 }
+                ].map((section) => (
+                  <div key={section.id} className={`bg-white p-6 rounded-2xl border ${editingSection === section.id ? 'border-[#B8860B] shadow-md' : 'border-gray-200 shadow-sm'} transition-all`}>
+                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+                      <h4 className="text-lg font-serif font-bold text-[#1a2b25] flex items-center gap-2">
+                        {React.createElement(section.icon, { size: 20, className: "text-[#B8860B]" })} 
+                        {section.title}
+                      </h4>
+                      {editingSection === section.id ? (
+                        <div className="flex items-center gap-2">
+                          <button type="button" onClick={handleCancelSection} className="text-xs font-bold text-gray-500 hover:text-gray-700 px-3 py-1.5 transition-colors">Cancel</button>
+                          <button type="button" onClick={() => handleSaveSection(section.id)} className="text-xs font-bold text-white bg-[#1a2b25] hover:bg-[#2c4232] px-4 py-1.5 rounded-full transition-colors">Save Changes</button>
+                        </div>
+                      ) : (
+                        <button type="button" onClick={() => handleEditSection(section.id)} className={`text-sm font-bold text-[#B8860B] hover:underline px-4 py-1.5 bg-[#f4f2ea] rounded-full transition-colors ${editingSection !== null ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}>Edit</button>
+                      )}
+                    </div>
+                    {section.render(editingSection !== section.id)}
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-4 text-sm">
-                    <div><span className="text-gray-400 block mb-1">Size</span><span className="font-semibold text-gray-800">{formData.propertySize} {formData.sizeUom}</span></div>
-                    <div><span className="text-gray-400 block mb-1">Rooms</span><span className="font-semibold text-gray-800">{formData.rooms || 0}</span></div>
-                    <div><span className="text-gray-400 block mb-1">Baths</span><span className="font-semibold text-gray-800">{formData.bathrooms || 0}</span></div>
-                    <div><span className="text-gray-400 block mb-1">Floors</span><span className="font-semibold text-gray-800">{formData.floors || 0}</span></div>
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-gray-50 flex flex-wrap gap-2">
-                    {formData.swimmingPool && <span className="px-3 py-1 bg-gray-100 rounded-md text-xs font-semibold text-gray-600">Swimming Pool</span>}
-                    {formData.solarInstalled && <span className="px-3 py-1 bg-gray-100 rounded-md text-xs font-semibold text-gray-600">Solar ({formData.solarCapacity})</span>}
-                    {formData.amenities.map(a => <span key={a} className="px-3 py-1 bg-[#eaf1ec] rounded-md text-xs font-semibold text-[#1E5631]">{a}</span>)}
-                    {formData.additionalFeatures.map(a => <span key={a} className="px-3 py-1 bg-[#f4f2ea] rounded-md text-xs font-semibold text-[#B8860B]">{a}</span>)}
-                  </div>
-                </div>
-                
+                ))}
+
               </div>
             )}
 

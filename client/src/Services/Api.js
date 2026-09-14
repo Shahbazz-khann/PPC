@@ -297,6 +297,16 @@
 import { getToken } from "./AuthSession";
 
 const BASE_URL = import.meta.env.VITE_API_BASE;
+export const BACKEND_ORIGIN = BASE_URL ? new URL(BASE_URL).origin : 'http://localhost:5000';
+
+/**
+ * Resolves a media URL against the backend origin.
+ */
+export const resolveMediaUrl = (url) => {
+  if (!url) return url;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${BACKEND_ORIGIN}${url.startsWith('/') ? '' : '/'}${url}`;
+};
 
 /**
  * Creates the configuration for API requests.
