@@ -9,6 +9,18 @@ export const getCustomerProfile = async () => {
   return await api.get("/customer/profile");
 };
 
+export const getCustomerDashboardSummary = async () => {
+  return await api.get("/customer/dashboard/summary");
+};
+
+export const getCustomerDashboardProperties = async () => {
+  return await api.get("/customer/dashboard/properties");
+};
+
+export const getCustomerProperties = async () => {
+  return await api.get("/customer/properties");
+};
+
 /**
  * Update current Customer profile
  */

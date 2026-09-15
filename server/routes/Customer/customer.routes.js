@@ -11,4 +11,11 @@ router.put('/profile', authenticate, authorize('customer'), validateUpdateProfil
 router.post('/profile-image', authenticate, authorize('customer'), uploadProfileImage.single('profileImage'), customerController.uploadProfileImage);
 router.put('/password', authenticate, authorize('customer'), validateChangePassword, customerController.changePassword);
 
+// Dashboard
+router.get('/dashboard/summary', authenticate, authorize('customer'), customerController.getDashboardSummary);
+router.get('/dashboard/properties', authenticate, authorize('customer'), customerController.getDashboardProperties);
+
+// Properties
+router.get('/properties', authenticate, authorize('customer'), customerController.getProperties);
+
 module.exports = router;

@@ -206,10 +206,147 @@ const updateUserPassword = async (userId, newPasswordHash) => {
     await pool.query(query, [newPasswordHash, userId]);
 };
 
+/**
+ * Get Customer Dashboard Summary by User ID
+ */
+const getDashboardSummaryByUserId = async (userId) => {
+    const query = `
+        WITH customer_data AS (
+            SELECT customer_id FROM customers WHERE user_id = $1
+        ),
+        prop_stats AS (
+            SELECT 
+                COUNT(DISTINCT p.property_id) AS total_properties,
+                COUNT(DISTINCT CASE WHEN 
+                    pa.is_active = true AND ast.approval_stage_english = 'Approved' AND
+                    ps.is_active = true AND pst.status_english = 'Active' AND
+                    pd.is_active = true AND pdt.demand_type_english = 'Sale'
+                THEN p.property_id END) AS for_sale,
+                COUNT(DISTINCT CASE WHEN 
+                    pa.is_active = true AND ast.approval_stage_english = 'Approved' AND
+                    ps.is_active = true AND pst.status_english = 'Active' AND
+                    pd.is_active = true AND pdt.demand_type_english = 'Rent'
+                THEN p.property_id END) AS for_rent
+            FROM customer_data cd
+            LEFT JOIN properties p ON p.customer_id = cd.customer_id
+            LEFT JOIN property_approvals pa ON pa.property_id = p.property_id
+            LEFT JOIN approval_stages ast ON ast.approval_stage_id = pa.approval_stage_id
+            LEFT JOIN property_status ps ON ps.property_id = p.property_id
+            LEFT JOIN property_status_types pst ON pst.status_id = ps.status_id
+            LEFT JOIN property_demand pd ON pd.property_id = p.property_id
+            LEFT JOIN property_demand_types pdt ON pdt.demand_type_id = pd.demand_type_id
+        ),
+        req_stats AS (
+            SELECT COUNT(cr.request_id) AS service_requests
+            FROM customer_data cd
+            LEFT JOIN customer_requests cr ON cr.customer_id = cd.customer_id
+            WHERE cr.service_id IS NOT NULL
+        )
+        SELECT 
+            COALESCE(ps.for_sale, 0)::int AS "forSale",
+            COALESCE(ps.for_rent, 0)::int AS "forRent",
+            COALESCE(rs.service_requests, 0)::int AS "serviceRequests",
+            COALESCE(ps.total_properties, 0)::int AS "totalProperties"
+        FROM (SELECT * FROM prop_stats) ps
+        FULL OUTER JOIN (SELECT * FROM req_stats) rs ON true;
+    `;
+    const result = await pool.query(query, [userId]);
+    if (result.rows.length === 0) {
+        return { forSale: 0, forRent: 0, serviceRequests: 0, totalProperties: 0 };
+    }
+    return result.rows[0];
+};
+
+/**
+ * Get Customer Dashboard Properties by User ID
+ */
+const getDashboardPropertiesByUserId = async (userId) => {
+    const query = `
+        SELECT 
+            p.property_id,
+            'PRP-' || LPAD(p.property_id::text, 3, '0') AS formatted_id,
+            pt.property_type_description AS property_type,
+            s.society_english AS society,
+            c.city_english AS city,
+            p.property_size,
+            u.uom_english AS size_uom,
+            pst.status_english AS current_status,
+            pdt.demand_type_english AS current_demand_type,
+            pp.picture_url AS image_url
+        FROM customers cu
+        JOIN properties p ON p.customer_id = cu.customer_id
+        LEFT JOIN property_types pt ON p.property_type_id = pt.property_type_id
+        LEFT JOIN societies s ON p.society_id = s.society_id
+        LEFT JOIN cities c ON s.city_id = c.city_id
+        LEFT JOIN uom u ON p.property_size_uom = u.uom_id
+        LEFT JOIN property_status ps ON ps.property_id = p.property_id AND ps.is_active = true
+        LEFT JOIN property_status_types pst ON pst.status_id = ps.status_id
+        LEFT JOIN property_demand pd ON pd.property_id = p.property_id AND pd.is_active = true
+        LEFT JOIN property_demand_types pdt ON pdt.demand_type_id = pd.demand_type_id
+        LEFT JOIN property_pictures pp ON pp.property_id = p.property_id AND pp.is_active = true AND pp.display_order = 1
+        WHERE cu.user_id = $1
+        ORDER BY p.creation_date_time DESC
+        LIMIT 3;
+    `;
+    const result = await pool.query(query, [userId]);
+    return result.rows;
+};
+
+/**
+ * Get all Customer Properties by User ID
+ */
+const getCustomerPropertiesByUserId = async (userId) => {
+    const query = `
+        SELECT 
+            p.property_id,
+            'PRP-' || LPAD(p.property_id::text, 3, '0') AS formatted_id,
+            pt.property_type_description AS property_type,
+            pu.property_use_description AS property_use,
+            s.society_english AS society,
+            c.city_english AS city,
+            pr.province_english AS province,
+            p.property_size,
+            u.uom_english AS size_uom,
+            p.property_rooms AS rooms,
+            p.property_bath_rooms AS bathrooms,
+            p.property_floors AS floors,
+            p.property_description,
+            pst.status_english AS current_status,
+            aps.approval_stage_english AS approval_stage,
+            pdt.demand_type_english AS demand_type,
+            pp.picture_url AS image_url,
+            (SELECT COUNT(*) FROM property_pictures pp2 WHERE pp2.property_id = p.property_id AND pp2.is_active = true) AS total_photos,
+            p.creation_date_time
+        FROM customers cu
+        JOIN properties p ON p.customer_id = cu.customer_id
+        LEFT JOIN property_types pt ON p.property_type_id = pt.property_type_id
+        LEFT JOIN property_use pu ON p.property_use_id = pu.property_use_id
+        LEFT JOIN societies s ON p.society_id = s.society_id
+        LEFT JOIN cities c ON s.city_id = c.city_id
+        LEFT JOIN districts d ON p.property_district_id = d.district_id
+        LEFT JOIN provinces pr ON d.province_id = pr.province_id
+        LEFT JOIN uom u ON p.property_size_uom = u.uom_id
+        LEFT JOIN property_status ps ON ps.property_id = p.property_id AND ps.is_active = true
+        LEFT JOIN property_status_types pst ON pst.status_id = ps.status_id
+        LEFT JOIN property_approvals pa ON pa.property_id = p.property_id AND pa.is_active = true
+        LEFT JOIN approval_stages aps ON pa.approval_stage_id = aps.approval_stage_id
+        LEFT JOIN property_demand pd ON pd.property_id = p.property_id AND pd.is_active = true
+        LEFT JOIN property_demand_types pdt ON pd.demand_type_id = pdt.demand_type_id
+        LEFT JOIN property_pictures pp ON pp.property_id = p.property_id AND pp.is_active = true AND pp.display_order = 1
+        WHERE cu.user_id = $1
+        ORDER BY p.creation_date_time DESC;
+    `;
+    const result = await pool.query(query, [userId]);
+    return result.rows;
+};
+
 module.exports = {
     getCustomerProfileByUserId,
     updateCustomerProfileByUserId,
     updateProfileImage,
     getPasswordHashByUserId,
-    updateUserPassword
+    updateUserPassword,
+    getDashboardSummaryByUserId,
+    getDashboardPropertiesByUserId,
+    getCustomerPropertiesByUserId
 };

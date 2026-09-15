@@ -190,9 +190,63 @@ const changePassword = async (req, res, next) => {
     }
 };
 
+const getDashboardSummary = async (req, res, next) => {
+    try {
+        const userId = req.user.user_id;
+
+        const summary = await customerModel.getDashboardSummaryByUserId(userId);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Dashboard summary retrieved successfully',
+            data: summary
+        });
+    } catch (error) {
+        logger.error('Get Dashboard Summary Error:', error);
+        next(error);
+    }
+};
+
+const getDashboardProperties = async (req, res, next) => {
+    try {
+        const userId = req.user.user_id;
+
+        const properties = await customerModel.getDashboardPropertiesByUserId(userId);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Dashboard properties retrieved successfully',
+            data: properties
+        });
+    } catch (error) {
+        logger.error('Get Dashboard Properties Error:', error);
+        next(error);
+    }
+};
+
+const getProperties = async (req, res, next) => {
+    try {
+        const userId = req.user.user_id;
+
+        const properties = await customerModel.getCustomerPropertiesByUserId(userId);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Properties retrieved successfully',
+            data: properties
+        });
+    } catch (error) {
+        logger.error('Get Properties Error:', error);
+        next(error);
+    }
+};
+
 module.exports = {
     getProfile,
     updateProfile,
     uploadProfileImage,
-    changePassword
+    changePassword,
+    getDashboardSummary,
+    getDashboardProperties,
+    getProperties
 };

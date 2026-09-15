@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Home,
@@ -13,32 +13,13 @@ import {
   Plus
 } from 'lucide-react';
 import CustomerAccountMenu from '../../Components/common/CustomerAccountMenu';
+import { getCustomerDashboardSummary, getCustomerDashboardProperties } from '../../Services/customer.services';
+import { resolveMediaUrl } from '../../Services/Api';
 
 // Assets
 import PropVilla from '../../assets/prop_villa.png';
 import PropApartment from '../../assets/prop_apartment.png';
 import HeroBg from '../../assets/hero_bg_villa.jpg';
-
-const mockProperties = [
-  {
-    id: 'PRP-001',
-    name: 'Luxury Villa in DHA Phase 8',
-    type: 'Villa',
-    location: 'DHA Phase 8, Lahore',
-    size: '1 Kanal',
-    status: 'Active',
-    image: PropVilla
-  },
-  {
-    id: 'PRP-002',
-    name: 'Commercial Plaza Shop',
-    type: 'Commercial',
-    location: 'Gulberg III, Lahore',
-    size: '500 sq ft',
-    status: 'Pending',
-    image: PropApartment
-  }
-];
 
 const mockRequests = [
   { id: '#101', type: 'Property Request', subType: 'Sale', status: 'Pending', date: 'Oct 12, 2026' },
@@ -97,6 +78,45 @@ const CustomerDashboard = () => {
   const [activeTab, setActiveTab] = useState('All');
   const customerName = 'Ahmed';
   const [language, setLanguage] = useState('en');
+
+  const [summary, setSummary] = useState({
+    forSale: 0,
+    forRent: 0,
+    serviceRequests: 0,
+    totalProperties: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  const [myProperties, setMyProperties] = useState([]);
+  const [propertiesLoading, setPropertiesLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setPropertiesLoading(true);
+
+        const [summaryRes, propsRes] = await Promise.all([
+          getCustomerDashboardSummary(),
+          getCustomerDashboardProperties()
+        ]);
+
+        if (summaryRes.success) {
+          setSummary(summaryRes.data);
+        }
+        
+        if (propsRes.success) {
+          setMyProperties(propsRes.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err.message);
+      } finally {
+        setLoading(false);
+        setPropertiesLoading(false);
+      }
+    };
+    fetchDashboardData();
+  }, []);
 
   const filteredRequests = mockRequests.filter(req => {
     if (activeTab === 'All') return true;
@@ -188,7 +208,7 @@ const CustomerDashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative z-20 mt-4 sm:-mt-12 lg:-mt-20 mb-6">
           <SummaryCard
             title="For Sale"
-            value="02"
+            value={loading ? "-" : String(summary.forSale).padStart(2, '0')}
             subtitle="Properties listed for sale"
             icon={Home}
             colorClass="bg-[#eaf1ec] text-[#36684a]"
@@ -196,15 +216,15 @@ const CustomerDashboard = () => {
           />
           <SummaryCard
             title="For Rent"
-            value="03"
+            value={loading ? "-" : String(summary.forRent).padStart(2, '0')}
             subtitle="Properties listed for rent"
             icon={FileText}
             colorClass="bg-[#fcf3e6] text-[#b48742]"
             iconBgColor="bg-[#fdf7ee]"
           />
           <SummaryCard
-            title="PPC Service Requests"
-            value="01"
+            title=" Service Requests"
+            value={loading ? "-" : String(summary.serviceRequests).padStart(2, '0')}
             subtitle="Service request in progress"
             icon={Wrench}
             colorClass="bg-[#eef2f9] text-[#4d70a3]"
@@ -212,7 +232,7 @@ const CustomerDashboard = () => {
           />
           <SummaryCard
             title="Total Properties"
-            value="02"
+            value={loading ? "-" : String(summary.totalProperties).padStart(2, '0')}
             subtitle="Across your portfolio"
             icon={Home}
             colorClass="bg-[#faebe9] text-[#c46a62]"
@@ -233,46 +253,67 @@ const CustomerDashboard = () => {
             </div>
 
             <div className="space-y-5">
-              {mockProperties.map((property) => (
-                <div key={property.id} className="bg-white rounded-[24px] p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-gray-100/60 flex flex-col sm:flex-row gap-6 transition-all hover:shadow-[0_4px_15px_-4px_rgba(0,0,0,0.08)]">
-                  {/* Image */}
-                  <div className="h-[200px] sm:h-[180px] sm:w-[260px] shrink-0 relative rounded-[16px] overflow-hidden bg-gray-100">
-                    <img src={property.image} alt={property.name} className="w-full h-full object-cover" />
-                    <div className="absolute top-3 left-3">
-                      <StatusBadge status={property.status} />
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex flex-col justify-center flex-1 py-2 pr-2 relative">
-                    <button className="absolute top-1 right-1 text-gray-300 hover:text-gray-500">
-                      <MoreHorizontal size={20} />
-                    </button>
-
-                    <div className="text-[10px] font-bold text-[#B8860B] uppercase tracking-[0.2em] mb-2">
-                      {property.type}
-                    </div>
-                    <h3 className="text-[22px] font-serif font-bold text-[#1a2b25] mb-5 pr-8 leading-tight">{property.name}</h3>
-
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-6">
-                      <div className="flex items-center text-[13px] font-semibold text-gray-500">
-                        <MapPin size={15} className="mr-2 text-gray-400 shrink-0" />
-                        <span className="truncate">{property.location}</span>
-                      </div>
-                      <div className="flex items-center text-[13px] font-semibold text-gray-500">
-                        <Maximize size={15} className="mr-2 text-gray-400 shrink-0" />
-                        {property.size}
-                      </div>
-                    </div>
-
-                    <div className="mt-auto flex justify-end">
-                      <button className="px-5 py-2 rounded-full border border-[#e4d7be] text-[13px] font-bold text-[#1a2b25] hover:border-[#B8860B] hover:bg-[#faf7f2] transition-colors flex items-center gap-2">
-                        View details <ArrowRight size={14} />
-                      </button>
-                    </div>
-                  </div>
+              {propertiesLoading ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1a2b25] mb-4"></div>
+                  <p className="text-sm font-medium text-gray-500">Loading properties...</p>
                 </div>
-              ))}
+              ) : myProperties.length === 0 ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center bg-white rounded-[24px] border border-gray-100/60 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                  <Home size={40} className="text-gray-200 mb-4" />
+                  <p className="text-sm font-medium text-gray-500">No properties found.</p>
+                  <Link to="/customer/properties/new" className="mt-4 px-4 py-2 bg-[#FAF8F3] text-[#B8860B] rounded-full text-xs font-bold hover:bg-[#f3eedd] transition-colors">
+                    Add your first property
+                  </Link>
+                </div>
+              ) : (
+                myProperties.map((property) => (
+                  <div key={property.property_id} className="bg-white rounded-[24px] p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-gray-100/60 flex flex-col sm:flex-row gap-6 transition-all hover:shadow-[0_4px_15px_-4px_rgba(0,0,0,0.08)]">
+                    {/* Image */}
+                    <div className="h-[200px] sm:h-[180px] sm:w-[260px] shrink-0 relative rounded-[16px] overflow-hidden bg-gray-100">
+                      <img 
+                        src={property.image_url ? resolveMediaUrl(property.image_url) : PropVilla} 
+                        alt={property.property_type} 
+                        className="w-full h-full object-cover" 
+                      />
+                      <div className="absolute top-3 left-3">
+                        <StatusBadge status={property.current_status || 'Not Available'} />
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex flex-col justify-center flex-1 py-2 pr-2 relative">
+                      <button className="absolute top-1 right-1 text-gray-300 hover:text-gray-500">
+                        <MoreHorizontal size={20} />
+                      </button>
+
+                      <div className="text-[10px] font-bold text-[#B8860B] uppercase tracking-[0.2em] mb-2">
+                        {property.property_type}
+                      </div>
+                      <h3 className="text-[22px] font-serif font-bold text-[#1a2b25] mb-5 pr-8 leading-tight">
+                        {property.property_type} in {property.society}
+                      </h3>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-6">
+                        <div className="flex items-center text-[13px] font-semibold text-gray-500">
+                          <MapPin size={15} className="mr-2 text-gray-400 shrink-0" />
+                          <span className="truncate">{property.society}, {property.city}</span>
+                        </div>
+                        <div className="flex items-center text-[13px] font-semibold text-gray-500">
+                          <Maximize size={15} className="mr-2 text-gray-400 shrink-0" />
+                          {property.property_size} {property.size_uom}
+                        </div>
+                      </div>
+
+                      <div className="mt-auto flex justify-end">
+                        <button className="px-5 py-2 rounded-full border border-[#e4d7be] text-[13px] font-bold text-[#1a2b25] hover:border-[#B8860B] hover:bg-[#faf7f2] transition-colors flex items-center gap-2">
+                          View details <ArrowRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </section>
 
