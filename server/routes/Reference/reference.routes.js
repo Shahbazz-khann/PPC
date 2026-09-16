@@ -9,4 +9,12 @@ router.get('/countries', authenticate, referenceController.getCountries);
 router.get('/titles', authenticate, referenceController.getCustomerTitles);
 router.get('/genders', authenticate, referenceController.getGenders);
 
+// Bootstrap API for Property Form reference data
+router.get('/property-form', authenticate, referenceController.getPropertyFormData);
+
+// Autocomplete Location APIs
+router.get('/cities', authenticate, referenceController.getCities);
+router.get('/societies', authenticate, referenceController.getSocieties);
+router.get('/areas', authenticate, referenceController.getAreas);
+
 module.exports = router;

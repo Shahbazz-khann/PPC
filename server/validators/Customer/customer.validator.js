@@ -79,7 +79,102 @@ const validateChangePassword = (req, res, next) => {
     next();
 };
 
+const validateAddProperty = (req, res, next) => {
+    const { area_id } = req.body;
+    
+    if (!area_id) {
+        return res.status(400).json({
+            success: false,
+            message: 'Validation failed',
+            errors: ['Area ID is required']
+        });
+    }
+
+    // Additional numeric validation could be added here, but the controller/model will also naturally reject bad types.
+    // Ensure amenities is an array if provided
+    if (req.body.amenities && !Array.isArray(req.body.amenities)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Validation failed',
+            errors: ['Amenities must be an array of strings']
+        });
+    }
+
+    next();
+};
+
+/**
+ * Validate :propertyId route param is a positive integer.
+ * Must run BEFORE ownership check and BEFORE Multer.
+ */
+const validatePropertyId = (req, res, next) => {
+    const { propertyId } = req.params;
+    const id = parseInt(propertyId, 10);
+
+    if (!propertyId || isNaN(id) || id <= 0 || String(id) !== String(propertyId)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid property ID. Must be a positive integer.'
+        });
+    }
+
+    // Normalise: store parsed integer back so downstream code is consistent
+    req.params.propertyId = id;
+    next();
+};
+
+/**
+ * Verify that the authenticated customer owns the property referenced by :propertyId.
+ * MUST run BEFORE Multer so no files are written to disk for unauthorised requests.
+ */
+const { pool } = require('../../config/db');
+
+const verifyPropertyOwnership = async (req, res, next) => {
+    try {
+        const userId     = req.user.user_id;
+        const propertyId = req.params.propertyId;
+
+        // 1. Resolve customer_id from user_id
+        const customerResult = await pool.query(
+            'SELECT customer_id FROM customers WHERE user_id = $1',
+            [userId]
+        );
+
+        if (customerResult.rowCount === 0) {
+            return res.status(403).json({
+                success: false,
+                message: 'Customer profile not found for authenticated user.'
+            });
+        }
+
+        const customerId = customerResult.rows[0].customer_id;
+
+        // 2. Verify property belongs to this customer
+        const propertyResult = await pool.query(
+            'SELECT property_id FROM properties WHERE property_id = $1 AND customer_id = $2',
+            [propertyId, customerId]
+        );
+
+        if (propertyResult.rowCount === 0) {
+            return res.status(403).json({
+                success: false,
+                message: 'You do not have permission to upload pictures to this property.'
+            });
+        }
+
+        // Attach for downstream use (avoids duplicate queries in controller/model)
+        req.verifiedCustomerId = customerId;
+        next();
+
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     validateUpdateProfile,
-    validateChangePassword
+    validateChangePassword,
+    validateAddProperty,
+    validatePropertyId,
+    verifyPropertyOwnership
 };

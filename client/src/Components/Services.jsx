@@ -33,7 +33,7 @@ const servicesData = [
   },
   {
     id: 5,
-    title: 'Legal Services',
+    title: 'Legal Documentation',
     description: 'Documentation, Registry, Verification, Taxation & Legal Dispute Support.',
     image: legalServicesImg,
   },

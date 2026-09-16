@@ -1,0 +1,798 @@
+COUNTRY_ID,CONTINENT_ID,COUNTRY_NAME,COUNTRY_NAME_URDU,COUNTRY_GPS,CREATION_DATE_TIME_STAMP,CREATION_USER_ID,INTERFACE_SOURCE,UPDATE_DATE_TIME_STAMP,UPDATE_USER_ID,RECORD_ACTIVE_STATUS,URL_USED,REMARKS_REASON_OF_NON_ACTIVE
+1,,Pakistan,,,07:21.9,,seed:pakistan_locations.json,,,1,,[NULL]
+PROVINCE_ID,COUNTRY_ID,PROVINCE_NAME,PROVINCE_NAME_URDU,PROVINCE_GPS,CREATION_DATE_TIME_STAMP,CREATION_USER_ID,INTERFACE_SOURCE,UPDATE_DATE_TIME_STAMP,UPDATE_USER_ID,RECORD_ACTIVE_STATUS,URL_USED,REMARKS_REASON_OF_NON_ACTIVE,province_latitude,province_longitude
+1,1,AZAD KASHMIR,,,,,seed:pakistan_locations.json,,,1,,[NULL],74.06785318,33.12219631
+2,1,BALOCHISTAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],66.99673007,25.20470746
+3,1,DISPUTED TERRITORY,,,,,seed:pakistan_locations.json,,,1,,[NULL],76.58410271,33.75878235
+4,1,FATA,,,,,seed:pakistan_locations.json,,,1,,[NULL],70.02714204,33.11455655
+5,1,FEDERAL CAPITAL TERRITORY,,,,,seed:pakistan_locations.json,,,1,,[NULL],73.12121495,33.66508855
+6,1,GILGIT BALTISTAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],73.86896908,36.08676924
+7,1,KHYBER PAKHTUNKHWA,,,,,seed:pakistan_locations.json,,,1,,[NULL],71.55086149,34.0986379
+8,1,PUNJAB,,,,,seed:pakistan_locations.json,,,1,,[NULL],74.69660476,32.30263719
+9,1,SINDH,,,,,seed:pakistan_locations.json,,,1,,[NULL],69.36732534,25.49709738
+DIVISION_ID,PROVINCE_ID,DIVISION_NAME,DIVISION_NAME_URDU,DIVISION_GPS,CREATION_DATE_TIME_STAMP,CREATION_USER_ID,INTERFACE_SOURCE,UPDATE_DATE_TIME_STAMP,UPDATE_USER_ID,RECORD_ACTIVE_STATUS,URL_USED,REMARKS_REASON_OF_NON_ACTIVE,division_latitude,division_longitude
+1,1,Muzaffarabad Division,,,,,,,,1,,,,
+2,1,Poonch Division,,,,,,,,1,,,,
+3,1,Mirpur Division,,,,,,,,1,,,,
+4,2,Quetta Division,,,,,,,,1,,,,
+5,2,Pishin Division,,,,,,,,1,,,,
+6,2,Khuzdar Division,,,,,,,,1,,,,
+7,2,Lasbela Division,,,,,,,,1,,,,
+8,2,Makran Division,,,,,,,,1,,,,
+9,2,Naseerabad Division,,,,,,,,1,,,,
+10,2,Sibi Division,,,,,,,,1,,,,
+11,2,Rakhshan Division,,,,,,,,1,,,,
+12,2,Zhob Division,,,,,,,,1,,,,
+13,2,Loralai Division,,,,,,,,1,,,,
+14,2,Koh-e-Sulaiman Division,,,,,,,,1,,,,
+15,3,DISPUTED TERRITORY,,,,,,,,1,,,,
+16,4,FATA,,,,,,,,1,,,,
+17,5,FEDERAL CAPITAL TERRITORY,,,,,,,,1,,,,
+18,6,Gilgit Division,,,,,,,,1,,,,
+19,6,Baltistan Division,,,,,,,,1,,,,
+20,6,Diamer Division,,,,,,,,1,,,,
+21,7,Peshawar Division,,,,,,,,1,,,,
+22,7,Mardan Division,,,,,,,,1,,,,
+23,7,Hazara Division,,,,,,,,1,,,,
+24,7,Malakand Division,,,,,,,,1,,,,
+25,7,Kohat Division,,,,,,,,1,,,,
+26,7,Bannu Division,,,,,,,,1,,,,
+27,7,Dera Ismail Khan Division,,,,,,,,1,,,,
+28,8,Lahore Division,,,,,,,,1,,,,
+29,8,Gujrat Division,,,,,,,,1,,,,
+30,8,Gujranwala Division,,,,,,,,1,,,,
+31,8,Faisalabad Division,,,,,,,,1,,,,
+32,8,Rawalpindi Division,,,,,,,,1,,,,
+33,8,Sargodha Division,,,,,,,,1,,,,
+34,8,Sahiwal Division,,,,,,,,1,,,,
+35,8,Multan Division,,,,,,,,1,,,,
+36,8,Bahawalpur Division,,,,,,,,1,,,,
+37,8,Dera Ghazi Khan Division,,,,,,,,1,,,,
+38,9,Hyderabad Division,,,,,,,,1,,,,
+39,9,Karachi Division,,,,,,,,1,,,,
+40,9,Larkana Division,,,,,,,,1,,,,
+41,9,Sukkur Division,,,,,,,,1,,,,
+42,9,Mirpur Khas Division,,,,,,,,1,,,,
+43,9,Shaheed Benazirabad Division,,,,,,,,1,,,,
+DISTRICT_ID,DIVISION_ID,DISTRICT_NAME,DISTRICT_NAME_URDU,DISTRICT_PHONE_AREA_CODE,DISTRICT_GPS,CREATION_DATE_TIME_STAMP,CREATION_USER_ID,INTERFACE_SOURCE,UPDATE_DATE_TIME_STAMP,UPDATE_USER_ID,RECORD_ACTIVE_STATUS,URL_USED,REMARKS_REASON_OF_NON_ACTIVE,district_latitude,district_longitude
+1,2,BAGH,,,,,,,,,1,,[NULL],73.81699214,33.9789146
+2,1,BHIMBER,,,,,,,,,1,,[NULL],74.06785318,33.12219631
+3,1,HATTIAN,,,,,,,,,1,,[NULL],73.83354511,34.19375766
+4,2,HAVELI,,,,,,,,,1,,[NULL],74.11921924,33.93592419
+5,3,KOTLI,,,,,,,,,1,,[NULL],74.11691171,33.48305076
+6,3,MIRPUR,,,,,,,,,1,,[NULL],73.67105936,33.35506186
+7,1,MUZAFFARABAD,,,,,,,,,1,,[NULL],70.87550856,29.62388812
+8,1,NEELUM,,,,,,,,,1,,[NULL],74.17583133,34.79109334
+9,2,POONCH,,,,,,,,,1,,[NULL],73.97931668,33.8457259
+10,2,SUDHNOTI,,,,,,,,,1,,[NULL],73.74638178,33.70248444
+11,7,AWARAN,,,,,,,,,1,,[NULL],64.91038187,26.1394285
+12,14,BARKHAN,,,,,,,,,1,,[NULL],69.61770653,29.95412819
+13,11,CHAGAI,,,,,,,,,1,,[NULL],64.15036578,28.95148644
+14,10,DERA BUGTI,,,,,,,,,1,,[NULL],69.41511073,28.90125645
+15,8,GWADAR,,,,,,,,,1,,[NULL],63.2760642,25.41361838
+16,10,HARNAI,,,,,,,,,1,,[NULL],67.58978019,30.18360756
+17,9,JAFFARABAD,,,,,,,,,1,,[NULL],68.65036596,28.50413078
+18,9,JHAL MAGSI,,,,,,,,,1,,[NULL],67.50529652,28.22435576
+19,10,KACHHI(BOLAN),,,,,,,,,1,,[NULL],67.60053257,29.4546577
+20,6,KALAT,,,,,,,,,1,,[NULL],66.49180732,28.97543147
+21,8,KECH,,,,,,,,,1,,[NULL],64.19703823,25.98812928
+22,11,KHARAN,,,,,,,,,1,,[NULL],65.46624469,28.61316117
+23,6,KHUZDAR,,,,,,,,,1,,[NULL],66.1682033,26.85260051
+24,5,KILLA ABDULLAH,,,,,,,,,1,,[NULL],66.72269242,30.76450725
+25,12,KILLA SAIFULLAH,,,,,,,,,1,,[NULL],68.90679332,31.02208067
+26,14,KOHLU,,,,,,,,,1,,[NULL],68.85431759,29.41862194
+27,7,LASBELA,,,,,,,,,1,,[NULL],66.99673007,25.20470746
+28,13,LEHRI,,,,,,,,,1,,[NULL],68.13290678,29.09249084
+29,13,LORALAI,,,,,,,,,1,,[NULL],68.5389282,30.45761833
+30,4,MASTUNG,,,,,,,,,1,,[NULL],66.39384196,29.61936796
+31,13,MUSA KHEL,,,,,,,,,1,,[NULL],69.97942766,31.04626546
+32,9,NASIRABAD,,,,,,,,,1,,[NULL],68.15687701,28.59522387
+33,11,NUSHKI,,,,,,,,,1,,[NULL],65.90248309,29.40354138
+34,8,PANJGUR,,,,,,,,,1,,[NULL],64.07880302,26.39225558
+35,5,PISHIN,,,,,,,,,1,,[NULL],67.27586057,30.5996286
+36,4,QUETTA,,,,,,,,,1,,[NULL],66.96322799,30.15227506
+37,12,SHEERANI,,,,,,,,,1,,[NULL],69.77419094,31.6430694
+38,10,SIBI,,,,,,,,,1,,[NULL],67.60546888,29.93285144
+39,11,WASHUK,,,,,,,,,1,,[NULL],64.51398993,27.75799646
+40,12,ZHOB,,,,,,,,,1,,[NULL],68.23332195,31.49573727
+41,13,ZIARAT,,,,,,,,,1,,[NULL],67.50159896,30.4352961
+42,15,DISPUTED TERRITORY,,,,,,,,,1,,[NULL],76.58410271,33.75878235
+43,16,BAJAUR AGENCY,,,,,,,,,1,,[NULL],71.20295557,34.72875323
+44,16,FR BANNU,,,,,,,,,1,,[NULL],70.58110424,33.07903332
+45,16,FR D.I.KHAN,,,,,,,,,1,,[NULL],70.15161791,31.57659129
+46,16,FR KOHAT,,,,,,,,,1,,[NULL],71.59787731,33.65443545
+47,16,FR LAKKI MARWAT,,,,,,,,,1,,[NULL],70.38014756,32.63821917
+48,16,FR PESHAWAR,,,,,,,,,1,,[NULL],71.72159238,33.73471653
+49,16,FR TANK,,,,,,,,,1,,[NULL],70.27787522,32.45400728
+50,16,KHYBER AGENCY,,,,,,,,,1,,[NULL],70.97667189,33.8686421
+51,16,KURRAM AGENCY,,,,,,,,,1,,[NULL],70.07413066,33.88031014
+52,16,MOHMAND AGENCY,,,,,,,,,1,,[NULL],71.23257002,34.59338902
+53,16,NORTH WAZIRISTAN AGENCY,,,,,,,,,1,,[NULL],70.02436864,32.84003118
+54,16,ORAKZAI AGENCY,,,,,,,,,1,,[NULL],71.16450035,33.75139698
+55,16,SOUTH WAZIRISTAN AGENCY,,,,,,,,,1,,[NULL],69.96344595,32.60901474
+56,17,ISLAMABAD,,,,,,,,,1,,[NULL],73.12121495,33.66508855
+57,20,ASTORE,,,,,,,,,1,,[NULL],74.88347343,35.14611465
+58,20,DIAMIR,,,,,,,,,1,,[NULL],74.21972155,35.3819001
+59,19,GHANCHE,,,,,,,,,1,,[NULL],76.87033392,35.34605048
+60,18,GHIZER,,,,,,,,,1,,[NULL],73.90204951,36.57492127
+61,18,GILGIT,,,,,,,,,1,,[NULL],74.42239751,35.91658028
+62,18,HUNZA,,,,,,,,,1,,[NULL],75.15109539,36.59962258
+63,19,SKARDU,,,,,,,,,1,,[NULL],75.10784449,35.58000922
+64,23,ABBOTTABAD,,,,,,,,,1,,[NULL],73.28461319,34.15083566
+65,26,BANNU,,,,,,,,,1,,[NULL],70.82770735,32.9638431
+66,23,BATAGRAM,,,,,,,,,1,,[NULL],73.03664218,34.68496427
+67,24,BUNER,,,,,,,,,1,,[NULL],72.57836821,34.3230985
+68,21,CHARSADDA,,,,,,,,,1,,[NULL],71.70792239,34.34174935
+69,24,CHITRAL,,,,,,,,,1,,[NULL],72.55826021,36.46167957
+70,27,DERA ISMAIL KHAN,,,,,,,,,1,,[NULL],70.9841284,32.20184693
+71,25,HANGU,,,,,,,,,1,,[NULL],70.70802319,33.38570047
+72,23,HARIPUR,,,,,,,,,1,,[NULL],72.96225324,33.96457809
+73,25,KARAK,,,,,,,,,1,,[NULL],71.04902962,32.9510981
+74,25,KOHAT,,,,,,,,,1,,[NULL],71.47884341,33.32515958
+75,23,KOHISTAN,,,,,,,,,1,,[NULL],73.14258255,35.03663095
+76,26,LAKKI MARWAT,,,,,,,,,1,,[NULL],70.74073333,32.75501878
+77,24,LOWER DIR,,,,,,,,,1,,[NULL],71.72454101,34.84397899
+78,24,MALAKAND,,,,,,,,,1,,[NULL],71.87734412,34.4709462
+79,23,MANSEHRA,,,,,,,,,1,,[NULL],73.18500672,34.47560721
+80,22,MARDAN,,,,,,,,,1,,[NULL],72.16852831,34.27132948
+81,21,NOWSHEHRA,,,,,,,,,1,,[NULL],72.03956424,33.92525835
+82,21,Peshawar,,,,,,,,,1,,[NULL],71.55086149,34.0986379
+83,24,SHANGLA,,,,,,,,,1,,[NULL],72.78591297,34.80523836
+84,22,SWABI,,,,,,,,,1,,[NULL],72.49437642,34.1122569
+85,24,SWAT,,,,,,,,,1,,[NULL],72.51047876,34.84590593
+86,27,TANK,,,,,,,,,1,,[NULL],70.39242698,32.24356166
+87,23,TORGHER,,,,,,,,,1,,[NULL],72.83424939,34.55473433
+88,24,UPPER DIR,,,,,,,,,1,,[NULL],72.13725034,35.44040305
+89,32,ATTOCK,,,,,,,,,1,,[NULL],72.31075408,33.73158031
+90,36,BAHAWALNAGAR,,,,,,,,,1,,[NULL],72.80789514,29.68903263
+91,36,BAHAWALPUR,,,,,,,,,1,,[NULL],71.62384136,29.32425945
+92,33,BHAKKAR,,,,,,,,,1,,[NULL],71.42407147,32.05780782
+93,32,CHAKWAL,,,,,,,,,1,,[NULL],72.84707736,32.9993345
+94,31,CHINIOT,,,,,,,,,1,,[NULL],72.78384146,31.76055982
+95,37,DERA GHAZI KHAN,,,,,,,,,1,,[NULL],70.25811694,30.40213828
+96,31,FAISALABAD,,,,,,,,,1,,[NULL],73.40300796,31.34151063
+97,30,GUJRANWALA,,,,,,,,,1,,[NULL],74.18937379,32.14663319
+98,29,GUJRAT,,,,,,,,,1,,[NULL],73.89859036,32.75021899
+99,29,HAFIZABAD,,,,,,,,,1,,[NULL],73.37878143,31.9503764
+100,31,JHANG,,,,,,,,,1,,[NULL],72.01034564,31.26711801
+101,32,JHELUM,,,,,,,,,1,,[NULL],73.54883918,32.84138611
+102,28,KASUR,,,,,,,,,1,,[NULL],74.38488366,31.08519594
+103,35,KHANEWAL,,,,,,,,,1,,[NULL],71.89429561,30.51132006
+104,33,KHUSHAB,,,,,,,,,1,,[NULL],71.95031495,31.86784669
+105,28,LAHORE,,,,,,,,,1,,[NULL],74.21048591,31.42199354
+106,37,LAYYAH,,,,,,,,,1,,[NULL],71.5321438,30.92705228
+107,35,LODHRAN,,,,,,,,,1,,[NULL],71.89153728,29.6426115
+108,29,MANDI BAHAUDDIN,,,,,,,,,1,,[NULL],73.51503846,32.5483521
+109,33,MIANWALI,,,,,,,,,1,,[NULL],71.66941864,32.67199304
+110,35,MULTAN,,,,,,,,,1,,[NULL],71.54951156,30.14417488
+111,37,MUZAFFARGARH,,,,,,,,,1,,[NULL],73.7557779,31.34962913
+112,28,NANKANA SAHIB,,,,,,,,,1,,[NULL],73.43438084,31.72030491
+113,30,NAROWAL,,,,,,,,,1,,[NULL],75.16054967,32.21957783
+114,34,OKARA,,,,,,,,,1,,[NULL],73.66241512,30.93112554
+115,34,PAK PATTAN,,,,,,,,,1,,[NULL],73.07905122,30.27431316
+116,36,RAHIM YAR KHAN,,,,,,,,,1,,[NULL],70.8671307,28.45033325
+117,37,RAJANPUR,,,,,,,,,1,,[NULL],69.76738089,29.22006742
+118,32,RAWALPINDI,,,,,,,,,1,,[NULL],73.45059741,33.4389079
+119,34,SAHIWAL,,,,,,,,,1,,[NULL],72.65912822,30.43568938
+120,33,SARGODHA,,,,,,,,,1,,[NULL],72.93727888,32.34452407
+121,28,SHEIKHUPURA,,,,,,,,,1,,[NULL],74.40898932,31.85704982
+122,30,SIALKOT,,,,,,,,,1,,[NULL],74.55479342,32.58265699
+123,31,TOBA TEK SINGH,,,,,,,,,1,,[NULL],72.68502794,31.14476442
+124,35,VEHARI,,,,,,,,,1,,[NULL],72.41312785,30.02080654
+125,38,BADIN,,,,,,,,,1,,[NULL],68.84113532,25.10502611
+126,38,DADU,,,,,,,,,1,,[NULL],67.41749765,27.11389198
+127,41,GHOTKI,,,,,,,,,1,,[NULL],69.49942254,27.85876309
+128,38,HYDERABAD,,,,,,,,,1,,[NULL],68.38851415,25.28314044
+129,40,JACOBABAD,,,,,,,,,1,,[NULL],68.37705716,28.24026947
+130,38,JAMSHORO,,,,,,,,,1,,[NULL],67.69760216,26.23915111
+131,39,KARACHI,,,,,,,,,1,,[NULL],67.13494993,24.89196186
+132,40,KASHMORE,,,,,,,,,1,,[NULL],69.45240744,28.33075082
+133,41,KHAIRPUR,,,,,,,,,1,,[NULL],68.46101484,26.78164897
+134,40,LARKANA,,,,,,,,,1,,[NULL],68.20179908,27.57267283
+135,38,MATIARI,,,,,,,,,1,,[NULL],68.52300936,25.62580695
+136,42,MIRPURKHAS,,,,,,,,,1,,[NULL],68.96977289,25.63662633
+137,43,NAUSHAHRO FEROZE,,,,,,,,,1,,[NULL],68.11437465,27.07252954
+138,43,SANGHAR,,,,,,,,,1,,[NULL],69.04813806,26.10894309
+139,40,SHAHDAD KOT,,,,,,,,,1,,[NULL],68.08114249,27.81265427
+140,43,SHAHEED BENAZIRABAD,,,,,,,,,1,,[NULL],68.19696364,26.14280442
+141,40,SHIKARPUR,,,,,,,,,1,,[NULL],68.52047966,28.03818193
+142,38,SUJAWAL,,,,,,,,,1,,[NULL],67.61535452,23.99421692
+143,41,SUKKUR,,,,,,,,,1,,[NULL],68.80334568,27.76079097
+144,38,TANDO ALLAH YAR,,,,,,,,,1,,[NULL],68.81905667,25.32225159
+145,38,TANDO MUHAMMAD KHAN,,,,,,,,,1,,[NULL],68.58823615,25.12287427
+146,42,THAR PARKAR,,,,,,,,,1,,[NULL],70.08639479,24.62181582
+147,38,THATTA,,,,,,,,,1,,[NULL],67.4707461,24.17953026
+148,42,UMER KOT,,,,,,,,,1,,[NULL],69.36732534,25.49709738
+149,1,Jhelum Valley,,,,,,,,,1,,[NULL],,
+150,5,Chamman,,,,,,,,,1,,[NULL],,
+151,5,Barshore,,,,,,,,,1,,[NULL],,
+152,6,Wadh,,,,,,,,,1,,[NULL],,
+153,6,Surab,,,,,,,,,1,,[NULL],,
+154,7,Hub,,,,,,,,,1,,[NULL],,
+155,9,Sohbatpur,,,,,,,,,1,,[NULL],,
+156,9,Usta Muhammad,,,,,,,,,1,,[NULL],,
+157,11,Taftan,,,,,,,,,1,,[NULL],,
+158,13,Duki,,,,,,,,,1,,[NULL],,
+159,18,Nagar,,,,,,,,,1,,[NULL],,
+160,18,Gupis-Yasin,,,,,,,,,1,,[NULL],,
+161,19,Shigar,,,,,,,,,1,,[NULL],,
+162,19,Roundu,,,,,,,,,1,,[NULL],,
+163,20,Darel,,,,,,,,,1,,[NULL],,
+164,20,Tangir,,,,,,,,,1,,[NULL],,
+165,21,Khyber,,,,,,,,,1,,[NULL],,
+166,21,Mohmand,,,,,,,,,1,,[NULL],,
+167,23,Kolai-Palas,,,,,,,,,1,,[NULL],,
+168,23,Allai,,,,,,,,,1,,[NULL],,
+169,24,Bajaur,,,,,,,,,1,,[NULL],,
+170,25,Orakzai,,,,,,,,,1,,[NULL],,
+171,25,Kurram,,,,,,,,,1,,[NULL],,
+172,26,North Waziristan,,,,,,,,,1,,[NULL],,
+173,27,Lower South Waziristan,,,,,,,,,1,,[NULL],,
+174,27,Upper South Waziristan,,,,,,,,,1,,[NULL],,
+175,29,Wazirabad,,,,,,,,,1,,[NULL],,
+176,32,Murree,,,,,,,,,1,,[NULL],,
+177,32,Talagang,,,,,,,,,1,,[NULL],,
+178,37,Kot Addu,,,,,,,,,1,,[NULL],,
+179,37,Taunsa Sharif,,,,,,,,,1,,[NULL],,
+180,39,Karachi Central (Nazimabad),,,,,,,,,1,,[NULL],,
+181,39,Karachi East (Gulshan),,,,,,,,,1,,[NULL],,
+182,39,Karachi South,,,,,,,,,1,,[NULL],,
+183,39,Karachi West (Orangi),,,,,,,,,1,,[NULL],,
+184,39,Malir,,,,,,,,,1,,[NULL],,
+185,39,Korangi,,,,,,,,,1,,[NULL],,
+186,39,Keamari,,,,,,,,,1,,[NULL],,
+TEHSIL_ID,DISTRICT_ID,TEHSIL_NAME,TEHSIL_NAME_URDU,TEHSIL_GPS,CREATION_DATE_TIME_STAMP,CREATION_USER_ID,INTERFACE_SOURCE,UPDATE_DATE_TIME_STAMP,UPDATE_USER_ID,RECORD_ACTIVE_STATUS,URL_USED,REMARKS_REASON_OF_NON_ACTIVE,tehsil_latitude,tehsil_longitude
+1,1,BAGH,,,,,seed:pakistan_locations.json,,,1,,[NULL],71.46706691,33.9967624
+2,1,DHEERKOT,,,,,seed:pakistan_locations.json,,,1,,[NULL],71.61096984,33.87306636
+3,2,BARNALA,,,,,seed:pakistan_locations.json,,,1,,[NULL],71.53538095,34.0045611
+4,2,BHIMBER,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.24114021,25.2013407
+5,2,SAMAHNI,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.39807934,24.86148835
+6,3,HATTIAN BALA,,,,,seed:pakistan_locations.json,,,1,,[NULL],66.99696969,24.86845822
+7,4,HAVELI,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.005688,24.91169284
+8,5,KOTLI,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.0706464,24.93154433
+9,5,NAKIAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.04683948,24.94288234
+10,5,SEHNSA,,,,,seed:pakistan_locations.json,,,1,,[NULL],66.9887412,24.9539175
+11,6,DUDYAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],66.95653616,24.94158134
+12,6,MIRPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.18886298,24.95422163
+13,7,MUZAFFARABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.20013374,24.89316763
+14,8,ATHUMQAM,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.13494993,24.89196186
+15,9,ABBASPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.15909369,24.87745719
+16,9,HAJEERA,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.0167148,24.83344703
+17,9,RAWALAKOT,,,,,seed:pakistan_locations.json,,,1,,[NULL],66.84269534,24.9052015
+18,10,PALLANDARI,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.07032958,24.79365674
+19,11,Awaran,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.11064848,24.79986366
+20,11,Gishkore Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.13208435,24.83088693
+21,11,Jhal Jhao,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.18581279,24.84418387
+22,11,Jhal Jhao Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.03871795,24.90613762
+23,11,Mashkai,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.05900019,24.86581217
+24,12,Barkhan,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.10780275,24.9235662
+25,13,Chagai Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.0454642,24.84633212
+26,13,Dalbadin,,,,,seed:pakistan_locations.json,,,1,,[NULL],66.94515081,24.82360475
+27,13,Naukandi,,,,,seed:pakistan_locations.json,,,1,,[NULL],67.0717398,24.98512475
+28,13,Taftan,,,,,seed:pakistan_locations.json,,,1,,[NULL],72.49521072,30.66824575
+29,14,Bekerh,,,,,seed:pakistan_locations.json,,,1,,[NULL],72.31468011,30.39903296
+30,14,Dera Bughti,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+31,14,Loti Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+32,14,Malum,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+33,14,Phelawagh,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+34,14,Pir Koh,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+35,14,Sangsilla,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+36,14,Sui,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+37,15,Gwadar,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+38,15,Jiwani,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+39,15,Ormara,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+40,15,Pasni,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+41,15,Sunstar Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+42,16,Harnai,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+43,16,Khost,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+44,16,Shahrig,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+45,17,Ghandakha,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+46,17,Jhat Pat,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+47,17,SOHBATPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+48,17,Usta Muhammad,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+49,18,Gandawa,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+50,18,Jhal Magsi,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+51,18,Mirpur Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+52,19,Balanari Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+53,19,Dhadar,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+54,19,Khattan Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+55,19,Mach Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+56,19,Sanni Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+57,20,Gazg,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+58,20,Johan,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+59,20,Kalat,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+60,20,Mango Char,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+61,20,Surab,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+62,21,Balnigor,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+63,21,Buleda,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+64,21,Dasht,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+65,21,Hoshab,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+66,21,Kech,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+67,21,Mand,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+68,21,Tump,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+69,21,Zamuran,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+70,22,Kharan,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+71,23,Aranji Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+72,23,Karkah Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+73,23,Khuzdar,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+74,23,Moola Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+75,23,Nal Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+76,23,Ornach Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+77,23,Saroona Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+78,23,Wadh Sub,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+79,23,ZEHRI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+80,24,CHAMAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+81,24,DOBANDI SUB-,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+82,24,GULISTAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+83,24,KILLA ABDULLAH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+84,25,BADINI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+85,25,KAN MEHTARZAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+86,25,KILLA SAIFULLAH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+87,25,LOI BAND,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+88,25,MUSLIM BAGH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+89,25,SHINKAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+90,26,GIRSANI SUB,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+91,26,KAHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+92,26,KOHLU,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+93,26,MAWAND,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+94,27,BELA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+95,27,DURJI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+96,27,GADDANI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+97,27,HUB,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+98,27,KANRAJ,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+99,27,LAKHRA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+100,27,LIARI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+101,27,SONMIANI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+102,27,UTHAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+103,28,BHAG,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+104,28,LEHRI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+105,29,Duki,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+106,29,Loralai,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+107,29,Mekhtar,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+108,30,DASHT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+109,30,KHAD KOCHA SUB-,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+110,30,KIRDGAP SUB-,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+111,30,MASTUNG,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+112,31,DRUG SUB,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+113,31,KINGRI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+114,31,MUSA KHEL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+115,32,BABA_KOT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+116,32,CHATTAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+117,32,DERA_MURAD_JAMALI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+118,32,TAMBOO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+119,33,DAK_,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+120,33,NUSHKI_,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+121,34,GICHK,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+122,34,GOWARGO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+123,34,PANJGUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+124,34,PAROME,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+125,35,BARSHORE,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+126,35,HURAMZAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+127,35,KAREZAT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+128,35,PISHIN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+129,35,SARANAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+130,36,PANJ PAI SUB-,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+131,36,QUETTA CITY,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+132,36,QUETTA SADDAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+133,37,SHEERANI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+134,38,KUT MANDAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+135,38,SANGAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+136,38,SIBI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+137,39,BESIMA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+138,39,MASHKHEL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+139,39,NAG,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+140,39,SHAHDO GARHI SUB,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+141,39,WASHUK,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+142,40,ASHWAT SUB-,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+143,40,KASHATOO SUB-,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+144,40,QAMAR DIN KAREZ,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+145,40,SAMBAZA SUB,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+146,40,ZHOB,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+147,41,SINJAWI SUB,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+148,41,ZIARAT SUB DIVISION,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+149,42,DISPUTED TERRITORY,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+150,43,BAR CHAMARKAND,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+151,43,BARANG,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+152,43,KHAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+153,43,MAMUND,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+154,43,NAWAGAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+155,43,SALARZAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+156,43,UTMAN KHEL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+157,44,FR BANNU,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+158,45,FR D.I.KHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+159,46,FR KOHAT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+160,47,FR LAKKI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+161,48,FR PESHAWAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+162,49,FR TANK,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+163,50,BARA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+164,50,JAMRUD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+165,50,LANDI KOTAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+166,51,CENTRAL KURRAM,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+167,51,LOWER KURRAM,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+168,51,UPPER KURRAM,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+169,52,AMBAR UTMAN KHEL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+170,52,HALIMZAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+171,52,PINDIALI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+172,52,PRANG GHAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+173,52,SAFI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+174,52,UPPER MOMAND,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+175,52,YAKA GHUND,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+176,53,DATA KHEL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+177,53,DOSSALI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+178,53,GARYUM,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+179,53,GHULAM KHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+180,53,MIR ALI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+181,53,MIRAN SHAH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+182,53,RAZMAK,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+183,53,SHEWA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+184,53,SPINWAM,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+185,54,CENTRAL ORAKZAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+186,54,ISMAILZAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+187,54,LOWER ORAKZAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+188,54,UPPER ORAKZAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+189,55,BIRMAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+190,55,LADHA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+191,55,MAKIN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+192,55,SARAOGHA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+193,55,SERWEKAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+194,55,TIARZA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+195,55,TOI KHULLA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+196,55,WANA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+197,56,ISLAMABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+198,57,ASTORE,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+199,58,CHILAS,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+200,58,DAREL TANGIR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+201,59,KHAPLU,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+202,59,MASHABRUM,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+203,60,GUPIS,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+204,60,ISHKOMEN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+205,60,PUNIAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+206,60,YASIN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+207,61,GILGIT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+208,62,ALIABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+209,62,GOJAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+210,62,NAGAR-I,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+211,62,NAGAR-II,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+212,63,GULTARI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+213,63,KHARMANG,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+214,63,RONDU,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+215,63,SHIGAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+216,63,SKARDU,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+217,64,ABBOTTABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+218,64,HAVELIAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+219,65,BANNU,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+220,65,DOMEL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+221,66,ALAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+222,66,BATAGRAM,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+223,67,DAGGAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+224,67,GAGRA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+225,67,KHADO KHEL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+226,68,CHARSADDA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+227,68,SHABQADAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+228,68,TANGI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+229,69,CHITRAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+230,69,MASTUJ,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+231,70,D.I.KHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+232,70,DARABAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+233,70,KULACHI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+234,70,PAHARPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+235,70,PAROA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+236,71,HANGU,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+237,71,TALL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+238,72,GHAZI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+239,72,HARIPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+240,73,BANDA DAUD SHAH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+241,73,KARAK,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+242,73,TAKHT E NASRATI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+243,74,KOHAT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+244,74,LACHI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+245,75,DASSU,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+246,75,KANDIA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+247,75,PALAS,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+248,75,PATTAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+249,76,LAKKI MARWAT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+250,76,NAURANG,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+251,77,ADENZAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+252,77,LALQILLA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+253,77,MUNDA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+254,77,SAMARBAGH(BARWA),,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+255,77,TEMERGARA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+256,78,SAM RANIZAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+257,78,SWAT RANIZAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+258,79,BALAKOT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+259,79,MANSEHRA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+260,79,OGHI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+261,80,KATLANG,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+262,80,MARDAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+263,80,TAKHT BHAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+264,81,NOWSHERA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+265,81,PABBI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+266,82,Peshawar Cantonment,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+267,82,Peshawar I,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+268,82,Peshawar II,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+269,82,Peshawar III,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+270,82,Peshawar IV,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+271,83,ALPURI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+272,83,BISHAM,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+273,83,CHIKSAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+274,83,MARTUNG,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+275,83,PURAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+276,84,LAHOR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+277,84,RAZAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+278,84,SWABI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+279,84,TOPI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+280,85,BABUZAI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+281,85,BAHRAIN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+282,85,BARIKOT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+283,85,CHARBAGH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+284,85,KABAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+285,85,KHAWAZA KHELA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+286,85,MATTA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+287,86,TANK,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+288,87,TORGHER,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+289,88,DIR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+290,88,SHARINGAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+291,88,WARI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+292,89,ATTOCK,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+293,89,FATEH JANG,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+294,89,HASSANABDAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+295,89,HAZRO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+296,89,JAND,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+297,89,PINDI GHEB,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+298,90,BAHAWALNAGAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+299,90,CHISHTIAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+300,90,FORT ABBAS,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+301,90,HAROONABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+302,90,MINCHINABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+303,91,AHMADPUR EAST,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+304,91,BAHAWALPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+305,91,BAHAWALPUR CITY,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+306,91,HASILPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+307,91,KHAIRPUR TAMEWALI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+308,91,YAZMAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+309,92,BHAKKAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+310,92,DARYA KHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+311,92,KALUR KOT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+312,92,MANKERA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+313,93,CHAKWAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+314,93,CHOA SAIDAN SHAH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+315,93,KALLAR KAHAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+316,93,TALA GANG,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+317,94,BHAWANA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+318,94,CHINIOT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+319,94,LALIAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+320,95,DE-EXCLUDED AREA D.G.KHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+321,95,DERA GHAZI KHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+322,95,TAUNSA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+323,96,CHAK JHUMRA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+324,96,FAISALABAD CITY,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+325,96,FAISALABAD SADDAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+326,96,JARANWALA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+327,96,SAMUNDARI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+328,96,TANDLIANWALA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+329,97,GUJRANWALA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+330,97,GUJRANWALA CITY,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+331,97,KAMOKE,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+332,97,NOWSHERA VIRKHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+333,97,WAZIRABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+334,98,GUJRAT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+335,98,KHARIAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+336,98,SARAI ALAMGIR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+337,99,HAFIZABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+338,99,PINDI BHATTIAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+339,100,18-HAZARI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+340,100,AHMEDPUR SIAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+341,100,JHANG,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+342,100,SHORKOT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+343,101,DINA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+344,101,JHELUM,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+345,101,PIND DADAN KHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+346,101,SOHAWA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+347,102,CHUNIAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+348,102,KASUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+349,102,KOT RADHA KISHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+350,102,PATTOKI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+351,103,JAHANIAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+352,103,KABIRWALA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+353,103,KHANEWAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+354,103,MIAN CHANNU,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+355,104,KHUSHAB,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+356,104,NOORPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+357,104,QAIDABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+358,105,LAHORE CANTT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+359,105,LAHORE CITY,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+360,106,CHAUBARA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+361,106,KAROR LAL ESAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+362,106,LAYYAH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+363,107,DUNYA PUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+364,107,KARORPACCA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+365,107,LODHRAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+366,108,MALAKWAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+367,108,MANDI BAHAUDDIN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+368,108,PHALIA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+369,109,ISAKHEL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+370,109,MIANWALI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+371,109,PIPLAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+372,110,JALALPUR PIRWALA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+373,110,MULTAN CITY,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+374,110,MULTAN SADDAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+375,110,SHUJABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+376,111,ALIPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+377,111,JATOI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+378,111,KOT ADDU,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+379,111,MUZAFFARGARH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+380,112,NANKANA SAHAB,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+381,112,SAFDARABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+382,112,SHAH KOT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+383,112,SHANGLA HILL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+384,113,NAROWAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+385,113,SHAKARGARH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+386,113,ZAFARWAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+387,114,DEPALPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+388,114,OKARA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+389,114,RENALA KHURD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+390,115,ARIFWALA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+391,115,PAK PATTAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+392,116,KHAN PUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+393,116,LIAQAT PUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+394,116,RAHIM YAR KHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+395,116,SADIQABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+396,117,DE-EXCLUDED AREA RAJANPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+397,117,JAMPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+398,117,RAJANPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+399,117,ROJHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+400,118,GUJAR KHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+401,118,KAHUTA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+402,118,KALLAR SAYYEDAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+403,118,KOTLI SATTIAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+404,118,MURREE,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+405,118,RAWALPINDI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+406,118,TAXILA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+407,119,CHICHAWATNI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+408,119,SAHIWAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+409,120,BHALWAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+410,120,KOT MOMIN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+411,120,SAHIWAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+412,120,SARGODHA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+413,120,SHAHPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+414,120,SILLANWALI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+415,121,FEROZEWALA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+416,121,MURIDKE,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+417,121,SHARAK PUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+418,121,SHEIKHUPURA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+419,122,DASKA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+420,122,PASRUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+421,122,SAMBRIAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+422,122,SIALKOT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+423,123,GOJRA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+424,123,KAMALIA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+425,123,TOBA TEK SINGH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+426,124,BUREWALA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+427,124,MAILSI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+428,124,VEHARI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+429,125,Badin,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+430,125,Matli,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+431,125,Shaheed Fazal Rahu,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+432,125,Talhar,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+433,125,Tando Bago,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+434,126,DADU,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+435,126,JOHI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+436,126,KHAIRPUR NATHAN SHAH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+437,126,MEHAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+438,127,DAHARKI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+439,127,GHOTKI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+440,127,KHANGARH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+441,127,MIRPUR MATHELO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+442,127,UBAURO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+443,128,HYDERABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+444,128,LATIFABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+445,128,QASIMABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+446,129,GARHI KHAIRO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+447,129,JACOBABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+448,129,THUL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+449,130,KOTRI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+450,130,MANJAND,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+451,130,SEHWAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+452,130,THANO BULA KHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+453,131,BALDIA TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+454,131,BIN QASIM TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+455,131,CLIFTON CANTONMENT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+456,131,FAISAL CANTONMENT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+457,131,GADAP TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+458,131,GULBERG TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+459,131,GULSHAN E IQBAL TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+460,131,JAMSHED TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+461,131,KARACHI CANTONMENT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+462,131,KIAMARI TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+463,131,KORANGI CREEK CANTONMENT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+464,131,KORANGI TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+465,131,LANDHI TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+466,131,LIAQATABAD TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+467,131,LYARI TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+468,131,MALIR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+469,131,MALIR CANTONMENT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+470,131,MANORA CANTONMENT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+471,131,N.NAZIMABAD TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+472,131,NEW KARACHI TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+473,131,ORANGI TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+474,131,SADDAR TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+475,131,SHAH FAISAL TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+476,131,SITE TOWN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+477,132,KANDHKOT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+478,132,KASHMORE,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+479,132,TANGWANI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+480,133,FAIZ GANJ,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+481,133,GAMBAT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+482,133,KHAIRPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+483,133,KINGRI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+484,133,KOT DIJI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+485,133,MIRWAH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+486,133,NARA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+487,133,SOBHO DERO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+488,134,BAKRANI TALUKS,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+489,134,DOKRI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+490,134,LARKANA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+491,134,RATODERO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+492,135,HALA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+493,135,MATIARI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+494,135,SAEEDABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+495,136,DIGRI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+496,136,HUSSAIN BUX MARI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+497,136,JHUDO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+498,136,KOT GHULAM MUHAMMAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+499,136,MIRPURKHAS,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+500,136,SINDHRI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+501,137,BHIRIA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+502,137,KANDIARO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+503,137,MEHRABPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+504,137,MORO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+505,137,NAUSHAHRO FEROZE,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+506,138,JAM NAWAZ ALI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+507,138,KHIPRO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+508,138,SANGHAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+509,138,SHAHDADPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+510,138,SINJHORO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+511,138,TANDO ADAM,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+512,139,KAMBAR ALI KHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+513,139,MIRO KHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+514,139,NASIRABAD,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+515,139,QUBO SAEED KHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+516,139,SHAHDAD KOT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+517,139,SIJAWAL JUNEJO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+518,139,WARAH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+519,140,DAUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+520,140,KAZI AHMED,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+521,140,NAWABSHAH,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+522,140,SAKRAND,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+523,141,GARHI YASIN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+524,141,KHANPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+525,141,LAKHI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+526,141,SHIKARPUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+527,142,JATI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+528,142,KHARO CHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+529,142,MIRPUR BATHORO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+530,142,SHAH BUNDER,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+531,142,SUJAWAL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+532,143,NEW SUKKUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+533,143,PANO AQIL,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+534,143,ROHRI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+535,143,SALEHPAT,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+536,143,SUKKUR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+537,144,CHAMBER,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+538,144,JHANDO MARI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+539,144,TANDO ALLAH YAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+540,145,BULRI SHAH KARIM,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+541,145,TANDO GULAM HYDER,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+542,145,TANDO MUHAMMAD KHAN,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+543,146,CHACHRO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+544,146,DIPLO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+545,146,MITHI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+546,146,NAGAR PARKAR,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+547,147,GHORABARI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+548,147,KETI BUNDER,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+549,147,MIRPUR SAKRO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+550,147,THATTA,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+551,148,KUNRI,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+552,148,PITHORO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+553,148,SAMARO,,,,,seed:pakistan_locations.json,,,1,,[NULL],,
+554,148,UMER KOT,,,,,seed:pakistan_locations.json,,,1,,[NULL],

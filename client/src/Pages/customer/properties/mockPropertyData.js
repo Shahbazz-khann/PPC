@@ -17,15 +17,31 @@ export const COUNTRIES = ['Pakistan'];
 export const PROVINCES = ['Punjab', 'Sindh', 'Islamabad Capital Territory'];
 
 export const CITIES = {
-  'Punjab': ['Lahore', 'Faisalabad', 'Rawalpindi'],
-  'Sindh': ['Karachi', 'Hyderabad'],
-  'Islamabad Capital Territory': ['Islamabad']
+  'City': ['Lahore'],
+  'Cantonment': ['Lahore'],
+  'Model Town': ['Lahore'],
+  'Shalimar': ['Lahore'],
+  'Raiwind': ['Lahore'],
+  'Saddar': ['Karachi'],
+  'Aram Bagh': ['Karachi'],
+  'Civil Line': ['Karachi'],
+  'Zone 1': ['Islamabad'],
+  'Zone 2': ['Islamabad'],
+  'Zone 3': ['Islamabad'],
+  'Zone 4': ['Islamabad'],
+  'Zone 5': ['Islamabad']
+};
+
+export const DIVISIONS = {
+  'Punjab': ['Lahore Division'],
+  'Sindh': ['Karachi Division'],
+  'Islamabad Capital Territory': ['Islamabad Division']
 };
 
 export const DISTRICTS = {
-  'Lahore': ['Lahore District'],
-  'Karachi': ['Karachi South', 'Karachi East', 'Karachi Central'],
-  'Islamabad': ['Islamabad District']
+  'Lahore Division': ['Lahore District'],
+  'Karachi Division': ['Karachi South', 'Karachi East', 'Karachi Central'],
+  'Islamabad Division': ['Islamabad District']
 };
 
 export const TEHSILS = {
@@ -35,9 +51,18 @@ export const TEHSILS = {
 };
 
 export const SOCIETIES = {
-  'Cantonment': ['DHA Phase 8', 'DHA Phase 6'],
-  'Raiwind': ['Bahria Town', 'Lake City'],
-  'City': ['Gulberg III', 'Johar Town']
+  'Lahore': ['DHA Phase 8', 'DHA Phase 6', 'Bahria Town', 'Lake City', 'Gulberg III', 'Johar Town'],
+  'Karachi': ['Clifton', 'DHA Phase 5'],
+  'Islamabad': ['DHA Phase 2', 'Sector F-8']
+};
+
+export const AREAS = {
+  'DHA Phase 8': ['Sector W', 'Sector X', 'Sector Y', 'Sector Z'],
+  'DHA Phase 6': ['Sector A', 'Sector B', 'Sector C'],
+  'Bahria Town': ['Sector C', 'Sector D', 'Sector E'],
+  'Lake City': ['Sector M1', 'Sector M2'],
+  'Gulberg III': ['Main Market', 'Ghalib Market'],
+  'Johar Town': ['Block A', 'Block B', 'Block C']
 };
 
 export const SIZE_UOM = [

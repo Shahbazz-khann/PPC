@@ -1,0 +1,735 @@
+=== COLUMNS ===
+[
+  {
+    "table_name": "areas",
+    "column_name": "area_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "areas",
+    "column_name": "area_english",
+    "data_type": "character varying",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "areas",
+    "column_name": "area_urdu",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "areas",
+    "column_name": "area_abb",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "areas",
+    "column_name": "society_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "areas",
+    "column_name": "is_active",
+    "data_type": "boolean",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "cities",
+    "column_name": "city_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "cities",
+    "column_name": "city_english",
+    "data_type": "character varying",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "cities",
+    "column_name": "city_urdu",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "cities",
+    "column_name": "city_abb",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "cities",
+    "column_name": "tehsil_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "cities",
+    "column_name": "is_active",
+    "data_type": "boolean",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "countries",
+    "column_name": "country_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "countries",
+    "column_name": "country_english",
+    "data_type": "character varying",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "countries",
+    "column_name": "country_urdu",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "countries",
+    "column_name": "country_abb",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "countries",
+    "column_name": "is_active",
+    "data_type": "boolean",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "districts",
+    "column_name": "district_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "districts",
+    "column_name": "district_english",
+    "data_type": "character varying",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "districts",
+    "column_name": "district_urdu",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "districts",
+    "column_name": "district_abb",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "districts",
+    "column_name": "is_active",
+    "data_type": "boolean",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "districts",
+    "column_name": "division_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "divisions",
+    "column_name": "division_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "divisions",
+    "column_name": "division_english",
+    "data_type": "character varying",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "divisions",
+    "column_name": "division_urdu",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "divisions",
+    "column_name": "division_abb",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "divisions",
+    "column_name": "province_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "divisions",
+    "column_name": "is_active",
+    "data_type": "boolean",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "customer_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "ownership_type_id",
+    "data_type": "bigint",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_owner_id",
+    "data_type": "bigint",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_authorized_person_id",
+    "data_type": "bigint",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_district_id",
+    "data_type": "bigint",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_tehsil_id",
+    "data_type": "bigint",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "society_id",
+    "data_type": "bigint",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "area_id",
+    "data_type": "bigint",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_type_id",
+    "data_type": "bigint",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_location_id",
+    "data_type": "bigint",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_amenity_id",
+    "data_type": "bigint",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_road_size_front_ft",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_road_size_left_ft",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_road_size_right_ft",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_road_size_back_ft",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_size",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_size_uom",
+    "data_type": "bigint",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_marla_size_id",
+    "data_type": "bigint",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_area_marla",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_area_kanal",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_area_acre",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_area_sqft",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_area_sqyard",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_covered_area_sqft",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_open_area_sqft",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_rooms",
+    "data_type": "integer",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_bath_rooms",
+    "data_type": "integer",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_floors",
+    "data_type": "integer",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_lounges",
+    "data_type": "integer",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_kitchens",
+    "data_type": "integer",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_drawing_rooms",
+    "data_type": "integer",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_swimming_pool",
+    "data_type": "boolean",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_swimming_media_room",
+    "data_type": "boolean",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_solar_is_installed",
+    "data_type": "boolean",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_solar_capacity",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_electric_meters",
+    "data_type": "integer",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_gas_meters",
+    "data_type": "integer",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "creation_date_time",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "update_date_time",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "created_by_user",
+    "data_type": "bigint",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "is_active",
+    "data_type": "boolean",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "gps_coordinates",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "url_used",
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_use_id",
+    "data_type": "bigint",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_size_front",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_size_back",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_size_right",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_size_left",
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_description",
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "provinces",
+    "column_name": "province_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "provinces",
+    "column_name": "province_english",
+    "data_type": "character varying",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "provinces",
+    "column_name": "province_urdu",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "provinces",
+    "column_name": "province_abb",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "provinces",
+    "column_name": "country_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "provinces",
+    "column_name": "is_active",
+    "data_type": "boolean",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "societies",
+    "column_name": "society_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "societies",
+    "column_name": "society_english",
+    "data_type": "character varying",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "societies",
+    "column_name": "society_urdu",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "societies",
+    "column_name": "society_abb",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "societies",
+    "column_name": "city_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "societies",
+    "column_name": "is_active",
+    "data_type": "boolean",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "tehsils",
+    "column_name": "tehsil_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "tehsils",
+    "column_name": "tehsil_english",
+    "data_type": "character varying",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "tehsils",
+    "column_name": "tehsil_urdu",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "tehsils",
+    "column_name": "tehsil_abb",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "tehsils",
+    "column_name": "district_id",
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "tehsils",
+    "column_name": "is_active",
+    "data_type": "boolean",
+    "is_nullable": "NO"
+  }
+]
+=== FOREIGN KEYS ===
+[
+  {
+    "table_name": "areas",
+    "column_name": "society_id",
+    "foreign_table_name": "societies",
+    "foreign_column_name": "society_id"
+  },
+  {
+    "table_name": "cities",
+    "column_name": "tehsil_id",
+    "foreign_table_name": "tehsils",
+    "foreign_column_name": "tehsil_id"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "area_id",
+    "foreign_table_name": "areas",
+    "foreign_column_name": "area_id"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "customer_id",
+    "foreign_table_name": "customers",
+    "foreign_column_name": "customer_id"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_district_id",
+    "foreign_table_name": "districts",
+    "foreign_column_name": "district_id"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_location_id",
+    "foreign_table_name": "property_locations",
+    "foreign_column_name": "property_location_id"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_marla_size_id",
+    "foreign_table_name": "marla_sizes",
+    "foreign_column_name": "marla_id"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "ownership_type_id",
+    "foreign_table_name": "ownership_types",
+    "foreign_column_name": "ownership_type_id"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_use_id",
+    "foreign_table_name": "property_use",
+    "foreign_column_name": "property_use_id"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "society_id",
+    "foreign_table_name": "societies",
+    "foreign_column_name": "society_id"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_tehsil_id",
+    "foreign_table_name": "tehsils",
+    "foreign_column_name": "tehsil_id"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_type_id",
+    "foreign_table_name": "property_types",
+    "foreign_column_name": "property_type_id"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_size_uom",
+    "foreign_table_name": "uom",
+    "foreign_column_name": "uom_id"
+  },
+  {
+    "table_name": "provinces",
+    "column_name": "country_id",
+    "foreign_table_name": "countries",
+    "foreign_column_name": "country_id"
+  },
+  {
+    "table_name": "societies",
+    "column_name": "city_id",
+    "foreign_table_name": "cities",
+    "foreign_column_name": "city_id"
+  },
+  {
+    "table_name": "tehsils",
+    "column_name": "district_id",
+    "foreign_table_name": "districts",
+    "foreign_column_name": "district_id"
+  },
+  {
+    "table_name": "divisions",
+    "column_name": "province_id",
+    "foreign_table_name": "provinces",
+    "foreign_column_name": "province_id"
+  },
+  {
+    "table_name": "districts",
+    "column_name": "division_id",
+    "foreign_table_name": "divisions",
+    "foreign_column_name": "division_id"
+  }
+]
+=== PRIMARY KEYS ===
+[
+  {
+    "table_name": "areas",
+    "column_name": "area_id"
+  },
+  {
+    "table_name": "cities",
+    "column_name": "city_id"
+  },
+  {
+    "table_name": "countries",
+    "column_name": "country_id"
+  },
+  {
+    "table_name": "districts",
+    "column_name": "district_id"
+  },
+  {
+    "table_name": "properties",
+    "column_name": "property_id"
+  },
+  {
+    "table_name": "provinces",
+    "column_name": "province_id"
+  },
+  {
+    "table_name": "societies",
+    "column_name": "society_id"
+  },
+  {
+    "table_name": "tehsils",
+    "column_name": "tehsil_id"
+  },
+  {
+    "table_name": "divisions",
+    "column_name": "division_id"
+  }
+]

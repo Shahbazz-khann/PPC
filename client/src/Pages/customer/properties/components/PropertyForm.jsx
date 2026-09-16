@@ -4,11 +4,7 @@ import {
   Home, Maximize, List, Image as ImageIcon, Video, 
   X, UploadCloud, FileText, CheckSquare, Plus
 } from 'lucide-react';
-import { 
-  PROPERTY_TYPES, PROPERTY_USES, PROPERTY_LOCATIONS,
-  COUNTRIES, PROVINCES, CITIES, DISTRICTS, TEHSILS, SOCIETIES, 
-  SIZE_UOM, MARLA_SIZES, AMENITIES
-} from '../mockPropertyData';
+import { getPropertyFormReference, getCities, getSocieties, getAreas } from '../../../../Services/customer.services';
 
 const STEPS = [
   { id: 1, title: 'Classification', icon: Home },
@@ -20,7 +16,7 @@ const STEPS = [
   { id: 7, title: 'Review', icon: FileText }
 ];
 
-const BACKUP_TYPES = ['None', 'UPS', 'Generator', 'Solar', 'UPS + Generator', 'Other'];
+
 
 // Move components outside to prevent React remounting them on every render, which loses focus.
 const InputField = ({ label, name, value, onChange, error, type = "text", required, placeholder, isNumber, disabled }) => (
@@ -56,7 +52,9 @@ const SelectField = ({ label, name, value, onChange, options, required, error, d
     >
       <option value="">Select {label}</option>
       {options.map(opt => (
-        <option key={opt} value={opt}>{opt}</option>
+        typeof opt === 'object' && opt !== null
+          ? <option key={opt.value} value={opt.value}>{opt.label}</option>
+          : <option key={opt} value={opt}>{opt}</option>
       ))}
     </select>
     {error && <p className="text-xs text-red-500 font-semibold mt-1">{error}</p>}
@@ -149,19 +147,120 @@ const TagInput = ({ label, tags, suggestions, onAdd, onRemove, disabled }) => {
   );
 };
 
+const AutocompleteField = ({ label, name, value, displayValue, onChange, fetchOptions, error, required, disabled, placeholder }) => {
+  const [inputValue, setInputValue] = useState(displayValue || '');
+  const [options, setOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    setInputValue(displayValue || '');
+  }, [displayValue]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+        // Revert to selected display value if clicked outside without selecting
+        setInputValue(displayValue || '');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [displayValue]);
+
+  // Debounced fetch
+  useEffect(() => {
+    if (!fetchOptions || !showSuggestions || disabled) return;
+    
+    setLoading(true);
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        const results = await fetchOptions(inputValue);
+        setOptions(results);
+      } catch (err) {
+        setOptions([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [inputValue, fetchOptions, showSuggestions, disabled]);
+
+  const handleSelect = (opt) => {
+    setInputValue(opt.label);
+    setShowSuggestions(false);
+    onChange({ target: { name, value: opt.value, label: opt.label } });
+  };
+
+  const handleInputChange = (e) => {
+    setInputValue(e.target.value);
+    setShowSuggestions(true);
+    // Clear selection when typing
+    if (value) {
+      onChange({ target: { name, value: '', label: '' } });
+    }
+  };
+
+  return (
+    <div className="space-y-2 relative" ref={wrapperRef}>
+      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <input
+        type="text"
+        name={`${name}_input`}
+        value={inputValue}
+        onChange={handleInputChange}
+        onFocus={() => setShowSuggestions(true)}
+        disabled={disabled}
+        placeholder={placeholder || `Search ${label}...`}
+        className={`w-full px-4 py-3 rounded-xl border ${error ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold ${disabled ? 'text-gray-500 bg-gray-100 cursor-not-allowed opacity-70' : 'text-gray-800 bg-gray-50/50'}`}
+      />
+      {error && <p className="text-xs text-red-500 font-semibold mt-1">{error}</p>}
+      
+      {showSuggestions && !disabled && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto top-[70px]">
+          {loading ? (
+            <div className="p-3 text-sm text-gray-500 text-center font-semibold">Loading...</div>
+          ) : options.length > 0 ? (
+            options.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                className="w-full text-left px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                onClick={() => handleSelect(opt)}
+              >
+                {opt.label}
+              </button>
+            ))
+          ) : inputValue ? (
+            <div className="p-3 text-sm text-gray-500 text-center">No results found</div>
+          ) : (
+            <div className="p-3 text-sm text-gray-400 text-center">Start typing to search...</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     propertyType: '',
     propertyUse: '',
     
-    country: 'Pakistan',
+    country: '',
     province: '',
+    division: '',
     district: '',
     tehsil: '',
-    city: '',
-    society: '',
-    area: '',
+    city: '', cityLabel: '',
+    society: '', societyLabel: '',
+    area: '', areaLabel: '',
     propertyLocation: '',
     
     propertySize: '',
@@ -198,17 +297,54 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
     solarCapacity: '',
     electricMeters: 0,
     gasMeters: 0,
-    electricityBackup: 'None',
-    otherBackup: '',
+    propertyDescription: '',
     
     amenities: [],
-    additionalFeatures: [],
     media: { pictures: [], videos: [] }
   });
   
   const [errors, setErrors] = useState({});
   const [editingSection, setEditingSection] = useState(null);
   const [backupData, setBackupData] = useState(null);
+
+  const [refData, setRefData] = useState({
+    countries: [],
+    provinces: [],
+    divisions: [],
+    districts: [],
+    tehsils: [],
+    propertyTypes: [],
+    propertyUses: [],
+    propertyLocations: [],
+    uom: [],
+    marlaSizes: [],
+    amenities: [],
+  });
+  const [loadingRef, setLoadingRef] = useState(true);
+  const [errorRef, setErrorRef] = useState(null);
+
+  useEffect(() => {
+    const fetchRefData = async () => {
+      try {
+        const res = await getPropertyFormReference();
+        if (res && res.success && res.data) {
+          setRefData(res.data);
+          
+          // Auto-select Pakistan if present and country not set
+          const pak = res.data.countries.find(c => c.country_english === 'Pakistan');
+          if (pak && !formData.country) {
+            setFormData(prev => ({ ...prev, country: pak.country_id }));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch reference data", err);
+        setErrorRef('Failed to load reference data. Please check your connection and try again.');
+      } finally {
+        setLoadingRef(false);
+      }
+    };
+    fetchRefData();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (initialData) {
@@ -218,6 +354,18 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
 
   const fileInputRef = useRef(null);
   const videoInputRef = useRef(null);
+  const [pictureErrors, setPictureErrors] = useState([]);
+  const [videoErrors, setVideoErrors] = useState([]);
+
+  // Backend-approved picture constraints
+  const MAX_PICTURES = 6;
+  const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+  const MAX_PICTURE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+  // Backend-approved video constraints
+  const MAX_VIDEOS = 1;
+  const ALLOWED_VIDEO_MIME = 'video/mp4';
+  const MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 
   const validateStep = (step) => {
     const newErrors = {};
@@ -268,29 +416,35 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
   };
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type, checked, label } = e.target;
     
     setFormData(prev => {
       const nextState = { ...prev, [name]: type === 'checkbox' ? checked : value };
+      if (label !== undefined) {
+        nextState[`${name}Label`] = label;
+      }
       
       // Cascading clear for Location fields based on specific hierarchy
       if (name === 'country') {
-        nextState.province = ''; nextState.district = ''; nextState.tehsil = ''; nextState.city = ''; nextState.society = ''; nextState.area = '';
+        nextState.province = ''; nextState.division = ''; nextState.district = ''; nextState.tehsil = ''; nextState.city = ''; nextState.cityLabel = ''; nextState.society = ''; nextState.societyLabel = ''; nextState.area = ''; nextState.areaLabel = '';
       }
       if (name === 'province') {
-        nextState.district = ''; nextState.tehsil = ''; nextState.city = ''; nextState.society = ''; nextState.area = '';
+        nextState.division = ''; nextState.district = ''; nextState.tehsil = ''; nextState.city = ''; nextState.cityLabel = ''; nextState.society = ''; nextState.societyLabel = ''; nextState.area = ''; nextState.areaLabel = '';
+      }
+      if (name === 'division') {
+        nextState.district = ''; nextState.tehsil = ''; nextState.city = ''; nextState.cityLabel = ''; nextState.society = ''; nextState.societyLabel = ''; nextState.area = ''; nextState.areaLabel = '';
       }
       if (name === 'district') {
-        nextState.tehsil = ''; nextState.city = ''; nextState.society = ''; nextState.area = '';
+        nextState.tehsil = ''; nextState.city = ''; nextState.cityLabel = ''; nextState.society = ''; nextState.societyLabel = ''; nextState.area = ''; nextState.areaLabel = '';
       }
       if (name === 'tehsil') {
-        nextState.city = ''; nextState.society = ''; nextState.area = '';
+        nextState.city = ''; nextState.cityLabel = ''; nextState.society = ''; nextState.societyLabel = ''; nextState.area = ''; nextState.areaLabel = '';
       }
       if (name === 'city') {
-        nextState.society = ''; nextState.area = '';
+        nextState.society = ''; nextState.societyLabel = ''; nextState.area = ''; nextState.areaLabel = '';
       }
       if (name === 'society') {
-        nextState.area = '';
+        nextState.area = ''; nextState.areaLabel = '';
       }
 
       return nextState;
@@ -316,10 +470,38 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
   };
 
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const validImages = files.filter(f => f.type.startsWith('image/') && f.size <= 5 * 1024 * 1024);
-    
-    const newPics = validImages.map(file => ({
+    const selectedFiles = Array.from(e.target.files);
+    // Reset file input so same file can be re-selected after removal
+    e.target.value = '';
+
+    const currentCount = formData.media.pictures.length;
+    const errors = [];
+    const validFiles = [];
+
+    for (const file of selectedFiles) {
+      // Check total limit first
+      if (currentCount + validFiles.length >= MAX_PICTURES) {
+        errors.push(`Maximum ${MAX_PICTURES} pictures allowed per property. Skipped remaining files.`);
+        break;
+      }
+      // MIME type check
+      if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+        errors.push(`"${file.name}" is not supported. Use JPEG, PNG, or WebP only.`);
+        continue;
+      }
+      // File size check
+      if (file.size > MAX_PICTURE_SIZE_BYTES) {
+        errors.push(`"${file.name}" exceeds 5 MB limit.`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    setPictureErrors(errors);
+
+    if (validFiles.length === 0) return;
+
+    const newPics = validFiles.map(file => ({
       file,
       url: URL.createObjectURL(file)
     }));
@@ -332,18 +514,48 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
 
   const handleVideoUpload = (e) => {
     const files = Array.from(e.target.files);
-    const validVideos = files.filter(f => f.type.startsWith('video/') && f.size <= 50 * 1024 * 1024);
-    
-    const newVids = validVideos.map(file => ({
-      file,
-      url: URL.createObjectURL(file),
-      name: file.name
-    }));
+    const validVideos = [];
+    const errors = [];
 
-    setFormData(prev => ({
-      ...prev,
-      media: { ...prev.media, videos: [...prev.media.videos, ...newVids] }
-    }));
+    // Check count first
+    if (formData.media.videos.length + files.length > MAX_VIDEOS) {
+      errors.push(`Maximum ${MAX_VIDEOS} video is allowed.`);
+    }
+
+    files.forEach(file => {
+      let isValid = true;
+      if (file.type !== ALLOWED_VIDEO_MIME) {
+        errors.push(`"${file.name}" is not supported. Only MP4 videos are allowed.`);
+        isValid = false;
+      } else if (file.size > MAX_VIDEO_SIZE_BYTES) {
+        errors.push(`"${file.name}" exceeds the 50 MB size limit.`);
+        isValid = false;
+      }
+      
+      // Stop adding if we exceed the limit
+      if (isValid && formData.media.videos.length + validVideos.length < MAX_VIDEOS) {
+        validVideos.push(file);
+      }
+    });
+
+    setVideoErrors(errors);
+    
+    if (validVideos.length > 0) {
+      const newVids = validVideos.map(file => ({
+        file,
+        url: URL.createObjectURL(file),
+        name: file.name
+      }));
+
+      setFormData(prev => ({
+        ...prev,
+        media: { ...prev.media, videos: [...prev.media.videos, ...newVids] }
+      }));
+    }
+    
+    if (videoInputRef.current) {
+      videoInputRef.current.value = '';
+    }
   };
 
   const removeMedia = (type, index) => {
@@ -385,25 +597,67 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
 
   const renderStep1 = (disabled) => (
     <div className={`grid grid-cols-1 sm:grid-cols-2 gap-6 ${!disabled ? 'animate-fadeIn' : ''}`}>
-      <SelectField label="Property Type" name="propertyType" value={formData.propertyType} onChange={handleChange} options={PROPERTY_TYPES} error={errors.propertyType} required disabled={disabled} />
-      <SelectField label="Property Use" name="propertyUse" value={formData.propertyUse} onChange={handleChange} options={PROPERTY_USES} error={errors.propertyUse} required disabled={disabled} />
+      <SelectField label="Property Type" name="propertyType" value={formData.propertyType} onChange={handleChange} options={refData.propertyTypes.map(pt => ({ value: pt.property_type_id, label: pt.property_type_description }))} error={errors.propertyType} required disabled={disabled} />
+      <SelectField label="Property Use" name="propertyUse" value={formData.propertyUse} onChange={handleChange} options={refData.propertyUses.map(u => ({ value: u.property_use_id, label: u.property_use_description }))} error={errors.propertyUse} required disabled={disabled} />
     </div>
   );
 
   const renderStep2 = (disabled) => (
     <div className={`space-y-6 ${!disabled ? 'animate-fadeIn' : ''}`}>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-        <SelectField label="Country" name="country" value={formData.country} onChange={handleChange} options={COUNTRIES} disabled={disabled} />
-        <SelectField label="Province" name="province" value={formData.province} onChange={handleChange} options={PROVINCES} disabled={disabled} />
+        <SelectField label="Country" name="country" value={formData.country} onChange={handleChange} options={refData.countries.map(c => ({ value: c.country_id, label: c.country_english }))} disabled={disabled} />
+        <SelectField label="Province" name="province" value={formData.province} onChange={handleChange} options={refData.provinces.filter(p => p.country_id == formData.country).map(p => ({ value: p.province_id, label: p.province_english }))} disabled={disabled || !formData.country} />
         
-        <SelectField label="District" name="district" value={formData.district} onChange={handleChange} options={formData.province ? ['Lahore District', 'Karachi South', 'Islamabad District'] : []} error={errors.district} required disabled={disabled} />
-        <SelectField label="Tehsil" name="tehsil" value={formData.tehsil} onChange={handleChange} options={formData.district ? TEHSILS[formData.district] || [] : []} disabled={disabled} />
+        <SelectField label="Division" name="division" value={formData.division} onChange={handleChange} options={refData.divisions.filter(d => d.province_id == formData.province).map(d => ({ value: d.division_id, label: d.division_english }))} disabled={disabled || !formData.province} />
+        <SelectField label="District" name="district" value={formData.district} onChange={handleChange} options={refData.districts.filter(d => d.division_id == formData.division).map(d => ({ value: d.district_id, label: d.district_english }))} error={errors.district} required disabled={disabled || !formData.division} />
         
-        <SelectField label="City" name="city" value={formData.city} onChange={handleChange} options={formData.province ? CITIES[formData.province] || [] : []} disabled={disabled} />
-        <SelectField label="Society" name="society" value={formData.society} onChange={handleChange} options={formData.tehsil ? SOCIETIES[formData.tehsil] || [] : []} disabled={disabled} />
+        <SelectField label="Tehsil" name="tehsil" value={formData.tehsil} onChange={handleChange} options={refData.tehsils.filter(t => t.district_id == formData.district).map(t => ({ value: t.tehsil_id, label: t.tehsil_english }))} disabled={disabled || !formData.district} />
+        <AutocompleteField 
+          label="City" 
+          name="city" 
+          value={formData.city}
+          displayValue={formData.cityLabel}
+          onChange={handleChange} 
+          fetchOptions={async (search) => {
+            if (!formData.tehsil) return [];
+            const res = await getCities(formData.tehsil, search);
+            return (res?.data || []).map(c => ({ value: c.city_id, label: c.city_english }));
+          }} 
+          disabled={disabled || !formData.tehsil} 
+          placeholder="Search City..." 
+        />
         
-        <InputField label="Area / Block" name="area" value={formData.area} onChange={handleChange} placeholder="e.g. Sector W" disabled={disabled} />
-        <SelectField label="Property Location Type" name="propertyLocation" value={formData.propertyLocation} onChange={handleChange} options={PROPERTY_LOCATIONS} disabled={disabled} />
+        <AutocompleteField 
+          label="Society" 
+          name="society" 
+          value={formData.society}
+          displayValue={formData.societyLabel}
+          onChange={handleChange} 
+          fetchOptions={async (search) => {
+            if (!formData.city) return [];
+            const res = await getSocieties(formData.city, search);
+            return (res?.data || []).map(s => ({ value: s.society_id, label: s.society_english }));
+          }} 
+          disabled={disabled || !formData.city} 
+          placeholder="Search Society..." 
+        />
+        
+        <AutocompleteField 
+          label="Area / Block" 
+          name="area" 
+          value={formData.area}
+          displayValue={formData.areaLabel}
+          onChange={handleChange} 
+          fetchOptions={async (search) => {
+            if (!formData.society) return [];
+            const res = await getAreas(formData.society, search);
+            return (res?.data || []).map(a => ({ value: a.area_id, label: a.area_english }));
+          }} 
+          disabled={disabled || !formData.society} 
+          placeholder="Search Area / Block..." 
+        />
+        
+        <SelectField label="Property Location Type" name="propertyLocation" value={formData.propertyLocation} onChange={handleChange} options={refData.propertyLocations.map(l => ({ value: l.property_location_id, label: l.property_location_description }))} disabled={disabled} />
       </div>
     </div>
   );
@@ -412,8 +666,8 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
     <div className={`space-y-6 ${!disabled ? 'animate-fadeIn' : ''}`}>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <InputField label="Primary Size" name="propertySize" value={formData.propertySize} onChange={handleChange} error={errors.propertySize} type="number" isNumber required placeholder="e.g. 10" disabled={disabled} />
-        <SelectField label="Size UOM" name="sizeUom" value={formData.sizeUom} onChange={handleChange} error={errors.sizeUom} options={SIZE_UOM} required disabled={disabled} />
-        <SelectField label="Marla Size" name="marlaSize" value={formData.marlaSize} onChange={handleChange} options={MARLA_SIZES} disabled={disabled} />
+        <SelectField label="Size UOM" name="sizeUom" value={formData.sizeUom} onChange={handleChange} error={errors.sizeUom} options={refData.uom.map(u => ({ value: u.uom_id, label: u.uom_english }))} required disabled={disabled} />
+        <SelectField label="Marla Size" name="marlaSize" value={formData.marlaSize} onChange={handleChange} options={refData.marlaSizes.map(ms => ({ value: ms.marla_id, label: `${parseFloat(ms.marla_size_sqft)} Sq Ft` }))} disabled={disabled} />
       </div>
       
       <div className="border-t border-gray-100 pt-6">
@@ -469,6 +723,23 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
           <InputField label="Right Road" name="roadRightFt" value={formData.roadRightFt} onChange={handleChange} error={errors.roadRightFt} type="number" isNumber disabled={disabled} />
         </div>
       </div>
+      <div>
+        <h4 className="text-sm font-bold text-[#B8860B] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Additional Information</h4>
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Property Description
+          </label>
+          <textarea
+            name="propertyDescription"
+            value={formData.propertyDescription}
+            onChange={handleChange}
+            disabled={disabled}
+            placeholder="Enter any additional details about the property..."
+            rows={4}
+            className={`w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold resize-none ${disabled ? 'text-gray-500 bg-gray-100 cursor-not-allowed opacity-70' : 'text-gray-800 bg-gray-50/50'}`}
+          />
+        </div>
+      </div>
     </div>
   );
 
@@ -495,31 +766,16 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-gray-50">
         <InputField label="Electric Meters" name="electricMeters" value={formData.electricMeters} onChange={handleChange} type="number" isNumber disabled={disabled} />
         <InputField label="Gas Meters" name="gasMeters" value={formData.gasMeters} onChange={handleChange} type="number" isNumber disabled={disabled} />
-        <SelectField label="Electricity Backup" name="electricityBackup" value={formData.electricityBackup} onChange={handleChange} options={BACKUP_TYPES} disabled={disabled} />
-        {formData.electricityBackup === 'Other' && (
-          <InputField label="Specify Other Backup" name="otherBackup" value={formData.otherBackup} onChange={handleChange} disabled={disabled} />
-        )}
       </div>
 
       <div className="pt-4 border-t border-gray-50">
         <TagInput 
           label="Amenities" 
           tags={formData.amenities} 
-          suggestions={AMENITIES}
+          suggestions={refData.amenities.map(a => a.amenity_description)}
           onAdd={(tag) => handleAddTag('amenities', tag)} 
           onRemove={(tag) => handleRemoveTag('amenities', tag)}
           disabled={disabled} 
-        />
-      </div>
-
-      <div className="pt-4 border-t border-gray-50">
-        <TagInput 
-          label="Additional Features" 
-          tags={formData.additionalFeatures} 
-          suggestions={['Double Glazed Windows', 'Central Heating', 'Parking Space', 'Smart Home System']}
-          onAdd={(tag) => handleAddTag('additionalFeatures', tag)} 
-          onRemove={(tag) => handleRemoveTag('additionalFeatures', tag)}
-          disabled={disabled}
         />
       </div>
     </div>
@@ -533,8 +789,12 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
           <h4 className="text-sm font-bold text-gray-800 flex items-center gap-2"><ImageIcon size={16} className="text-[#B8860B]"/> Property Pictures</h4>
           {!disabled && (
             <div className="text-left sm:text-right">
-              <span className="text-xs font-semibold text-gray-500 block">Max 5MB per image. JPG, PNG only.</span>
-              <span className="text-[11px] font-medium text-gray-400">Upload good quality pictures with proper lighting.</span>
+              <span className="text-xs font-semibold text-gray-500 block">
+                Max {MAX_PICTURES} pictures · 5 MB each · JPG, PNG, WebP
+              </span>
+              <span className="text-[11px] font-medium text-gray-400">
+                {formData.media.pictures.length}/{MAX_PICTURES} selected
+              </span>
             </div>
           )}
         </div>
@@ -550,19 +810,37 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
               )}
             </div>
           ))}
-          {!disabled && (
+          {!disabled && formData.media.pictures.length < MAX_PICTURES && (
             <>
               <button onClick={() => fileInputRef.current?.click()} className="aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-[#B8860B] hover:text-[#B8860B] transition-colors bg-gray-50/50">
                 <UploadCloud size={24} className="mb-2" />
                 <span className="text-xs font-bold uppercase">Add Photo</span>
               </button>
-              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple onChange={handleImageUpload} />
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                onChange={handleImageUpload}
+              />
             </>
           )}
           {disabled && formData.media.pictures.length === 0 && (
             <div className="text-sm font-semibold text-gray-400 col-span-2">No pictures provided</div>
           )}
         </div>
+
+        {/* Inline validation errors from file selection */}
+        {!disabled && pictureErrors.length > 0 && (
+          <div className="space-y-1.5 mt-3">
+            {pictureErrors.map((err, i) => (
+              <p key={i} className="text-xs font-semibold text-red-500 flex items-start gap-1.5">
+                <span className="mt-0.5 shrink-0">⚠</span>{err}
+              </p>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Videos */}
@@ -593,16 +871,51 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
               <button onClick={() => videoInputRef.current?.click()} className="w-full py-4 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center gap-2 text-gray-500 font-bold hover:border-[#B8860B] hover:text-[#B8860B] transition-colors bg-white">
                 <UploadCloud size={18} /> Upload Video
               </button>
-              <input type="file" ref={videoInputRef} className="hidden" accept="video/*" multiple onChange={handleVideoUpload} />
+              <input type="file" ref={videoInputRef} className="hidden" accept="video/mp4" onChange={handleVideoUpload} />
             </>
           )}
           {disabled && formData.media.videos.length === 0 && (
             <div className="text-sm font-semibold text-gray-400">No videos provided</div>
           )}
         </div>
+
+        {/* Inline validation errors from video selection */}
+        {!disabled && videoErrors.length > 0 && (
+          <div className="space-y-1.5 mt-3">
+            {videoErrors.map((err, i) => (
+              <p key={i} className="text-xs font-semibold text-red-500 flex items-start gap-1.5">
+                <span className="mt-0.5 shrink-0">⚠</span>{err}
+              </p>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
+
+  if (loadingRef) {
+    return (
+      <div className="w-full max-w-[1200px] mx-auto bg-white rounded-[24px] shadow-sm border border-gray-100 p-12 flex flex-col items-center justify-center min-h-[500px]">
+        <div className="w-12 h-12 border-4 border-[#B8860B]/30 border-t-[#B8860B] rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-500 font-semibold">Loading form data...</p>
+      </div>
+    );
+  }
+
+  if (errorRef) {
+    return (
+      <div className="w-full max-w-[1200px] mx-auto bg-white rounded-[24px] shadow-sm border border-red-100 p-12 flex flex-col items-center justify-center min-h-[500px]">
+        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-4">
+          <X size={32} />
+        </div>
+        <h3 className="text-xl font-bold text-gray-800 mb-2">Error Loading Form</h3>
+        <p className="text-gray-500 mb-6">{errorRef}</p>
+        <button onClick={() => window.location.reload()} className="px-6 py-2.5 bg-[#1a2b25] text-white rounded-full font-bold hover:bg-[#2c4232] transition-colors">
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-[1200px] mx-auto bg-white rounded-[24px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-gray-100/60 overflow-hidden flex flex-col md:flex-row">

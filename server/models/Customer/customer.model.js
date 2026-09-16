@@ -44,7 +44,7 @@ const getCustomerProfileByUserId = async (userId) => {
         LEFT JOIN countries co ON c.country_id = co.country_id
         WHERE c.user_id = $1
     `;
-    
+
     const result = await pool.query(query, [userId]);
     return result.rows[0] || null;
 };
@@ -147,7 +147,7 @@ const updateCustomerProfileByUserId = async (userId, profileData) => {
     } finally {
         client.release();
     }
-    
+
     return await getCustomerProfileByUserId(userId);
 };
 
@@ -158,18 +158,18 @@ const updateProfileImage = async (userId, newImageUrl) => {
     // We update the users table directly since profile_image_url is stored there
     const client = await pool.connect();
     let oldImageUrl = null;
-    
+
     try {
         await client.query('BEGIN');
-        
+
         const res = await client.query('SELECT profile_image_url FROM users WHERE user_id = $1 FOR UPDATE', [userId]);
         if (res.rows.length === 0) {
             throw new Error('User not found');
         }
         oldImageUrl = res.rows[0].profile_image_url;
-        
+
         await client.query('UPDATE users SET profile_image_url = $1, update_date_time = NOW() WHERE user_id = $2', [newImageUrl, userId]);
-        
+
         await client.query('COMMIT');
     } catch (error) {
         await client.query('ROLLBACK');
@@ -177,7 +177,7 @@ const updateProfileImage = async (userId, newImageUrl) => {
     } finally {
         client.release();
     }
-    
+
     return oldImageUrl;
 };
 
@@ -276,8 +276,14 @@ const getDashboardPropertiesByUserId = async (userId) => {
         FROM customers cu
         JOIN properties p ON p.customer_id = cu.customer_id
         LEFT JOIN property_types pt ON p.property_type_id = pt.property_type_id
-        LEFT JOIN societies s ON p.society_id = s.society_id
+        LEFT JOIN areas a ON p.area_id = a.area_id
+        LEFT JOIN societies s ON a.society_id = s.society_id
         LEFT JOIN cities c ON s.city_id = c.city_id
+        LEFT JOIN tehsils t ON c.tehsil_id = t.tehsil_id
+        LEFT JOIN districts d ON t.district_id = d.district_id
+        LEFT JOIN divisions dv ON d.division_id = dv.division_id
+        LEFT JOIN provinces pr ON dv.province_id = pr.province_id
+        LEFT JOIN countries co ON pr.country_id = co.country_id
         LEFT JOIN uom u ON p.property_size_uom = u.uom_id
         LEFT JOIN property_status ps ON ps.property_id = p.property_id AND ps.is_active = true
         LEFT JOIN property_status_types pst ON pst.status_id = ps.status_id
@@ -321,10 +327,14 @@ const getCustomerPropertiesByUserId = async (userId) => {
         JOIN properties p ON p.customer_id = cu.customer_id
         LEFT JOIN property_types pt ON p.property_type_id = pt.property_type_id
         LEFT JOIN property_use pu ON p.property_use_id = pu.property_use_id
-        LEFT JOIN societies s ON p.society_id = s.society_id
+        LEFT JOIN areas a ON p.area_id = a.area_id
+        LEFT JOIN societies s ON a.society_id = s.society_id
         LEFT JOIN cities c ON s.city_id = c.city_id
-        LEFT JOIN districts d ON p.property_district_id = d.district_id
-        LEFT JOIN provinces pr ON d.province_id = pr.province_id
+        LEFT JOIN tehsils t ON c.tehsil_id = t.tehsil_id
+        LEFT JOIN districts d ON t.district_id = d.district_id
+        LEFT JOIN divisions dv ON d.division_id = dv.division_id
+        LEFT JOIN provinces pr ON dv.province_id = pr.province_id
+        LEFT JOIN countries co ON pr.country_id = co.country_id
         LEFT JOIN uom u ON p.property_size_uom = u.uom_id
         LEFT JOIN property_status ps ON ps.property_id = p.property_id AND ps.is_active = true
         LEFT JOIN property_status_types pst ON pst.status_id = ps.status_id
@@ -340,6 +350,597 @@ const getCustomerPropertiesByUserId = async (userId) => {
     return result.rows;
 };
 
+/**
+ * Add a new Property (POST /api/v1/customer/properties)
+ */
+const addProperty = async (userId, data) => {
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        // 1. Get customer_id from user_id
+        const customerRes = await client.query('SELECT customer_id FROM customers WHERE user_id = $1 AND is_active = true', [userId]);
+        if (customerRes.rowCount === 0) {
+            throw new Error('Customer profile not found or inactive');
+        }
+        const customerId = customerRes.rows[0].customer_id;
+
+        // 2. Validate hierarchy using higher IDs if provided
+        let hierarchyQuery = `
+            SELECT a.area_id
+            FROM areas a
+            JOIN societies s ON a.society_id = s.society_id
+            JOIN cities c ON s.city_id = c.city_id
+            JOIN tehsils t ON c.tehsil_id = t.tehsil_id
+            JOIN districts d ON t.district_id = d.district_id
+            JOIN divisions dv ON d.division_id = dv.division_id
+            JOIN provinces p ON dv.province_id = p.province_id
+            JOIN countries co ON p.country_id = co.country_id
+            WHERE a.area_id = $1
+        `;
+        const hierarchyParams = [data.area_id];
+        let paramIdx = 2;
+
+        if (data.society_id) { hierarchyQuery += ` AND s.society_id = $${paramIdx++}`; hierarchyParams.push(data.society_id); }
+        if (data.city_id) { hierarchyQuery += ` AND c.city_id = $${paramIdx++}`; hierarchyParams.push(data.city_id); }
+        if (data.tehsil_id) { hierarchyQuery += ` AND t.tehsil_id = $${paramIdx++}`; hierarchyParams.push(data.tehsil_id); }
+        if (data.district_id) { hierarchyQuery += ` AND d.district_id = $${paramIdx++}`; hierarchyParams.push(data.district_id); }
+        if (data.division_id) { hierarchyQuery += ` AND dv.division_id = $${paramIdx++}`; hierarchyParams.push(data.division_id); }
+        if (data.province_id) { hierarchyQuery += ` AND p.province_id = $${paramIdx++}`; hierarchyParams.push(data.province_id); }
+        if (data.country_id) { hierarchyQuery += ` AND co.country_id = $${paramIdx++}`; hierarchyParams.push(data.country_id); }
+
+        const hierarchyRes = await client.query(hierarchyQuery, hierarchyParams);
+        if (hierarchyRes.rowCount === 0) {
+            throw new Error('Invalid geographic hierarchy combination.');
+        }
+
+        // 3. Insert Property
+        const propertyInsertQuery = `
+            INSERT INTO properties (
+                customer_id, area_id, property_type_id, property_use_id, property_location_id,
+                property_size, property_size_uom, property_marla_size_id,
+                property_area_marla, property_area_kanal, property_area_acre, property_area_sqft, property_area_sqyard,
+                property_size_front, property_size_back, property_size_left, property_size_right,
+                property_covered_area_sqft, property_open_area_sqft,
+                property_rooms, property_bath_rooms, property_floors, property_lounges, property_kitchens, property_drawing_rooms,
+                property_road_size_front_ft, property_road_size_back_ft, property_road_size_left_ft, property_road_size_right_ft,
+                property_swimming_pool, property_media_room, property_solar_is_installed, property_solar_capacity,
+                property_electric_meters, property_gas_meters, property_description,
+                creation_date_time, update_date_time, created_by_user, is_active
+            ) VALUES (
+                $1, $2, $3, $4, $5,
+                $6, $7, $8,
+                $9, $10, $11, $12, $13,
+                $14, $15, $16, $17,
+                $18, $19,
+                $20, $21, $22, $23, $24, $25,
+                $26, $27, $28, $29,
+                $30, $31, $32, $33,
+                $34, $35, $36,
+                NOW(), NOW(), $37, true
+            ) RETURNING property_id
+        `;
+
+        const propertyParams = [
+            customerId,
+            data.area_id,
+            data.propertyType || null,
+            data.propertyUse || null,
+            data.propertyLocation || null,
+            data.propertySize || null,
+            data.sizeUom || null,
+            data.marlaSize || null,
+            data.areaMarla || null,
+            data.areaKanal || null,
+            data.areaAcre || null,
+            data.areaSqFt || null,
+            data.areaSqYard || null,
+            data.propertySizeFront || null,
+            data.propertySizeBack || null,
+            data.propertySizeLeft || null,
+            data.propertySizeRight || null,
+            data.coveredAreaSqFt || null,
+            data.openAreaSqFt || null,
+            data.rooms || null,
+            data.bathrooms || null,
+            data.floors || null,
+            data.lounges || null,
+            data.kitchens || null,
+            data.drawingRooms || null,
+            data.roadFrontFt || null,
+            data.roadBackFt || null,
+            data.roadLeftFt || null,
+            data.roadRightFt || null,
+            data.swimmingPool || false,
+            data.mediaRoom || false,
+            data.solarInstalled || false,
+            data.solarCapacity || null,
+            data.electricMeters || null,
+            data.gasMeters || null,
+            data.propertyDescription || null,
+            userId
+        ];
+
+        const propRes = await client.query(propertyInsertQuery, propertyParams);
+        const propertyId = propRes.rows[0].property_id;
+
+        // 4. Handle Amenities
+        if (data.amenities && Array.isArray(data.amenities)) {
+            for (let amenityText of data.amenities) {
+                if (!amenityText) continue;
+                const cleanText = amenityText.trim();
+                if (cleanText === '') continue;
+
+                // EXACT match case-insensitive
+                const amCheck = await client.query('SELECT amenity_id FROM amenities WHERE LOWER(amenity_description) = LOWER($1)', [cleanText]);
+                let amenityId;
+                if (amCheck.rowCount > 0) {
+                    amenityId = amCheck.rows[0].amenity_id;
+                } else {
+                    const amInsert = await client.query('INSERT INTO amenities (amenity_description, is_active) VALUES ($1, true) RETURNING amenity_id', [cleanText]);
+                    amenityId = amInsert.rows[0].amenity_id;
+                }
+
+                // Link
+                await client.query(`
+                    INSERT INTO property_amenities (property_id, amenity_id, is_active) 
+                    VALUES ($1, $2, true) 
+                    ON CONFLICT ON CONSTRAINT uq_property_amenity DO NOTHING
+                `, [propertyId, amenityId]);
+            }
+        }
+
+        // 5. Automatic Approval
+        const stageRes = await client.query('SELECT approval_stage_id FROM approval_stages WHERE approval_stage_english = $1 AND is_active = true', ['Pending']);
+        if (stageRes.rowCount === 0) throw new Error('Pending approval stage not found');
+        const approvalStageId = stageRes.rows[0].approval_stage_id;
+
+        await client.query(`
+            INSERT INTO property_approvals (property_id, approval_stage_id, effective_date, created_by_user, creation_date_time, update_date_time, is_active)
+            VALUES ($1, $2, CURRENT_DATE, $3, NOW(), NOW(), true)
+        `, [propertyId, approvalStageId, userId]);
+
+        // 6. Automatic Status
+        const statusRes = await client.query('SELECT status_id FROM property_status_types WHERE status_english = $1 AND is_active = true', ['Inactive']);
+        if (statusRes.rowCount === 0) throw new Error('Inactive status type not found');
+        const statusId = statusRes.rows[0].status_id;
+
+        await client.query(`
+            INSERT INTO property_status (property_id, status_id, effective_date, created_by_user, creation_date_time, update_date_time, is_active)
+            VALUES ($1, $2, CURRENT_DATE, $3, NOW(), NOW(), true)
+        `, [propertyId, statusId, userId]);
+
+        await client.query('COMMIT');
+        return propertyId;
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
+// --------------------------------------------------------------------------
+// Upload Property Pictures
+// --------------------------------------------------------------------------
+
+/**
+ * Inserts uploaded picture records for a property inside one transaction.
+ * Uses a SELECT ... FOR UPDATE lock on the property row to prevent race
+ * conditions on display_order calculation.
+ *
+ * @param {number}   propertyId   - Verified property ID
+ * @param {number}   userId       - req.user.user_id (created_by_user)
+ * @param {string[]} pictureUrls  - Relative public URLs of saved files
+ * @returns {Array}  Inserted picture rows ({ property_picture_id, picture_url, display_order })
+ */
+const uploadPropertyPictures = async (propertyId, userId, pictureUrls) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        // 1. Lock property row to serialise concurrent uploads
+        await client.query(
+            'SELECT property_id FROM properties WHERE property_id = $1 FOR UPDATE',
+            [propertyId]
+        );
+
+        // 2. Count existing active pictures
+        const countResult = await client.query(
+            'SELECT COUNT(*) AS cnt FROM property_pictures WHERE property_id = $1 AND is_active = true',
+            [propertyId]
+        );
+        const existingCount = parseInt(countResult.rows[0].cnt, 10);
+
+        const MAX = 6;
+        if (existingCount + pictureUrls.length > MAX) {
+            await client.query('ROLLBACK');
+            const err = new Error(`Maximum ${MAX} pictures are allowed per property.`);
+            err.statusCode = 400;
+            throw err;
+        }
+
+        // 3. Determine starting display_order
+        const maxOrderResult = await client.query(
+            'SELECT COALESCE(MAX(display_order), 0) AS max_order FROM property_pictures WHERE property_id = $1 AND is_active = true',
+            [propertyId]
+        );
+        let nextOrder = parseInt(maxOrderResult.rows[0].max_order, 10) + 1;
+
+        // 4. Insert each picture
+        const insertedPictures = [];
+        for (const url of pictureUrls) {
+            const insertResult = await client.query(
+                `INSERT INTO property_pictures
+                    (property_id, picture_url, picture_description, display_order,
+                     created_by_user, creation_date_time, update_date_time,
+                     is_active, gps_coordinates, url_used)
+                 VALUES ($1, $2, NULL, $3, $4, NOW(), NOW(), true, NULL, NULL)
+                 RETURNING property_picture_id, picture_url, display_order`,
+                [propertyId, url, nextOrder, userId]
+            );
+            insertedPictures.push(insertResult.rows[0]);
+            nextOrder++;
+        }
+
+        await client.query('COMMIT');
+        return insertedPictures;
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
+// --------------------------------------------------------------------------
+// Upload Property Video
+// --------------------------------------------------------------------------
+
+/**
+ * Inserts a single video record for a property inside one transaction.
+ * Uses SELECT ... FOR UPDATE to prevent concurrent uploads from bypassing
+ * the one-active-video-per-property business limit.
+ *
+ * @param {number} propertyId  - Verified property ID
+ * @param {number} userId      - req.user.user_id (created_by_user)
+ * @param {string} videoUrl    - Relative public URL of the saved file
+ * @returns {{ property_video_id, video_url, display_order }}
+ */
+const uploadPropertyVideo = async (propertyId, userId, videoUrl) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        // 1. Lock property row to serialise concurrent uploads
+        await client.query(
+            'SELECT property_id FROM properties WHERE property_id = $1 FOR UPDATE',
+            [propertyId]
+        );
+
+        // 2. Enforce one-active-video-per-property limit
+        const countResult = await client.query(
+            'SELECT COUNT(*) AS cnt FROM property_videos WHERE property_id = $1 AND is_active = true',
+            [propertyId]
+        );
+        const existingCount = parseInt(countResult.rows[0].cnt, 10);
+
+        if (existingCount >= 1) {
+            await client.query('ROLLBACK');
+            const err = new Error('Maximum 1 video is allowed per property.');
+            err.statusCode = 400;
+            throw err;
+        }
+
+        // 3. Insert video record (display_order is always 1 — only one active video allowed)
+        const insertResult = await client.query(
+            `INSERT INTO property_videos
+                (property_id, video_url, video_description, display_order,
+                 created_by_user, creation_date_time, update_date_time,
+                 is_active, gps_coordinates, url_used)
+             VALUES ($1, $2, NULL, 1, $3, NOW(), NOW(), true, NULL, NULL)
+             RETURNING property_video_id, video_url, display_order`,
+            [propertyId, videoUrl, userId]
+        );
+
+        await client.query('COMMIT');
+        return insertResult.rows[0];
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+// --------------------------------------------------------------------------
+// Get Single Property Detail (owner-verified)
+// --------------------------------------------------------------------------
+
+/**
+ * Fetch full property details for a single property that belongs to the
+ * authenticated customer.
+ *
+ * @param {number} propertyId  - Validated property ID from route param
+ * @param {number} userId      - req.user.user_id
+ * @returns {object|null}      - Structured detail object or null if not found / not owned
+ */
+const getPropertyDetailByIdAndUserId = async (propertyId, userId) => {
+    const client = await pool.connect();
+    try {
+        // ----------------------------------------------------------------
+        // 1. Core property row + resolved descriptions (ownership enforced)
+        // ----------------------------------------------------------------
+        const propertyQuery = `
+            SELECT
+                p.property_id,
+                'PRP-' || LPAD(p.property_id::text, 3, '0') AS formatted_id,
+
+                -- Classification
+                p.property_type_id,
+                pt.property_type_description,
+                p.property_use_id,
+                pu.property_use_description,
+                p.property_location_id,
+                pl.property_location_description,
+
+                -- Size
+                p.property_size,
+                p.property_size_uom,
+                u.uom_english,
+                p.property_marla_size_id,
+                ms.marla_size_sqft,
+                p.property_area_marla,
+                p.property_area_kanal,
+                p.property_area_acre,
+                p.property_area_sqft,
+                p.property_area_sqyard,
+                p.property_covered_area_sqft,
+                p.property_open_area_sqft,
+                p.property_size_front,
+                p.property_size_back,
+                p.property_size_left,
+                p.property_size_right,
+
+                -- Particulars
+                p.property_rooms,
+                p.property_bath_rooms,
+                p.property_floors,
+                p.property_lounges,
+                p.property_kitchens,
+                p.property_drawing_rooms,
+
+                -- Road access
+                p.property_road_size_front_ft,
+                p.property_road_size_back_ft,
+                p.property_road_size_left_ft,
+                p.property_road_size_right_ft,
+
+                -- Features
+                p.property_swimming_pool,
+                p.property_media_room,
+                p.property_solar_is_installed,
+                p.property_solar_capacity,
+                p.property_electric_meters,
+                p.property_gas_meters,
+                p.property_description,
+
+                -- Timestamps
+                p.creation_date_time,
+                p.update_date_time,
+                p.is_active,
+
+                -- Location chain via area_id
+                a.area_id,
+                a.area_english,
+                s.society_id,
+                s.society_english,
+                c.city_id,
+                c.city_english,
+                t.tehsil_id,
+                t.tehsil_english,
+                d.district_id,
+                d.district_english,
+                dv.division_id,
+                dv.division_english,
+                pr.province_id,
+                pr.province_english,
+                co.country_id,
+                co.country_english
+
+            FROM properties p
+            JOIN customers cu ON p.customer_id = cu.customer_id
+            LEFT JOIN property_types pt       ON p.property_type_id     = pt.property_type_id
+            LEFT JOIN property_use pu         ON p.property_use_id      = pu.property_use_id
+            LEFT JOIN property_locations pl   ON p.property_location_id = pl.property_location_id
+            LEFT JOIN uom u                   ON p.property_size_uom    = u.uom_id
+            LEFT JOIN marla_sizes ms          ON p.property_marla_size_id = ms.marla_id
+            LEFT JOIN areas a                 ON p.area_id              = a.area_id
+            LEFT JOIN societies s             ON a.society_id           = s.society_id
+            LEFT JOIN cities c               ON s.city_id              = c.city_id
+            LEFT JOIN tehsils t              ON c.tehsil_id            = t.tehsil_id
+            LEFT JOIN districts d            ON t.district_id          = d.district_id
+            LEFT JOIN divisions dv           ON d.division_id          = dv.division_id
+            LEFT JOIN provinces pr           ON dv.province_id         = pr.province_id
+            LEFT JOIN countries co           ON pr.country_id          = co.country_id
+            WHERE p.property_id = $1
+              AND cu.user_id    = $2
+        `;
+
+        const propResult = await client.query(propertyQuery, [propertyId, userId]);
+        if (propResult.rowCount === 0) return null;
+        const row = propResult.rows[0];
+
+        // ----------------------------------------------------------------
+        // 2. Pictures (active, ordered)
+        // ----------------------------------------------------------------
+        const picResult = await client.query(
+            `SELECT property_picture_id, picture_url, picture_description, display_order
+             FROM property_pictures
+             WHERE property_id = $1 AND is_active = true
+             ORDER BY display_order ASC`,
+            [propertyId]
+        );
+
+        // ----------------------------------------------------------------
+        // 3. Video (single active)
+        // ----------------------------------------------------------------
+        const vidResult = await client.query(
+            `SELECT property_video_id, video_url, video_description, display_order
+             FROM property_videos
+             WHERE property_id = $1 AND is_active = true
+             LIMIT 1`,
+            [propertyId]
+        );
+
+        // ----------------------------------------------------------------
+        // 4. Amenities (active, distinct)
+        // ----------------------------------------------------------------
+        const amenResult = await client.query(
+            `SELECT DISTINCT am.amenity_id, am.amenity_description
+             FROM property_amenities pa
+             JOIN amenities am ON pa.amenity_id = am.amenity_id
+             WHERE pa.property_id = $1 AND pa.is_active = true
+             ORDER BY am.amenity_description`,
+            [propertyId]
+        );
+
+        // ----------------------------------------------------------------
+        // 5. Approval (current active)
+        // ----------------------------------------------------------------
+        const approvalResult = await client.query(
+            `SELECT
+                pa.property_approval_id,
+                ast.approval_stage_english AS approval_stage,
+                pa.effective_date,
+                pa.approval_remarks
+             FROM property_approvals pa
+             JOIN approval_stages ast ON pa.approval_stage_id = ast.approval_stage_id
+             WHERE pa.property_id = $1 AND pa.is_active = true
+             LIMIT 1`,
+            [propertyId]
+        );
+
+        // ----------------------------------------------------------------
+        // 6. Status (current active)
+        // ----------------------------------------------------------------
+        const statusResult = await client.query(
+            `SELECT
+                ps.property_status_id,
+                pst.status_english AS status,
+                ps.effective_date,
+                ps.status_remarks
+             FROM property_status ps
+             JOIN property_status_types pst ON ps.status_id = pst.status_id
+             WHERE ps.property_id = $1 AND ps.is_active = true
+             LIMIT 1`,
+            [propertyId]
+        );
+
+        // ----------------------------------------------------------------
+        // 7. Demand (current active)
+        // ----------------------------------------------------------------
+        const demandResult = await client.query(
+            `SELECT
+                pd.demand_id,
+                pdt.demand_type_english AS demand_type,
+                pd.demand_amount,
+                pd.discount_percent,
+                pd.discount_amount,
+                pd.final_amount,
+                pd.effective_date
+             FROM property_demand pd
+             JOIN property_demand_types pdt ON pd.demand_type_id = pdt.demand_type_id
+             WHERE pd.property_id = $1 AND pd.is_active = true
+             LIMIT 1`,
+            [propertyId]
+        );
+
+        // ----------------------------------------------------------------
+        // Assemble response
+        // ----------------------------------------------------------------
+        return {
+            property: {
+                property_id:                  row.property_id,
+                formatted_id:                 row.formatted_id,
+                property_type_id:             row.property_type_id,
+                property_type:                row.property_type_description,
+                property_use_id:              row.property_use_id,
+                property_use:                 row.property_use_description,
+                property_location_id:         row.property_location_id,
+                property_location:            row.property_location_description,
+                property_size:                row.property_size,
+                property_size_uom:            row.property_size_uom,
+                uom_english:                  row.uom_english,
+                property_marla_size_id:       row.property_marla_size_id,
+                marla_size_sqft:              row.marla_size_sqft,
+                property_area_marla:          row.property_area_marla,
+                property_area_kanal:          row.property_area_kanal,
+                property_area_acre:           row.property_area_acre,
+                property_area_sqft:           row.property_area_sqft,
+                property_area_sqyard:         row.property_area_sqyard,
+                property_covered_area_sqft:   row.property_covered_area_sqft,
+                property_open_area_sqft:      row.property_open_area_sqft,
+                property_size_front:          row.property_size_front,
+                property_size_back:           row.property_size_back,
+                property_size_left:           row.property_size_left,
+                property_size_right:          row.property_size_right,
+                property_rooms:               row.property_rooms,
+                property_bath_rooms:          row.property_bath_rooms,
+                property_floors:              row.property_floors,
+                property_lounges:             row.property_lounges,
+                property_kitchens:            row.property_kitchens,
+                property_drawing_rooms:       row.property_drawing_rooms,
+                property_road_size_front_ft:  row.property_road_size_front_ft,
+                property_road_size_back_ft:   row.property_road_size_back_ft,
+                property_road_size_left_ft:   row.property_road_size_left_ft,
+                property_road_size_right_ft:  row.property_road_size_right_ft,
+                property_swimming_pool:       row.property_swimming_pool,
+                property_media_room:          row.property_media_room,
+                property_solar_is_installed:  row.property_solar_is_installed,
+                property_solar_capacity:      row.property_solar_capacity,
+                property_electric_meters:     row.property_electric_meters,
+                property_gas_meters:          row.property_gas_meters,
+                property_description:         row.property_description,
+                creation_date_time:           row.creation_date_time,
+                update_date_time:             row.update_date_time,
+                is_active:                    row.is_active
+            },
+            location: {
+                area_id:         row.area_id,
+                area_english:    row.area_english,
+                society_id:      row.society_id,
+                society_english: row.society_english,
+                city_id:         row.city_id,
+                city_english:    row.city_english,
+                tehsil_id:       row.tehsil_id,
+                tehsil_english:  row.tehsil_english,
+                district_id:     row.district_id,
+                district_english:row.district_english,
+                division_id:     row.division_id,
+                division_english:row.division_english,
+                province_id:     row.province_id,
+                province_english:row.province_english,
+                country_id:      row.country_id,
+                country_english: row.country_english
+            },
+            pictures:  picResult.rows,
+            video:     vidResult.rowCount > 0 ? vidResult.rows[0] : null,
+            amenities: amenResult.rows,
+            approval:  approvalResult.rowCount > 0 ? approvalResult.rows[0] : null,
+            status:    statusResult.rowCount  > 0 ? statusResult.rows[0]  : null,
+            demand:    demandResult.rowCount  > 0 ? demandResult.rows[0]  : null
+        };
+
+    } finally {
+        client.release();
+    }
+};
+
+
 module.exports = {
     getCustomerProfileByUserId,
     updateCustomerProfileByUserId,
@@ -348,5 +949,9 @@ module.exports = {
     updateUserPassword,
     getDashboardSummaryByUserId,
     getDashboardPropertiesByUserId,
-    getCustomerPropertiesByUserId
+    getCustomerPropertiesByUserId,
+    addProperty,
+    uploadPropertyPictures,
+    uploadPropertyVideo,
+    getPropertyDetailByIdAndUserId
 };
