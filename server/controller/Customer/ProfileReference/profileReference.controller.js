@@ -70,7 +70,8 @@ const getPropertyFormData = async (req, res, next) => {
             propertyLocations,
             uom,
             marlaSizes,
-            amenities
+            amenities,
+            demandTypes
         ] = await Promise.all([
             referenceModel.getCountries(),
             referenceModel.getProvinces(),
@@ -82,7 +83,8 @@ const getPropertyFormData = async (req, res, next) => {
             referenceModel.getPropertyLocations(),
             referenceModel.getUOM(),
             referenceModel.getMarlaSizes(),
-            referenceModel.getAmenities()
+            referenceModel.getAmenities(),
+            referenceModel.getDemandTypes()
         ]);
 
         return res.status(200).json({
@@ -99,7 +101,8 @@ const getPropertyFormData = async (req, res, next) => {
                 propertyLocations,
                 uom,
                 marlaSizes,
-                amenities
+                amenities,
+                demandTypes
             }
         });
     } catch (error) {

@@ -37,7 +37,7 @@ const validateUpdateProfile = (req, res, next) => {
     req.body.mobile = String(mobile).trim();
 
     if (middle_name) req.body.middle_name = String(middle_name).trim();
-    
+
     // gender_id is optional but if empty string, send as null
     if (!gender_id || String(gender_id).trim() === '') {
         req.body.gender_id = null;
@@ -55,7 +55,7 @@ const validateChangePassword = (req, res, next) => {
 
     if (!current_password) errors.current_password = 'Current password is required.';
     if (!new_password) errors.new_password = 'New password is required.';
-    
+
     if (new_password) {
         if (new_password.length < 8 || new_password.length > 128) {
             errors.new_password = 'Password must be 8-128 characters.';
@@ -81,7 +81,7 @@ const validateChangePassword = (req, res, next) => {
 
 const validateAddProperty = (req, res, next) => {
     const { area_id } = req.body;
-    
+
     if (!area_id) {
         return res.status(400).json({
             success: false,
@@ -131,7 +131,7 @@ const { pool } = require('../../config/db');
 
 const verifyPropertyOwnership = async (req, res, next) => {
     try {
-        const userId     = req.user.user_id;
+        const userId = req.user.user_id;
         const propertyId = req.params.propertyId;
 
         // 1. Resolve customer_id from user_id
@@ -158,7 +158,7 @@ const verifyPropertyOwnership = async (req, res, next) => {
         if (propertyResult.rowCount === 0) {
             return res.status(403).json({
                 success: false,
-                message: 'You do not have permission to upload pictures to this property.'
+                message: 'You do not have permission to modify this property.'
             });
         }
 
@@ -171,10 +171,58 @@ const verifyPropertyOwnership = async (req, res, next) => {
     }
 };
 
+const validatePropertyDemand = (req, res, next) => {
+    const { demand_type_id, demand_amount } = req.body;
+
+    const errors = [];
+
+    const parsedDemandTypeId = parseInt(demand_type_id, 10);
+    if (!demand_type_id || isNaN(parsedDemandTypeId) || parsedDemandTypeId <= 0 || String(parsedDemandTypeId) !== String(demand_type_id)) {
+        errors.push('demand_type_id must be a positive integer.');
+    } else {
+        req.body.demand_type_id = parsedDemandTypeId;
+    }
+
+    const parsedDemandAmount = Number(demand_amount);
+    if (demand_amount === undefined || demand_amount === null || isNaN(parsedDemandAmount) || parsedDemandAmount <= 0) {
+        errors.push('demand_amount must be a positive number.');
+    } else {
+        req.body.demand_amount = parsedDemandAmount;
+    }
+
+    if (errors.length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: 'Validation failed',
+            errors
+        });
+    }
+
+    next();
+};
+
+const validateUpdateProperty = [
+    (req, res, next) => {
+        if (!req.body.area_id) {
+            return res.status(400).json({ success: false, errors: ['area_id is required'] });
+        }
+        
+        // Strip uneditable fields
+        delete req.body.customer_id;
+        delete req.body.is_active;
+        delete req.body.created_by_user;
+        delete req.body.property_id;
+        
+        next();
+    }
+];
+
 module.exports = {
     validateUpdateProfile,
     validateChangePassword,
-    validateAddProperty,
     validatePropertyId,
-    verifyPropertyOwnership
+    verifyPropertyOwnership,
+    validateAddProperty,
+    validateUpdateProperty,
+    validatePropertyDemand
 };

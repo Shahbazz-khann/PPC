@@ -1,31 +1,18 @@
 require('dotenv').config();
-const { Pool } = require('pg');
+const { pool } = require('./config/db');
 
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT, 10) || 5432,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-});
-
-async function inspectSchema() {
+async function inspect() {
     try {
-        const tables = ['users', 'customers', 'user_types', 'countries', 'pending_users'];
-        for (const table of tables) {
-            console.log(`\n--- TABLE: ${table} ---`);
-            const res = await pool.query(`
-                SELECT column_name, data_type 
-                FROM information_schema.columns 
-                WHERE table_name = $1
-            `, [table]);
-            res.rows.forEach(r => console.log(`${r.column_name}: ${r.data_type}`));
-        }
-    } catch (e) {
-        console.error(e);
+        const res = await pool.query(`
+            SELECT table_name, column_name, data_type 
+            FROM information_schema.columns 
+            WHERE table_name IN ('properties', 'areas', 'property_use', 'property_location_types', 'amenities', 'property_amenities')
+        `);
+        console.log(JSON.stringify(res.rows, null, 2));
+    } catch (err) {
+        console.error(err);
     } finally {
-        await pool.end();
+        pool.end();
     }
 }
-
-inspectSchema();
+inspect();

@@ -522,6 +522,146 @@ const addProperty = async (userId, data) => {
     }
 };
 
+const updateProperty = async (propertyId, customerId, data) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        // 1. Lock property row
+        const lockRes = await client.query(
+            'SELECT property_id FROM properties WHERE property_id = $1 AND customer_id = $2 FOR UPDATE',
+            [propertyId, customerId]
+        );
+        if (lockRes.rowCount === 0) {
+            throw new Error('Property not found or unauthorized.');
+        }
+
+        // 2. Validate Geographic Hierarchy
+        let hierarchyQuery = `
+            SELECT 1 
+            FROM areas a
+            LEFT JOIN societies s ON a.society_id = s.society_id
+            LEFT JOIN cities c ON s.city_id = c.city_id
+            LEFT JOIN tehsils t ON c.tehsil_id = t.tehsil_id
+            LEFT JOIN districts d ON t.district_id = d.district_id
+            LEFT JOIN divisions dv ON d.division_id = dv.division_id
+            LEFT JOIN provinces p ON dv.province_id = p.province_id
+            LEFT JOIN countries co ON p.country_id = co.country_id
+            WHERE a.area_id = $1
+        `;
+        const hierarchyParams = [data.area_id];
+        let paramIdx = 2;
+
+        if (data.society_id) { hierarchyQuery += ` AND s.society_id = $${paramIdx++}`; hierarchyParams.push(data.society_id); }
+        if (data.city_id) { hierarchyQuery += ` AND c.city_id = $${paramIdx++}`; hierarchyParams.push(data.city_id); }
+        if (data.tehsil_id) { hierarchyQuery += ` AND t.tehsil_id = $${paramIdx++}`; hierarchyParams.push(data.tehsil_id); }
+        if (data.district_id) { hierarchyQuery += ` AND d.district_id = $${paramIdx++}`; hierarchyParams.push(data.district_id); }
+        if (data.division_id) { hierarchyQuery += ` AND dv.division_id = $${paramIdx++}`; hierarchyParams.push(data.division_id); }
+        if (data.province_id) { hierarchyQuery += ` AND p.province_id = $${paramIdx++}`; hierarchyParams.push(data.province_id); }
+        if (data.country_id) { hierarchyQuery += ` AND co.country_id = $${paramIdx++}`; hierarchyParams.push(data.country_id); }
+
+        const hierarchyRes = await client.query(hierarchyQuery, hierarchyParams);
+        if (hierarchyRes.rowCount === 0) {
+            throw new Error('Invalid geographic hierarchy combination.');
+        }
+
+        // 3. Update Property Scalar Fields
+        const propertyUpdateQuery = `
+            UPDATE properties SET
+                area_id = $2, property_type_id = $3, property_use_id = $4, property_location_id = $5,
+                property_size = $6, property_size_uom = $7, property_marla_size_id = $8,
+                property_area_marla = $9, property_area_kanal = $10, property_area_acre = $11, property_area_sqft = $12, property_area_sqyard = $13,
+                property_size_front = $14, property_size_back = $15, property_size_left = $16, property_size_right = $17,
+                property_covered_area_sqft = $18, property_open_area_sqft = $19,
+                property_rooms = $20, property_bath_rooms = $21, property_floors = $22, property_lounges = $23, property_kitchens = $24, property_drawing_rooms = $25,
+                property_road_size_front_ft = $26, property_road_size_back_ft = $27, property_road_size_left_ft = $28, property_road_size_right_ft = $29,
+                property_swimming_pool = $30, property_media_room = $31, property_solar_is_installed = $32, property_solar_capacity = $33,
+                property_electric_meters = $34, property_gas_meters = $35, property_description = $36,
+                update_date_time = NOW()
+            WHERE property_id = $1
+        `;
+
+        const propertyParams = [
+            propertyId,
+            data.area_id,
+            data.propertyType || null,
+            data.propertyUse || null,
+            data.propertyLocation || null,
+            data.propertySize || null,
+            data.sizeUom || null,
+            data.marlaSize || null,
+            data.areaMarla || null,
+            data.areaKanal || null,
+            data.areaAcre || null,
+            data.areaSqFt || null,
+            data.areaSqYard || null,
+            data.propertySizeFront || null,
+            data.propertySizeBack || null,
+            data.propertySizeLeft || null,
+            data.propertySizeRight || null,
+            data.coveredAreaSqFt || null,
+            data.openAreaSqFt || null,
+            data.rooms || null,
+            data.bathrooms || null,
+            data.floors || null,
+            data.lounges || null,
+            data.kitchens || null,
+            data.drawingRooms || null,
+            data.roadFrontFt || null,
+            data.roadBackFt || null,
+            data.roadLeftFt || null,
+            data.roadRightFt || null,
+            data.swimmingPool || false,
+            data.mediaRoom || false,
+            data.solarInstalled || false,
+            data.solarCapacity || null,
+            data.electricMeters || null,
+            data.gasMeters || null,
+            data.propertyDescription || null
+        ];
+
+        await client.query(propertyUpdateQuery, propertyParams);
+
+        // 4. Handle Amenities
+        if (data.amenities && Array.isArray(data.amenities)) {
+            // Remove existing links
+            await client.query('DELETE FROM property_amenities WHERE property_id = $1', [propertyId]);
+            
+            for (let amenityText of data.amenities) {
+                if (!amenityText) continue;
+                const cleanText = amenityText.trim();
+                if (cleanText === '') continue;
+
+                // EXACT match case-insensitive
+                const amCheck = await client.query('SELECT amenity_id FROM amenities WHERE LOWER(amenity_description) = LOWER($1)', [cleanText]);
+                let amenityId;
+                if (amCheck.rowCount > 0) {
+                    amenityId = amCheck.rows[0].amenity_id;
+                } else {
+                    const amInsert = await client.query('INSERT INTO amenities (amenity_description, is_active) VALUES ($1, true) RETURNING amenity_id', [cleanText]);
+                    amenityId = amInsert.rows[0].amenity_id;
+                }
+
+                // Link
+                await client.query(`
+                    INSERT INTO property_amenities (property_id, amenity_id, is_active) 
+                    VALUES ($1, $2, true) 
+                    ON CONFLICT ON CONSTRAINT uq_property_amenity DO NOTHING
+                `, [propertyId, amenityId]);
+            }
+        }
+
+        await client.query('COMMIT');
+        return true;
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 // --------------------------------------------------------------------------
 // Upload Property Pictures
 // --------------------------------------------------------------------------
@@ -864,75 +1004,75 @@ const getPropertyDetailByIdAndUserId = async (propertyId, userId) => {
         // ----------------------------------------------------------------
         return {
             property: {
-                property_id:                  row.property_id,
-                formatted_id:                 row.formatted_id,
-                property_type_id:             row.property_type_id,
-                property_type:                row.property_type_description,
-                property_use_id:              row.property_use_id,
-                property_use:                 row.property_use_description,
-                property_location_id:         row.property_location_id,
-                property_location:            row.property_location_description,
-                property_size:                row.property_size,
-                property_size_uom:            row.property_size_uom,
-                uom_english:                  row.uom_english,
-                property_marla_size_id:       row.property_marla_size_id,
-                marla_size_sqft:              row.marla_size_sqft,
-                property_area_marla:          row.property_area_marla,
-                property_area_kanal:          row.property_area_kanal,
-                property_area_acre:           row.property_area_acre,
-                property_area_sqft:           row.property_area_sqft,
-                property_area_sqyard:         row.property_area_sqyard,
-                property_covered_area_sqft:   row.property_covered_area_sqft,
-                property_open_area_sqft:      row.property_open_area_sqft,
-                property_size_front:          row.property_size_front,
-                property_size_back:           row.property_size_back,
-                property_size_left:           row.property_size_left,
-                property_size_right:          row.property_size_right,
-                property_rooms:               row.property_rooms,
-                property_bath_rooms:          row.property_bath_rooms,
-                property_floors:              row.property_floors,
-                property_lounges:             row.property_lounges,
-                property_kitchens:            row.property_kitchens,
-                property_drawing_rooms:       row.property_drawing_rooms,
-                property_road_size_front_ft:  row.property_road_size_front_ft,
-                property_road_size_back_ft:   row.property_road_size_back_ft,
-                property_road_size_left_ft:   row.property_road_size_left_ft,
-                property_road_size_right_ft:  row.property_road_size_right_ft,
-                property_swimming_pool:       row.property_swimming_pool,
-                property_media_room:          row.property_media_room,
-                property_solar_is_installed:  row.property_solar_is_installed,
-                property_solar_capacity:      row.property_solar_capacity,
-                property_electric_meters:     row.property_electric_meters,
-                property_gas_meters:          row.property_gas_meters,
-                property_description:         row.property_description,
-                creation_date_time:           row.creation_date_time,
-                update_date_time:             row.update_date_time,
-                is_active:                    row.is_active
+                property_id: row.property_id,
+                formatted_id: row.formatted_id,
+                property_type_id: row.property_type_id,
+                property_type: row.property_type_description,
+                property_use_id: row.property_use_id,
+                property_use: row.property_use_description,
+                property_location_id: row.property_location_id,
+                property_location: row.property_location_description,
+                property_size: row.property_size,
+                property_size_uom: row.property_size_uom,
+                uom_english: row.uom_english,
+                property_marla_size_id: row.property_marla_size_id,
+                marla_size_sqft: row.marla_size_sqft,
+                property_area_marla: row.property_area_marla,
+                property_area_kanal: row.property_area_kanal,
+                property_area_acre: row.property_area_acre,
+                property_area_sqft: row.property_area_sqft,
+                property_area_sqyard: row.property_area_sqyard,
+                property_covered_area_sqft: row.property_covered_area_sqft,
+                property_open_area_sqft: row.property_open_area_sqft,
+                property_size_front: row.property_size_front,
+                property_size_back: row.property_size_back,
+                property_size_left: row.property_size_left,
+                property_size_right: row.property_size_right,
+                property_rooms: row.property_rooms,
+                property_bath_rooms: row.property_bath_rooms,
+                property_floors: row.property_floors,
+                property_lounges: row.property_lounges,
+                property_kitchens: row.property_kitchens,
+                property_drawing_rooms: row.property_drawing_rooms,
+                property_road_size_front_ft: row.property_road_size_front_ft,
+                property_road_size_back_ft: row.property_road_size_back_ft,
+                property_road_size_left_ft: row.property_road_size_left_ft,
+                property_road_size_right_ft: row.property_road_size_right_ft,
+                property_swimming_pool: row.property_swimming_pool,
+                property_media_room: row.property_media_room,
+                property_solar_is_installed: row.property_solar_is_installed,
+                property_solar_capacity: row.property_solar_capacity,
+                property_electric_meters: row.property_electric_meters,
+                property_gas_meters: row.property_gas_meters,
+                property_description: row.property_description,
+                creation_date_time: row.creation_date_time,
+                update_date_time: row.update_date_time,
+                is_active: row.is_active
             },
             location: {
-                area_id:         row.area_id,
-                area_english:    row.area_english,
-                society_id:      row.society_id,
+                area_id: row.area_id,
+                area_english: row.area_english,
+                society_id: row.society_id,
                 society_english: row.society_english,
-                city_id:         row.city_id,
-                city_english:    row.city_english,
-                tehsil_id:       row.tehsil_id,
-                tehsil_english:  row.tehsil_english,
-                district_id:     row.district_id,
-                district_english:row.district_english,
-                division_id:     row.division_id,
-                division_english:row.division_english,
-                province_id:     row.province_id,
-                province_english:row.province_english,
-                country_id:      row.country_id,
+                city_id: row.city_id,
+                city_english: row.city_english,
+                tehsil_id: row.tehsil_id,
+                tehsil_english: row.tehsil_english,
+                district_id: row.district_id,
+                district_english: row.district_english,
+                division_id: row.division_id,
+                division_english: row.division_english,
+                province_id: row.province_id,
+                province_english: row.province_english,
+                country_id: row.country_id,
                 country_english: row.country_english
             },
-            pictures:  picResult.rows,
-            video:     vidResult.rowCount > 0 ? vidResult.rows[0] : null,
+            pictures: picResult.rows,
+            video: vidResult.rowCount > 0 ? vidResult.rows[0] : null,
             amenities: amenResult.rows,
-            approval:  approvalResult.rowCount > 0 ? approvalResult.rows[0] : null,
-            status:    statusResult.rowCount  > 0 ? statusResult.rows[0]  : null,
-            demand:    demandResult.rowCount  > 0 ? demandResult.rows[0]  : null
+            approval: approvalResult.rowCount > 0 ? approvalResult.rows[0] : null,
+            status: statusResult.rowCount > 0 ? statusResult.rows[0] : null,
+            demand: demandResult.rowCount > 0 ? demandResult.rows[0] : null
         };
 
     } finally {
@@ -940,6 +1080,144 @@ const getPropertyDetailByIdAndUserId = async (propertyId, userId) => {
     }
 };
 
+/**
+ * Add or Update Property Demand (Pricing)
+ */
+const addPropertyDemand = async (propertyId, customerId, userId, demandTypeId, demandAmount) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        // 1. Lock property and verify ownership explicitly
+        const propertyCheck = await client.query(
+            'SELECT property_id FROM properties WHERE property_id = $1 AND customer_id = $2 FOR UPDATE',
+            [propertyId, customerId]
+        );
+        if (propertyCheck.rowCount === 0) {
+            throw Object.assign(new Error('Property not found or you do not have permission.'), { statusCode: 403 });
+        }
+
+        // 2. Resolve PKR currency ID
+        const currencyResult = await client.query(
+            "SELECT currency_id FROM currencies WHERE currency_code = 'PKR'"
+        );
+        if (currencyResult.rowCount === 0) {
+            throw Object.assign(new Error('PKR currency is not configured in the system.'), { statusCode: 500 });
+        }
+        const currencyId = currencyResult.rows[0].currency_id;
+
+        // 3. Validate Demand Type
+        const demandTypeResult = await client.query(
+            'SELECT demand_type_english FROM property_demand_types WHERE demand_type_id = $1 AND is_active = true',
+            [demandTypeId]
+        );
+        if (demandTypeResult.rowCount === 0) {
+            throw Object.assign(new Error('Invalid or inactive demand type.'), { statusCode: 400 });
+        }
+        const demandTypeEnglish = demandTypeResult.rows[0].demand_type_english;
+
+        // 4. Fetch previous active demand
+        const previousDemandResult = await client.query(
+            'SELECT demand_id, demand_type_id, demand_amount, final_amount FROM property_demand WHERE property_id = $1 AND is_active = true FOR UPDATE',
+            [propertyId]
+        );
+        const previousDemand = previousDemandResult.rowCount > 0 ? previousDemandResult.rows[0] : null;
+
+        // 5. Calculate new values
+        let insertDemandAmount = demandAmount;
+        let insertDiscountAmount = null;
+        let insertDiscountPercent = null;
+        let insertFinalAmount = demandAmount;
+
+        if (previousDemand) {
+            // Same type -> Calculate reduction if any
+            if (previousDemand.demand_type_id === demandTypeId) {
+                const previousCurrentPrice = Number(previousDemand.final_amount ?? previousDemand.demand_amount);
+                const newEnteredPrice = Number(demandAmount);
+
+                if (newEnteredPrice < previousCurrentPrice) {
+                    insertDemandAmount = previousCurrentPrice; // Store old price as base for discount
+                    insertDiscountAmount = previousCurrentPrice - newEnteredPrice;
+                    insertDiscountPercent = (insertDiscountAmount / previousCurrentPrice) * 100;
+                    insertFinalAmount = newEnteredPrice;
+                } else {
+                    // Increase or same price -> fresh baseline
+                    insertDemandAmount = newEnteredPrice;
+                    insertDiscountAmount = null;
+                    insertDiscountPercent = null;
+                    insertFinalAmount = newEnteredPrice;
+                }
+            } else {
+                // Sale ↔ Rent change -> fresh baseline (no discount calculated)
+                insertDemandAmount = demandAmount;
+                insertDiscountAmount = null;
+                insertDiscountPercent = null;
+                insertFinalAmount = demandAmount;
+            }
+
+            // Invalidate previous active demand
+            await client.query(
+                'UPDATE property_demand SET is_active = false, update_date_time = NOW() WHERE demand_id = $1',
+                [previousDemand.demand_id]
+            );
+        }
+
+        // 6. Insert new demand
+        const insertResult = await client.query(
+            `INSERT INTO property_demand (
+                property_id,
+                customer_id,
+                effective_date,
+                demand_currency_id,
+                demand_amount,
+                discount_amount,
+                discount_percent,
+                final_amount,
+                demand_type_id,
+                created_by_user,
+                creation_date_time,
+                update_date_time,
+                is_active
+            ) VALUES (
+                $1, $2, CURRENT_DATE, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW(), true
+            ) RETURNING demand_id, effective_date`,
+            [
+                propertyId,
+                customerId,
+                currencyId,
+                insertDemandAmount,
+                insertDiscountAmount,
+                insertDiscountPercent,
+                insertFinalAmount,
+                demandTypeId,
+                userId
+            ]
+        );
+
+        const newDemandRow = insertResult.rows[0];
+
+        await client.query('COMMIT');
+
+        return {
+            demand_id: newDemandRow.demand_id,
+            property_id: propertyId,
+            demand_type_id: demandTypeId,
+            demand_type: demandTypeEnglish,
+            demand_amount: insertDemandAmount,
+            discount_amount: insertDiscountAmount,
+            discount_percent: insertDiscountPercent,
+            final_amount: insertFinalAmount,
+            effective_date: newDemandRow.effective_date,
+            currency_code: 'PKR',
+            is_active: true
+        };
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
 
 module.exports = {
     getCustomerProfileByUserId,
@@ -951,7 +1229,9 @@ module.exports = {
     getDashboardPropertiesByUserId,
     getCustomerPropertiesByUserId,
     addProperty,
+    updateProperty,
     uploadPropertyPictures,
     uploadPropertyVideo,
-    getPropertyDetailByIdAndUserId
+    getPropertyDetailByIdAndUserId,
+    addPropertyDemand
 };

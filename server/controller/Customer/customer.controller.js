@@ -48,7 +48,7 @@ const updateProfile = async (req, res, next) => {
         });
     } catch (error) {
         logger.error('Update Customer Profile Error:', error);
-        
+
         // Handle custom validation/conflict errors from model
         if (error.statusCode) {
             return res.status(error.statusCode).json({
@@ -56,7 +56,7 @@ const updateProfile = async (req, res, next) => {
                 message: error.message
             });
         }
-        
+
         // Return 400 for specific known errors from the model (like missing references)
         if (error.message.includes('Invalid or inactive')) {
             return res.status(400).json({
@@ -246,7 +246,7 @@ const getProperties = async (req, res, next) => {
  */
 const getPropertyDetail = async (req, res, next) => {
     try {
-        const userId     = req.user.user_id;
+        const userId = req.user.user_id;
         const propertyId = req.params.propertyId; // already parsed to int by validatePropertyId
 
         const detail = await customerModel.getPropertyDetailByIdAndUserId(propertyId, userId);
@@ -277,9 +277,9 @@ const addProperty = async (req, res, next) => {
     try {
         const userId = req.user.user_id;
         const propertyData = req.body;
-        
+
         const propertyId = await customerModel.addProperty(userId, propertyData);
-        
+
         return res.status(201).json({
             success: true,
             message: 'Property added successfully',
@@ -289,9 +289,9 @@ const addProperty = async (req, res, next) => {
         });
     } catch (error) {
         logger.error('Add Property Error:', error);
-        
+
         // Handle invalid hierarchy or pending stage errors specifically if needed
-        if (error.message.includes('Invalid geographic hierarchy') || 
+        if (error.message.includes('Invalid geographic hierarchy') ||
             error.message.includes('Customer profile not found') ||
             error.message.includes('stage not found') ||
             error.message.includes('type not found')) {
@@ -300,7 +300,7 @@ const addProperty = async (req, res, next) => {
                 message: error.message
             });
         }
-        
+
         next(error);
     }
 };
@@ -323,7 +323,7 @@ const uploadPropertyPictures = async (req, res, next) => {
 
     try {
         const propertyId = req.params.propertyId;
-        const userId     = req.user.user_id;
+        const userId = req.user.user_id;
 
         // 1. Ensure at least one file was uploaded
         if (!req.files || req.files.length === 0) {
@@ -394,7 +394,7 @@ const uploadPropertyVideo = async (req, res, next) => {
 
     try {
         const propertyId = req.params.propertyId;
-        const userId     = req.user.user_id;
+        const userId = req.user.user_id;
 
         // 1. Ensure Multer saved a file
         if (!req.file) {
@@ -445,6 +445,67 @@ const uploadPropertyVideo = async (req, res, next) => {
     }
 };
 
+/**
+ * Set Property Pricing (Demand)
+ */
+const setPropertyDemand = async (req, res, next) => {
+    try {
+        const propertyId = req.params.propertyId;
+        const customerId = req.verifiedCustomerId; // From verifyPropertyOwnership middleware
+        const userId = req.user.user_id;
+        const { demand_type_id, demand_amount } = req.body;
+
+        const demand = await customerModel.addPropertyDemand(
+            propertyId,
+            customerId,
+            userId,
+            demand_type_id,
+            demand_amount
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'Property demand set successfully',
+            data: demand
+        });
+    } catch (error) {
+        logger.error('Set Property Demand Error:', error);
+
+        if (error.statusCode === 400 || error.statusCode === 404) {
+            return res.status(error.statusCode).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        next(error);
+    }
+};
+
+const updateProperty = async (req, res, next) => {
+    try {
+        const userId = req.user.user_id;
+        const customerId = req.verifiedCustomerId;
+        const propertyId = req.params.propertyId;
+        const data = req.body;
+
+        await customerModel.updateProperty(propertyId, customerId, data);
+
+        logger.info(`Property updated successfully: Prop ${propertyId} by User ${userId}`);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Property updated successfully'
+        });
+    } catch (error) {
+        logger.error('Update Property Error:', error);
+        if (error.message.includes('Invalid geographic hierarchy')) {
+            return res.status(400).json({ success: false, message: error.message });
+        }
+        next(error);
+    }
+};
+
 module.exports = {
     getProfile,
     updateProfile,
@@ -455,6 +516,8 @@ module.exports = {
     getProperties,
     getPropertyDetail,
     addProperty,
+    updateProperty,
     uploadPropertyPictures,
-    uploadPropertyVideo
+    uploadPropertyVideo,
+    setPropertyDemand
 };

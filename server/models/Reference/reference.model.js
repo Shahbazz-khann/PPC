@@ -154,6 +154,17 @@ const getAmenities = async () => {
     return result.rows;
 };
 
+const getDemandTypes = async () => {
+    const query = `
+        SELECT demand_type_id, demand_type_english, demand_type_urdu, demand_type_abb
+        FROM property_demand_types
+        WHERE is_active = true
+        ORDER BY demand_type_english ASC
+    `;
+    const result = await pool.query(query);
+    return result.rows;
+};
+
 const getCities = async (tehsilId, searchStr) => {
     let query = `
         SELECT city_id, tehsil_id, city_english, city_urdu, city_abb
@@ -217,6 +228,7 @@ module.exports = {
     getUOM,
     getMarlaSizes,
     getAmenities,
+    getDemandTypes,
     getCities,
     getSocieties,
     getAreas

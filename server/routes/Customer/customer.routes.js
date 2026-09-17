@@ -3,10 +3,10 @@ const router = express.Router();
 
 const customerController = require('../../controller/Customer/customer.controller');
 const { validateUpdateProfile, validateChangePassword, validateAddProperty,
-        validatePropertyId, verifyPropertyOwnership } = require('../../validators/Customer/customer.validator');
+    validatePropertyId, verifyPropertyOwnership, validatePropertyDemand, validateUpdateProperty } = require('../../validators/Customer/customer.validator');
 const { authenticate, authorize } = require('../../middlewares/authMiddleware');
 const { uploadProfileImage, uploadPropertyPictures, MAX_PROPERTY_PICTURES,
-        uploadPropertyVideo } = require('../../middlewares/uploadMiddleware');
+    uploadPropertyVideo } = require('../../middlewares/uploadMiddleware');
 
 router.get('/profile', authenticate, authorize('customer'), customerController.getProfile);
 router.put('/profile', authenticate, authorize('customer'), validateUpdateProfile, customerController.updateProfile);
@@ -21,6 +21,8 @@ router.get('/dashboard/properties', authenticate, authorize('customer'), custome
 router.get('/properties', authenticate, authorize('customer'), customerController.getProperties);
 router.get('/properties/:propertyId', authenticate, authorize('customer'), validatePropertyId, customerController.getPropertyDetail);
 router.post('/properties', authenticate, authorize('customer'), validateAddProperty, customerController.addProperty);
+router.put('/properties/:propertyId', authenticate, authorize('customer'), validatePropertyId, verifyPropertyOwnership, validateUpdateProperty, customerController.updateProperty);
+router.post('/properties/:propertyId/demand', authenticate, authorize('customer'), validatePropertyId, verifyPropertyOwnership, validatePropertyDemand, customerController.setPropertyDemand);
 
 // Property Pictures
 // Middleware order: authenticate → authorize → validatePropertyId → verifyPropertyOwnership → multer → controller

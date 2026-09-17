@@ -21,8 +21,20 @@ export const getCustomerProperties = async () => {
   return await api.get("/customer/properties");
 };
 
+export const getCustomerPropertyDetail = async (propertyId) => {
+  return await api.get(`/customer/properties/${propertyId}`);
+};
+
 export const addCustomerProperty = async (payload) => {
   return await api.post("/customer/properties", payload);
+};
+
+export const updateCustomerProperty = async (propertyId, payload) => {
+  return await api.put(`/customer/properties/${propertyId}`, payload);
+};
+
+export const setCustomerPropertyDemand = async (propertyId, payload) => {
+  return await api.post(`/customer/properties/${propertyId}/demand`, payload);
 };
 
 /**

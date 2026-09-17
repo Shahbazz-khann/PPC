@@ -57,6 +57,10 @@ apiRouter.use('/customer', customerRoutes);
 const referenceRoutes = require('./routes/Reference');
 apiRouter.use('/reference', referenceRoutes);
 
+// Public APIs
+const publicRoutes = require('./routes/Public/public.routes');
+apiRouter.use('/public', publicRoutes);
+
 app.use(`/api/${API_VERSION}`, apiRouter);
 
 // --------------------------------------------------

@@ -26,3 +26,41 @@ export const getProperties = async (params = {}) => {
 export const getPropertyById = async (propertyId) => {
   return await api.get(`/properties/${propertyId}`);
 }; 
+
+/**
+ * Fetch public properties for landing page/search
+ * @param {Object} params - { intent, city, propertyType, minPrice, maxPrice, limit }
+ */
+export const getPublicProperties = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      queryParams.append(key, value);
+    }
+  });
+
+  const queryString = queryParams.toString();
+  const url = queryString ? `/public/properties/search?${queryString}` : '/public/properties/search';
+
+  return await api.get(url);
+};
+
+/**
+ * Fetch dynamic filters for public properties
+ * @param {Object} params - optional params e.g. { city, society }
+ */
+export const getPublicPropertyFilters = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      queryParams.append(key, value);
+    }
+  });
+
+  const queryString = queryParams.toString();
+  const url = queryString ? `/public/properties/filters?${queryString}` : '/public/properties/filters';
+
+  return await api.get(url);
+};
