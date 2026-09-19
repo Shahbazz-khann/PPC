@@ -3,15 +3,32 @@ const router = express.Router();
 
 const customerController = require('../../controller/Customer/customer.controller');
 const { validateUpdateProfile, validateChangePassword, validateAddProperty,
-    validatePropertyId, verifyPropertyOwnership, validatePropertyDemand, validateUpdateProperty } = require('../../validators/Customer/customer.validator');
+    validatePropertyId, verifyPropertyOwnership, validatePropertyDemand, validateUpdateProperty, validateRequestId, validateInspectionId } = require('../../validators/Customer/customer.validator');
 const { authenticate, authorize } = require('../../middlewares/authMiddleware');
 const { uploadProfileImage, uploadPropertyPictures, MAX_PROPERTY_PICTURES,
     uploadPropertyVideo } = require('../../middlewares/uploadMiddleware');
+
+const requestsController = require('../../controller/Customer/requests.controller');
 
 router.get('/profile', authenticate, authorize('customer'), customerController.getProfile);
 router.put('/profile', authenticate, authorize('customer'), validateUpdateProfile, customerController.updateProfile);
 router.post('/profile-image', authenticate, authorize('customer'), uploadProfileImage.single('profileImage'), customerController.uploadProfileImage);
 router.put('/password', authenticate, authorize('customer'), validateChangePassword, customerController.changePassword);
+
+const verificationsController = require('../../controller/Customer/verifications.controller');
+const inspectionsController = require('../../controller/Customer/inspections.controller');
+// Requests
+router.post('/requests', authenticate, authorize('customer'), requestsController.createRequest);
+router.get('/requests', authenticate, authorize('customer'), requestsController.getRequests);
+router.get('/requests/:requestId', authenticate, authorize('customer'), validateRequestId, requestsController.getRequestById);
+
+// Verification Reports
+router.get('/verification-reports', authenticate, authorize('customer'), verificationsController.getVerificationReports);
+router.get('/verification-reports/:propertyId', authenticate, authorize('customer'), validatePropertyId, verificationsController.getVerificationReportById);
+
+// Inspection Reports
+router.get('/inspection-reports', authenticate, authorize('customer'), inspectionsController.getInspectionReports);
+router.get('/inspection-reports/:inspectionId', authenticate, authorize('customer'), validateInspectionId, inspectionsController.getInspectionReportById);
 
 // Dashboard
 router.get('/dashboard/summary', authenticate, authorize('customer'), customerController.getDashboardSummary);

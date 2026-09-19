@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { 
   ChevronRight, FileText, Home, Wrench, Calendar, MapPin, 
   AudioLines, AlertTriangle, X, Info, Clock, Check, Phone, Headset, MessageSquare
 } from 'lucide-react';
-import { mockRequestsList, REQUEST_CATEGORIES } from './mockRequestsData';
-import { mockPropertiesList } from '../properties/mockPropertyData';
+import { getCustomerRequestById, resolveMediaUrl } from '../../../Services/customer.services';
 import PropVilla from '../../../assets/prop_villa.png'; // Fallback aesthetic image
 
 const StatusBadge = ({ status }) => {
@@ -103,35 +102,61 @@ const CustomerRequestDetails = () => {
   const { requestId } = useParams();
   const navigate = useNavigate();
 
-  const initialRequest = mockRequestsList.find(r => r.id === requestId);
-  const [request, setRequest] = useState(initialRequest);
+  const [request, setRequest] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawError, setWithdrawError] = useState(null);
 
-  if (!request) {
+  useEffect(() => {
+    const fetchRequest = async () => {
+      try {
+        setLoading(true);
+        const res = await getCustomerRequestById(requestId);
+        if (res?.success) {
+          setRequest(res.data);
+          setError(null);
+        } else {
+          setError(res?.message || 'Request not found');
+        }
+      } catch (err) {
+        setError(err.message || 'Error fetching request details');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRequest();
+  }, [requestId]);
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#FAF8F3] flex flex-col items-center justify-center">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Request Not Found</h2>
+        <div className="w-8 h-8 border-4 border-[#B8860B] border-t-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 text-sm font-bold text-gray-500">Loading Request Details...</p>
+      </div>
+    );
+  }
+
+  if (error || !request) {
+    return (
+      <div className="min-h-screen bg-[#FAF8F3] flex flex-col items-center justify-center">
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">{error || 'Request Not Found'}</h2>
         <Link to="/customer/requests" className="text-[#B8860B] hover:underline font-bold">Return to My Requests</Link>
       </div>
     );
   }
 
-  const relatedProperty = request.propertyId 
-    ? mockPropertiesList.find(p => p.id === request.propertyId) 
-    : null;
-
-  const propertyDisplay = relatedProperty 
-    ? `${relatedProperty.propertyType} in ${relatedProperty.society}`
+  const propertyDisplay = request.propertyId 
+    ? `${request.propertyType || 'Property'} in ${request.societyName || 'Unknown Location'}`
     : 'No linked property';
 
   const canWithdraw = request.status === 'Pending' || request.status === 'Under Review';
 
   const handleWithdraw = () => {
-    setRequest(prev => ({ ...prev, status: 'Withdrawn' }));
-    setShowWithdrawModal(false);
+    setWithdrawError("Withdraw action is not yet connected to the backend API. This is a frontend demo.");
   };
 
-  const isPropertyReq = request.category === REQUEST_CATEGORIES.PROPERTY;
+  const isPropertyReq = request.category === 'PROPERTY';
   const titleText = request.purpose || request.service;
 
   return (
@@ -278,14 +303,14 @@ const CustomerRequestDetails = () => {
                 <div className="flex gap-4 sm:col-span-2 items-start mt-2">
                   <span className="w-32 text-xs font-bold text-gray-500 uppercase tracking-wider shrink-0 mt-3">Audio Attachment</span>
                   <div className="flex-1 bg-gray-50 rounded-xl border border-dashed border-gray-200 p-4 flex items-center gap-4 max-w-sm">
-                    {request.audio ? (
+                    {request.audioUrl ? (
                       <>
                         <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-[#B8860B]">
                           <AudioLines size={18} />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-800 truncate max-w-[200px]">{request.audio}</p>
-                          <p className="text-[11px] font-semibold text-gray-500">Audio Recording Attached</p>
+                          <p className="text-sm font-bold text-gray-800 truncate max-w-[200px]">Audio Note</p>
+                          <a href={resolveMediaUrl(request.audioUrl)} target="_blank" rel="noreferrer" className="text-[11px] font-semibold text-blue-500 hover:underline">Listen to audio</a>
                         </div>
                       </>
                     ) : (
@@ -370,11 +395,11 @@ const CustomerRequestDetails = () => {
                 <h3 className="text-[15px] font-serif font-bold text-[#1a2b25]">Related Property</h3>
               </div>
               
-              {relatedProperty ? (
+              {request.propertyId ? (
                 <div className="flex-1 flex flex-col">
                   {/* Property Image with embedded badge */}
                   <div className="relative h-48 w-full bg-gray-100">
-                    <img src={relatedProperty.image || PropVilla} alt="Property" className="w-full h-full object-cover" />
+                    <img src={PropVilla} alt="Property" className="w-full h-full object-cover" />
                     {isPropertyReq && (
                       <div className="absolute top-4 right-4 px-3 py-1 bg-[#1a2b25] text-white text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-lg">
                         Request Purpose: {titleText}
@@ -386,25 +411,21 @@ const CustomerRequestDetails = () => {
                     <div className="grid grid-cols-2 gap-y-4 gap-x-2 mb-6 text-sm">
                       <div>
                         <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Property ID</span>
-                        <span className="font-bold text-gray-800">{relatedProperty.id}</span>
+                        <span className="font-bold text-gray-800">{request.propertyId}</span>
                       </div>
                       <div>
                         <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Type</span>
-                        <span className="font-semibold text-gray-700">{relatedProperty.propertyType} - {relatedProperty.propertyUse}</span>
+                        <span className="font-semibold text-gray-700">{request.propertyType || '-'}</span>
                       </div>
                       <div className="col-span-2">
                         <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Location</span>
-                        <span className="font-semibold text-gray-700">{relatedProperty.society}, {relatedProperty.city}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Size</span>
-                        <span className="font-semibold text-gray-700">{relatedProperty.propertySize} {relatedProperty.sizeUom}</span>
+                        <span className="font-semibold text-gray-700">{request.societyName || '-'}</span>
                       </div>
                     </div>
 
                     <div className="mt-auto pt-2">
                       <Link 
-                        to={`/customer/properties/${relatedProperty.id}`} 
+                        to={`/customer/properties/${request.propertyId}`} 
                         className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-[#B8860B] to-[#d4af37] text-white rounded-xl font-bold text-sm shadow-[0_4px_12px_rgba(184,134,11,0.2)] hover:shadow-lg transition-all"
                       >
                         View Property Profile <ChevronRight size={16} />
@@ -463,16 +484,24 @@ const CustomerRequestDetails = () => {
               </p>
             </div>
             
+            {withdrawError && (
+              <div className="mb-6 p-3 bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold rounded-xl flex items-center gap-2">
+                <Info size={16} className="shrink-0" />
+                {withdrawError}
+              </div>
+            )}
+            
             <div className="flex flex-col sm:flex-row gap-3">
               <button 
-                onClick={() => setShowWithdrawModal(false)}
+                onClick={() => { setShowWithdrawModal(false); setWithdrawError(null); }}
                 className="flex-1 py-3 rounded-xl text-sm font-bold text-gray-600 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
               >
                 Cancel
               </button>
               <button 
                 onClick={handleWithdraw}
-                className="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-red-600 border border-red-600 hover:bg-red-700 shadow-md transition-all"
+                className="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-red-600 border border-red-600 hover:bg-red-700 shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!!withdrawError}
               >
                 Withdraw
               </button>

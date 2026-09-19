@@ -165,6 +165,28 @@ const getDemandTypes = async () => {
     return result.rows;
 };
 
+const getPropertyPurposes = async () => {
+    const query = `
+        SELECT purpose_id, purpose_description, purpose_urdu, purpose_abb
+        FROM property_purposes
+        WHERE is_active = true
+        ORDER BY purpose_id ASC
+    `;
+    const result = await pool.query(query);
+    return result.rows;
+};
+
+const getPPCServices = async () => {
+    const query = `
+        SELECT service_id, service_type_id, service_english, service_urdu, service_abb
+        FROM ppc_services
+        WHERE is_active = true
+        ORDER BY service_id ASC
+    `;
+    const result = await pool.query(query);
+    return result.rows;
+};
+
 const getCities = async (tehsilId, searchStr) => {
     let query = `
         SELECT city_id, tehsil_id, city_english, city_urdu, city_abb
@@ -229,6 +251,8 @@ module.exports = {
     getMarlaSizes,
     getAmenities,
     getDemandTypes,
+    getPropertyPurposes,
+    getPPCServices,
     getCities,
     getSocieties,
     getAreas

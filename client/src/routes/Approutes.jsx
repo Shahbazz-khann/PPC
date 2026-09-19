@@ -97,7 +97,7 @@ const Approutes = () => {
           <Route path="inspection-reports/:inspectionId" element={<CustomerInspectionDetails />} />
           {/* Verifications Module */}
           <Route path="verification-reports" element={<CustomerVerificationReports />} />
-          <Route path="verification-reports/:verificationId" element={<CustomerVerificationDetails />} />
+          <Route path="verification-reports/:propertyId" element={<CustomerVerificationDetails />} />
           
           {/* Inbox / Messaging Module */}
           <Route path="inbox" element={<CustomerInbox />} />

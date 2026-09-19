@@ -13,6 +13,34 @@ export const getCustomerDashboardSummary = async () => {
   return await api.get("/customer/dashboard/summary");
 };
 
+export const getCustomerRequests = async () => {
+  return await api.get("/customer/requests");
+};
+
+export const getCustomerRequestById = async (requestId) => {
+  return await api.get(`/customer/requests/${requestId}`);
+};
+
+export const createCustomerRequest = async (payload) => {
+  return await api.post("/customer/requests", payload);
+};
+
+export const getCustomerVerificationReports = async () => {
+  return await api.get("/customer/verification-reports");
+};
+
+export const getCustomerInspectionReports = async () => {
+  return await api.get("/customer/inspection-reports");
+};
+
+export const getCustomerInspectionReportById = async (inspectionId) => {
+  return await api.get(`/customer/inspection-reports/${inspectionId}`);
+};
+
+export const getCustomerVerificationReportByPropertyId = async (propertyId) => {
+  return await api.get(`/customer/verification-reports/${propertyId}`);
+};
+
 export const getCustomerDashboardProperties = async () => {
   return await api.get("/customer/dashboard/properties");
 };
@@ -71,6 +99,14 @@ export const changeCustomerPassword = async (payload) => {
 
 export const getPropertyFormReference = async () => {
   return await api.get("/reference/property-form");
+};
+
+export const getPropertyPurposes = async () => {
+  return await api.get("/reference/property-purposes");
+};
+
+export const getPPCServices = async () => {
+  return await api.get("/reference/ppc-services");
 };
 
 export const getCities = async (tehsilId, search = '') => {

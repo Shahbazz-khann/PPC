@@ -1,21 +1,31 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ChevronRight, CheckCircle2, Home, Wrench, FileText, MapPin, AudioLines, UploadCloud, X,
-  Sparkles, Droplets, Zap, Paintbrush, Hammer, Wind, Bug, Leaf, PenTool, DollarSign
+  Sparkles, Droplets, Zap, Paintbrush, Hammer, Wind, Bug, Leaf, PenTool, DollarSign, AlertTriangle
 } from 'lucide-react';
-import { REQUEST_CATEGORIES, PROPERTY_PURPOSES, MOCK_PPC_SERVICES } from './mockRequestsData';
-import { mockPropertiesList } from '../properties/mockPropertyData';
-import { mockPropertyDemands, appendMockDemand } from '../properties/mockPropertyDemandData';
+import { getCustomerProperties, getPropertyPurposes, getPPCServices, createCustomerRequest } from '../../../Services/customer.services';
+import { resolveMediaUrl } from '../../../Services/Api';
+
+const REQUEST_CATEGORIES = {
+  PROPERTY: 'PROPERTY',
+  SERVICE: 'SERVICE'
+};
 
 const CustomerRequestCreate = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isFetching, setIsFetching] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [purposesList, setPurposesList] = useState([]);
+  const [servicesList, setServicesList] = useState([]);
+  const [propertiesList, setPropertiesList] = useState([]);
 
   const [formData, setFormData] = useState({
     category: '',
-    purpose: '',
-    service: '',
+    purposeId: '',
+    serviceId: '',
     propertyId: '',
     description: '',
     audio: null,
@@ -23,11 +33,32 @@ const CustomerRequestCreate = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const audioInputRef = useRef(null);
+  const [fetchError, setFetchError] = useState(null);
 
-  // Inline Demand state
-  const [inlineDemandAmount, setInlineDemandAmount] = useState('');
-  const [showInlineDemandInput, setShowInlineDemandInput] = useState(false);
+  const fetchData = async () => {
+    try {
+      setIsFetching(true);
+      setFetchError(null);
+      const [purposesRes, servicesRes, propertiesRes] = await Promise.all([
+        getPropertyPurposes(),
+        getPPCServices(),
+        getCustomerProperties()
+      ]);
+
+      if (purposesRes?.success) setPurposesList(purposesRes.data || []);
+      if (servicesRes?.success) setServicesList(servicesRes.data || []);
+      if (propertiesRes?.success) setPropertiesList(propertiesRes.data || []);
+    } catch (error) {
+      console.error('Failed to fetch reference data', error);
+      setFetchError('Unable to load request purposes.');
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const getDynamicSteps = () => {
     const steps = [
@@ -47,7 +78,20 @@ const CustomerRequestCreate = () => {
 
   const isPropertyRequired = () => {
     if (formData.category === REQUEST_CATEGORIES.PROPERTY) {
-      if (formData.purpose === 'Sale' || formData.purpose === 'Renovation') return true;
+      const purposeObj = purposesList.find(p => p.purpose_id === formData.purposeId);
+      if (purposeObj && (purposeObj.purpose_description === 'Sale' || purposeObj.purpose_description === 'Renovation' || purposeObj.purpose_description === 'Rent')) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const isDeferredPurpose = () => {
+    if (formData.category === REQUEST_CATEGORIES.PROPERTY) {
+      const purposeObj = purposesList.find(p => p.purpose_id === formData.purposeId);
+      if (purposeObj && (purposeObj.purpose_description === 'Purchase' || purposeObj.purpose_description === 'Lease')) {
+        return true;
+      }
     }
     return false;
   };
@@ -60,11 +104,14 @@ const CustomerRequestCreate = () => {
       if (!formData.category) { newErrors.category = 'Please select a category'; isValid = false; }
     }
     else if (step === 2) {
-      if (formData.category === REQUEST_CATEGORIES.PROPERTY && !formData.purpose) {
-        newErrors.purpose = 'Please select a purpose'; isValid = false;
+      if (formData.category === REQUEST_CATEGORIES.PROPERTY && !formData.purposeId) {
+        newErrors.purposeId = 'Please select a purpose'; isValid = false;
       }
-      if (formData.category === REQUEST_CATEGORIES.SERVICE && !formData.service) {
-        newErrors.service = 'Please select a service'; isValid = false;
+      if (formData.category === REQUEST_CATEGORIES.SERVICE && !formData.serviceId) {
+        newErrors.serviceId = 'Please select a service'; isValid = false;
+      }
+      if (isDeferredPurpose()) {
+        isValid = false; // Block moving forward for deferred features
       }
     }
     else if (step === 3) {
@@ -72,28 +119,24 @@ const CustomerRequestCreate = () => {
         newErrors.propertyId = 'Please select a property for this request'; isValid = false;
       }
 
-      if (formData.propertyId && (formData.purpose === 'Sale' || formData.purpose === 'Rent')) {
-        const propertyDemands = mockPropertyDemands.filter(d => d.propertyId === formData.propertyId);
-        propertyDemands.sort((a, b) => new Date(b.effectiveDate) - new Date(a.effectiveDate));
+      const purposeObj = purposesList.find(p => p.purpose_id === formData.purposeId);
+      const selectedPurpose = purposeObj?.purpose_description;
 
-        const latestDemand = propertyDemands.length > 0 ? propertyDemands[0] : null;
-        let currentPurpose = null;
-        if (latestDemand) {
-          if (latestDemand.saleAmount !== null && latestDemand.saleAmount !== undefined) currentPurpose = 'Sale';
-          else if (latestDemand.rentAmount !== null && latestDemand.rentAmount !== undefined) currentPurpose = 'Rent';
-        }
+      if (formData.propertyId && (selectedPurpose === 'Sale' || selectedPurpose === 'Rent')) {
+        const selectedProp = propertiesList.find(p => String(p.property_id) === String(formData.propertyId));
+        const currentDemandType = selectedProp?.demand_type || null;
 
-        if (formData.purpose === 'Sale') {
-          if (!currentPurpose) {
+        if (selectedPurpose === 'Sale') {
+          if (!currentDemandType) {
             newErrors.demand = 'No Sale Demand has been set for this property.'; isValid = false;
-          } else if (currentPurpose === 'Rent') {
-            newErrors.demand = 'This property currently has a Rent Demand. A Sale Demand is required for a Sale Request.'; isValid = false;
+          } else if (currentDemandType !== 'Sale') {
+            newErrors.demand = `This property currently has a ${currentDemandType} Demand. A Sale Demand is required for a Sale Request.`; isValid = false;
           }
-        } else if (formData.purpose === 'Rent') {
-          if (!currentPurpose) {
+        } else if (selectedPurpose === 'Rent') {
+          if (!currentDemandType) {
             newErrors.demand = 'No Rent Demand has been set for this property.'; isValid = false;
-          } else if (currentPurpose === 'Sale') {
-            newErrors.demand = 'This property currently has a Sale Demand. A Rent Demand is required for a Rent Request.'; isValid = false;
+          } else if (currentDemandType !== 'Rent') {
+            newErrors.demand = `This property currently has a ${currentDemandType} Demand. A Rent Demand is required for a Rent Request.`; isValid = false;
           }
         }
       }
@@ -123,116 +166,82 @@ const CustomerRequestCreate = () => {
   const handleCategorySelect = (cat) => {
     setFormData({
       category: cat,
-      purpose: '',
-      service: '',
+      purposeId: '',
+      serviceId: '',
       propertyId: '',
       description: '',
       audio: null,
       audioName: ''
     });
     setErrors({});
-    setShowInlineDemandInput(false);
-    setInlineDemandAmount('');
     setCurrentStep(2);
   };
 
-  const handleAudioUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (!file.type.startsWith('audio/')) {
-        setErrors({ audio: 'Please upload a valid audio file' });
-        return;
-      }
-      if (file.size > 10 * 1024 * 1024) { // 10MB
-        setErrors({ audio: 'Audio file must be less than 10MB' });
-        return;
-      }
-      setFormData(prev => ({
-        ...prev,
-        audio: URL.createObjectURL(file),
-        audioName: file.name
-      }));
-      setErrors(prev => ({ ...prev, audio: null }));
-    }
-  };
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setErrors(prev => ({ ...prev, submit: null }));
 
-  const removeAudio = () => {
-    if (formData.audio && formData.audio.startsWith('blob:')) {
-      URL.revokeObjectURL(formData.audio);
-    }
-    setFormData(prev => ({ ...prev, audio: null, audioName: '' }));
-    if (audioInputRef.current) audioInputRef.current.value = '';
-  };
+      const payload = {
+        description: formData.description
+      };
 
-  const handleSubmit = () => {
-    // Mock submission
-    setTimeout(() => {
-      // Show mock success message
-      alert('Request submitted successfully! (Mock)');
-      navigate('/customer/requests');
-    }, 500);
+      if (formData.category === REQUEST_CATEGORIES.PROPERTY) {
+        payload.requestPurposeId = formData.purposeId;
+        payload.propertyId = formData.propertyId || null;
+      } else {
+        payload.serviceId = formData.serviceId;
+        payload.propertyId = formData.propertyId || null;
+      }
+
+      const response = await createCustomerRequest(payload);
+
+      if (response?.success) {
+        navigate('/customer/requests');
+      }
+    } catch (error) {
+      setErrors(prev => ({ ...prev, submit: error.message || 'Failed to create request. Please try again.' }));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getServiceMetadata = (serviceName) => {
-    switch (serviceName) {
-      case 'Property Care': return { icon: Home, desc: 'Regular maintenance and supervision' };
-      case 'Cleaning Services': return { icon: Sparkles, desc: 'Deep cleaning and sanitization' };
-      case 'Plumbing Services': return { icon: Droplets, desc: 'Pipes, leaks, and fixture repairs' };
-      case 'Electrical Services': return { icon: Zap, desc: 'Wiring, panels, and lighting fixes' };
-      case 'Drain & Gutter Cleaning': return { icon: Droplets, desc: 'Clear blockages and drainage issues' };
-      case 'Painting Services': return { icon: Paintbrush, desc: 'Interior and exterior painting' };
-      case 'Carpentry Services': return { icon: Hammer, desc: 'Woodwork, doors, and cabinets' };
-      case 'AC Repair & Maintenance': return { icon: Wind, desc: 'HVAC servicing and repairs' };
-      case 'Water Tank Cleaning': return { icon: Droplets, desc: 'Tank scrubbing and sanitization' };
-      case 'Pest Control': return { icon: Bug, desc: 'Extermination and prevention' };
-      case 'Gardening / Lawn Maintenance': return { icon: Leaf, desc: 'Landscaping and plant care' };
-      case 'General Repair & Maintenance': return { icon: PenTool, desc: 'Miscellaneous property repairs' };
-      default: return { icon: Wrench, desc: 'Professional PPC service' };
-    }
+    if (!serviceName) return { icon: Wrench, desc: 'Professional PPC service' };
+    if (serviceName.includes('Property Care')) return { icon: Home, desc: 'Regular maintenance and supervision' };
+    if (serviceName.includes('Cleaning')) return { icon: Sparkles, desc: 'Deep cleaning and sanitization' };
+    if (serviceName.includes('Plumbing')) return { icon: Droplets, desc: 'Pipes, leaks, and fixture repairs' };
+    if (serviceName.includes('Electrical')) return { icon: Zap, desc: 'Wiring, panels, and lighting fixes' };
+    if (serviceName.includes('Drain')) return { icon: Droplets, desc: 'Clear blockages and drainage issues' };
+    if (serviceName.includes('Painting')) return { icon: Paintbrush, desc: 'Interior and exterior painting' };
+    if (serviceName.includes('Carpentry')) return { icon: Hammer, desc: 'Woodwork, doors, and cabinets' };
+    if (serviceName.includes('AC Repair')) return { icon: Wind, desc: 'HVAC servicing and repairs' };
+    if (serviceName.includes('Water Tank')) return { icon: Droplets, desc: 'Tank scrubbing and sanitization' };
+    if (serviceName.includes('Pest Control')) return { icon: Bug, desc: 'Extermination and prevention' };
+    if (serviceName.includes('Gardening')) return { icon: Leaf, desc: 'Landscaping and plant care' };
+    if (serviceName.includes('General Repair')) return { icon: PenTool, desc: 'Miscellaneous property repairs' };
+    return { icon: Wrench, desc: 'Professional PPC service' };
   };
 
   const getSelectedPropertyName = () => {
-    if (!formData.propertyId) return 'None selected';
-    const prop = mockPropertiesList.find(p => p.id === formData.propertyId);
-    return prop ? `${prop.propertyType} in ${prop.society}` : 'Unknown Property';
+    if (!formData.propertyId) return 'No linked property';
+    const prop = propertiesList.find(p => String(p.property_id) === String(formData.propertyId));
+    return prop ? `${prop.property_type} in ${prop.society}` : 'Unknown Property';
   };
 
-  // Demand helpers
-  const getLatestDemandInfo = () => {
-    if (!formData.propertyId) return null;
-    const propertyDemands = mockPropertyDemands.filter(d => d.propertyId === formData.propertyId);
-    propertyDemands.sort((a, b) => new Date(b.effectiveDate) - new Date(a.effectiveDate));
-    const latest = propertyDemands.length > 0 ? propertyDemands[0] : null;
+  const currentStepConfig = steps[currentStep - 1];
+  const isReviewStep = currentStepConfig?.title === 'Review';
 
-    if (!latest) return null;
-    if (latest.saleAmount !== null && latest.saleAmount !== undefined) return { purpose: 'Sale', amount: latest.saleAmount };
-    if (latest.rentAmount !== null && latest.rentAmount !== undefined) return { purpose: 'Rent', amount: latest.rentAmount };
-    return null;
-  };
-
-  const handleSetInlineDemand = () => {
-    if (!inlineDemandAmount || isNaN(inlineDemandAmount) || Number(inlineDemandAmount) <= 0) {
-      alert('Please enter a valid amount greater than 0.');
-      return;
-    }
-    const newDemand = {
-      demandId: `DEM-${Date.now()}`,
-      propertyId: formData.propertyId,
-      customerId: "CUST-001",
-      effectiveDate: new Date().toISOString().split('T')[0],
-      currency: "PKR",
-      saleAmount: formData.purpose === 'Sale' ? Number(inlineDemandAmount) : null,
-      rentAmount: formData.purpose === 'Rent' ? Number(inlineDemandAmount) : null
-    };
-    appendMockDemand(newDemand);
-    setShowInlineDemandInput(false);
-    setInlineDemandAmount('');
-    setErrors(prev => ({ ...prev, demand: null }));
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(amount);
-  };
+  if (isFetching) {
+    return (
+      <div className="w-full bg-[#FAF8F3] min-h-screen flex items-center justify-center font-sans">
+        <div className="flex flex-col items-center">
+          <div className="w-8 h-8 border-4 border-[#B8860B] border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-sm font-bold text-gray-500">Loading Configuration...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
@@ -322,52 +331,85 @@ const CustomerRequestCreate = () => {
                     <div className="space-y-4">
                       <label className="block text-sm font-bold text-gray-800 mb-2">What is the purpose of this request?</label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {PROPERTY_PURPOSES.map(purpose => (
-                          <button
-                            key={purpose}
-                            onClick={() => { setFormData(prev => ({ ...prev, purpose })); setErrors({}); }}
-                            className={`p-4 rounded-xl border-2 font-bold text-sm transition-all ${formData.purpose === purpose ? 'border-[#1a2b25] bg-[#fafcfb] text-[#1a2b25]' : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                              }`}
-                          >
-                            {purpose}
-                          </button>
-                        ))}
+                        {fetchError ? (
+                          <div className="col-span-full py-6 flex flex-col items-center justify-center bg-red-50 border border-red-100 rounded-xl">
+                            <AlertTriangle size={24} className="text-red-500 mb-2" />
+                            <p className="text-sm font-bold text-red-600 mb-3">{fetchError}</p>
+                            <button onClick={fetchData} className="px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700">Retry</button>
+                          </div>
+                        ) : purposesList.length === 0 ? (
+                          <div className="col-span-full py-8 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+                            <p className="text-sm font-bold text-gray-500">No purposes found</p>
+                          </div>
+                        ) : (
+                          purposesList.map(purpose => (
+                            <button
+                              key={purpose.purpose_id}
+                              onClick={() => { setFormData(prev => ({ ...prev, purposeId: purpose.purpose_id })); setErrors({}); }}
+                              className={`p-4 rounded-xl border-2 font-bold text-sm transition-all ${formData.purposeId === purpose.purpose_id ? 'border-[#1a2b25] bg-[#fafcfb] text-[#1a2b25]' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                                }`}
+                            >
+                              {purpose.purpose_description}
+                            </button>
+                          ))
+                        )}
                       </div>
-                      {errors.purpose && <p className="text-sm text-red-500 font-semibold">{errors.purpose}</p>}
+                      {errors.purposeId && <p className="text-sm text-red-500 font-semibold">{errors.purposeId}</p>}
+
+                      {isDeferredPurpose() && (
+                        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mt-4 flex items-start gap-3">
+                          <AlertTriangle className="text-orange-500 shrink-0 mt-0.5" size={18} />
+                          <p className="text-sm font-medium text-orange-800">
+                            The requested workflow is currently under development. Please check back later.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-4">
                       <label className="block text-sm font-bold text-gray-800 mb-2">Which service do you need?</label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {MOCK_PPC_SERVICES.map(service => {
-                          const { icon: ServiceIcon, desc } = getServiceMetadata(service);
-                          const isSelected = formData.service === service;
-                          return (
-                            <button
-                              key={service}
-                              onClick={() => { setFormData(prev => ({ ...prev, service })); setErrors({}); }}
-                              className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-start gap-3 text-left group ${isSelected
+                        {fetchError ? (
+                          <div className="col-span-full py-6 flex flex-col items-center justify-center bg-red-50 border border-red-100 rounded-xl">
+                            <AlertTriangle size={24} className="text-red-500 mb-2" />
+                            <p className="text-sm font-bold text-red-600 mb-3">{fetchError}</p>
+                            <button onClick={fetchData} className="px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700">Retry</button>
+                          </div>
+                        ) : servicesList.length === 0 ? (
+                          <div className="col-span-full py-8 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+                            <p className="text-sm font-bold text-gray-500">No services found</p>
+                          </div>
+                        ) : (
+                          servicesList.map(service => {
+                            const { icon: ServiceIcon, desc } = getServiceMetadata(service.service_english);
+                            const isSelected = formData.serviceId === service.service_id;
+                            return (
+                              <button
+                                key={service.service_id}
+                                onClick={() => { setFormData(prev => ({ ...prev, serviceId: service.service_id })); setErrors({}); }}
+                                className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-start gap-3 text-left group ${isSelected
                                   ? 'border-[#B8860B] bg-[#faf7f2] shadow-sm'
                                   : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50 bg-white'
-                                }`}
-                            >
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isSelected ? 'bg-[#f4ebd0] text-[#B8860B]' : 'bg-gray-100 text-gray-500 group-hover:text-gray-700'
-                                }`}>
-                                <ServiceIcon size={20} />
-                              </div>
-                              <div>
-                                <h4 className={`text-sm font-bold mb-1 transition-colors ${isSelected ? 'text-[#B8860B]' : 'text-[#1a2b25]'}`}>
-                                  {service}
-                                </h4>
-                                <p className="text-xs font-medium text-gray-500 line-clamp-2 leading-relaxed">
-                                  {desc}
-                                </p>
-                              </div>
-                            </button>
-                          );
-                        })}
+                                  }`}
+                              >
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isSelected ? 'bg-[#f4ebd0] text-[#B8860B]' : 'bg-gray-100 text-gray-500 group-hover:text-gray-700'
+                                  }`}>
+                                  <ServiceIcon size={20} />
+                                </div>
+                                <div>
+                                  <h4 className={`text-sm font-bold mb-1 transition-colors ${isSelected ? 'text-[#B8860B]' : 'text-[#1a2b25]'}`}>
+                                    {service.service_english}
+                                  </h4>
+                                  <p className="text-xs font-medium text-gray-500 line-clamp-2 leading-relaxed">
+                                    {desc}
+                                  </p>
+                                </div>
+                              </button>
+                            );
+                          })
+                        )}
                       </div>
-                      {errors.service && <p className="text-sm text-red-500 font-semibold mt-2">{errors.service}</p>}
+                      {errors.serviceId && <p className="text-sm text-red-500 font-semibold mt-2">{errors.serviceId}</p>}
                     </div>
                   )}
                 </div>
@@ -380,7 +422,7 @@ const CustomerRequestCreate = () => {
                     <MapPin className="text-blue-500 shrink-0 mt-0.5" size={18} />
                     <p className="text-sm font-medium text-blue-800">
                       {isPropertyRequired()
-                        ? `A related property is required for a ${formData.purpose} request. Please select one of your registered properties.`
+                        ? `A related property is required for this request. Please select one of your registered properties.`
                         : 'You may optionally link this request to one of your registered properties.'}
                     </p>
                   </div>
@@ -389,28 +431,40 @@ const CustomerRequestCreate = () => {
                     <label className="block text-sm font-bold text-gray-800">Select Property {isPropertyRequired() ? <span className="text-red-500">*</span> : <span className="text-gray-400 font-normal text-xs ml-1">(Optional)</span>}</label>
                     <div className="grid grid-cols-1 gap-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                       <button
-                        onClick={() => { setFormData(prev => ({ ...prev, propertyId: '' })); setErrors({}); setShowInlineDemandInput(false); }}
+                        onClick={() => { setFormData(prev => ({ ...prev, propertyId: '' })); setErrors({}); }}
                         className={`p-4 rounded-xl border-2 text-left transition-all ${formData.propertyId === '' ? 'border-[#1a2b25] bg-gray-50' : 'border-gray-200 hover:border-gray-300'
                           }`}
                       >
                         <p className={`font-bold text-sm ${formData.propertyId === '' ? 'text-[#1a2b25]' : 'text-gray-600'}`}>No linked property</p>
                       </button>
 
-                      {mockPropertiesList.map(prop => (
+                      {propertiesList.map(prop => (
                         <button
-                          key={prop.id}
-                          onClick={() => { setFormData(prev => ({ ...prev, propertyId: prop.id })); setErrors({}); setShowInlineDemandInput(false); }}
-                          className={`p-4 rounded-xl border-2 flex items-center gap-4 text-left transition-all ${formData.propertyId === prop.id ? 'border-[#1a2b25] bg-[#fafcfb]' : 'border-gray-200 hover:border-gray-300'
+                          key={prop.property_id}
+                          onClick={() => { setFormData(prev => ({ ...prev, propertyId: prop.property_id })); setErrors({}); }}
+                          className={`p-4 rounded-xl border-2 flex items-center gap-4 text-left transition-all ${formData.propertyId === prop.property_id ? 'border-[#1a2b25] bg-[#fafcfb]' : 'border-gray-200 hover:border-gray-300'
                             }`}
                         >
-                          <div className={`w-12 h-12 rounded-lg shrink-0 flex items-center justify-center ${prop.image ? 'bg-transparent' : 'bg-gray-100'}`}>
-                            {prop.image ? <img src={prop.image} alt="prop" className="w-full h-full object-cover rounded-lg" /> : <Home size={20} className="text-gray-400" />}
+                          <div className={`w-12 h-12 rounded-lg shrink-0 flex items-center justify-center ${prop.image_url ? 'bg-transparent overflow-hidden' : 'bg-gray-100'}`}>
+                            {prop.image_url ? (
+                              <img
+                                src={resolveMediaUrl(prop.image_url)}
+                                alt="prop"
+                                className="w-full h-full object-cover rounded-lg"
+                                onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
+                              />
+                            ) : null}
+                            <Home
+                              size={20}
+                              className="text-gray-400"
+                              style={{ display: prop.image_url ? 'none' : 'block' }}
+                            />
                           </div>
                           <div>
-                            <p className={`font-bold text-sm mb-1 ${formData.propertyId === prop.id ? 'text-[#1a2b25]' : 'text-gray-800'}`}>
-                              {prop.propertyType} in {prop.society}
+                            <p className={`font-bold text-sm mb-1 ${formData.propertyId === prop.property_id ? 'text-[#1a2b25]' : 'text-gray-800'}`}>
+                              {prop.property_type} in {prop.society}
                             </p>
-                            <p className="text-xs font-semibold text-gray-500">ID: {prop.id} • {prop.city}</p>
+                            <p className="text-xs font-semibold text-gray-500">ID: {prop.formatted_id} • {prop.city}</p>
                           </div>
                         </button>
                       ))}
@@ -418,62 +472,19 @@ const CustomerRequestCreate = () => {
                     {errors.propertyId && <p className="text-sm text-red-500 font-semibold">{errors.propertyId}</p>}
                   </div>
 
-                  {/* Demand Integration for Sale/Rent */}
-                  {formData.propertyId && (formData.purpose === 'Sale' || formData.purpose === 'Rent') && (
-                    <div className="bg-[#FAF8F3] border border-[#e4d7be] rounded-xl p-6 mt-6 animate-fadeIn">
-                      <div className="flex items-center gap-2 mb-4 text-[#B8860B]">
-                        <DollarSign size={20} />
-                        <h4 className="font-bold text-sm">Pricing & Demand</h4>
+                  {/* Demand Error Display */}
+                  {errors.demand && (
+                    <div className="bg-[#FAF8F3] border border-red-200 rounded-xl p-6 mt-6 animate-fadeIn">
+                      <div className="flex items-center gap-2 mb-4 text-red-600">
+                        <AlertTriangle size={20} />
+                        <h4 className="font-bold text-sm">Demand Requirement Missing</h4>
                       </div>
-
-                      {(() => {
-                        const info = getLatestDemandInfo();
-                        if (info && info.purpose === formData.purpose) {
-                          return (
-                            <div>
-                              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Current {formData.purpose} Demand</p>
-                              <p className="text-2xl font-bold text-[#1a2b25]">{formatCurrency(info.amount)}</p>
-                              <p className="text-sm text-emerald-600 font-semibold mt-2 flex items-center gap-1.5"><CheckCircle2 size={16} /> Ready to proceed</p>
-                            </div>
-                          );
-                        } else {
-                          const hasWrongDemand = info && info.purpose !== formData.purpose;
-                          return (
-                            <div>
-                              <p className="text-sm font-semibold text-red-600 mb-4">{errors.demand || `No ${formData.purpose} Demand has been set for this property.`}</p>
-
-                              {!hasWrongDemand && (
-                                showInlineDemandInput ? (
-                                  <div className="space-y-4">
-                                    <input
-                                      type="number"
-                                      value={inlineDemandAmount}
-                                      onChange={(e) => setInlineDemandAmount(e.target.value)}
-                                      placeholder={`Enter ${formData.purpose} Amount (PKR)`}
-                                      className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B] outline-none transition-colors text-sm font-bold"
-                                    />
-                                    <div className="flex gap-3">
-                                      <button onClick={handleSetInlineDemand} className="px-5 py-2 bg-[#1a2b25] text-white text-sm font-bold rounded-xl hover:bg-[#2c4232]">
-                                        Save Demand
-                                      </button>
-                                      <button onClick={() => setShowInlineDemandInput(false)} className="px-5 py-2 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50">
-                                        Cancel
-                                      </button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <button
-                                    onClick={() => setShowInlineDemandInput(true)}
-                                    className="px-6 py-2.5 bg-[#1a2b25] text-white text-sm font-bold rounded-xl shadow-sm hover:bg-[#2c4232] transition-colors"
-                                  >
-                                    Set {formData.purpose} Demand
-                                  </button>
-                                )
-                              )}
-                            </div>
-                          );
-                        }
-                      })()}
+                      <div className="space-y-3">
+                        <p className="text-sm font-semibold text-gray-700">{errors.demand}</p>
+                        <Link to={`/customer/properties/${formData.propertyId}`} className="inline-block px-6 py-2.5 bg-[#1a2b25] text-white text-sm font-bold rounded-xl shadow-sm hover:bg-[#2c4232] transition-colors">
+                          Set Demand in Property Settings
+                        </Link>
+                      </div>
                     </div>
                   )}
 
@@ -500,30 +511,11 @@ const CustomerRequestCreate = () => {
 
                   <div className="space-y-4">
                     <label className="block text-sm font-bold text-gray-800">Audio Note <span className="text-gray-400 font-normal text-xs ml-1">(Optional)</span></label>
-                    {formData.audio ? (
-                      <div className="p-4 border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-[#eef2f9] text-[#4d70a3] rounded-lg flex items-center justify-center">
-                            <AudioLines size={20} />
-                          </div>
-                          <span className="text-sm font-semibold text-gray-700">{formData.audioName}</span>
-                        </div>
-                        <button onClick={removeAudio} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                          <X size={18} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div
-                        onClick={() => audioInputRef.current?.click()}
-                        className="w-full py-8 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-[#B8860B] hover:bg-gray-50 transition-all group"
-                      >
-                        <UploadCloud size={32} className="text-gray-400 mb-3 group-hover:text-[#B8860B] transition-colors" />
-                        <span className="text-sm font-bold text-gray-600 mb-1">Click to upload audio note</span>
-                        <span className="text-xs font-semibold text-gray-400">MP3, WAV up to 10MB</span>
-                      </div>
-                    )}
-                    <input type="file" accept="audio/*" ref={audioInputRef} onChange={handleAudioUpload} className="hidden" />
-                    {errors.audio && <p className="text-sm text-red-500 font-semibold">{errors.audio}</p>}
+                    <div className="w-full py-8 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center bg-gray-50 opacity-70 cursor-not-allowed">
+                      <UploadCloud size={32} className="text-gray-400 mb-3" />
+                      <span className="text-sm font-bold text-gray-500 mb-1">Audio Note (Coming Soon)</span>
+                      <span className="text-xs font-semibold text-gray-400">This feature is temporarily disabled</span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -531,6 +523,12 @@ const CustomerRequestCreate = () => {
               {/* STEP 5: REVIEW */}
               {currentStep === 5 && (
                 <div className="animate-fadeIn space-y-6">
+                  {errors.submit && (
+                    <div className="bg-red-50 border border-red-200 text-red-800 text-sm font-bold p-4 rounded-xl flex items-center gap-2">
+                      <AlertTriangle size={18} />
+                      {errors.submit}
+                    </div>
+                  )}
                   <div className="bg-[#FAF8F3] p-6 rounded-2xl border border-[#e4d7be]">
                     <div className="flex items-start justify-between mb-6">
                       <h4 className="text-lg font-serif font-bold text-[#1a2b25]">Request Summary</h4>
@@ -548,7 +546,9 @@ const CustomerRequestCreate = () => {
                           {formData.category === REQUEST_CATEGORIES.PROPERTY ? 'Purpose' : 'Service'}
                         </span>
                         <span className="font-bold text-[#B8860B]">
-                          {formData.category === REQUEST_CATEGORIES.PROPERTY ? formData.purpose : formData.service}
+                          {formData.category === REQUEST_CATEGORIES.PROPERTY
+                            ? purposesList.find(p => p.purpose_id === formData.purposeId)?.purpose_description
+                            : servicesList.find(s => s.service_id === formData.serviceId)?.service_english}
                         </span>
                       </div>
                       <div className="md:col-span-2">
@@ -561,14 +561,6 @@ const CustomerRequestCreate = () => {
                           {formData.description}
                         </p>
                       </div>
-                      {formData.audio && (
-                        <div className="md:col-span-2">
-                          <span className="text-gray-400 block mb-2 text-xs font-bold uppercase tracking-wider">Audio Note</span>
-                          <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 bg-white p-3 rounded-lg border border-gray-100 max-w-sm">
-                            <AudioLines size={16} className="text-[#4d70a3]" /> {formData.audioName}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -594,11 +586,11 @@ const CustomerRequestCreate = () => {
                 </button>
               )}
 
-              {currentStep < steps.length ? (
+              {!isReviewStep ? (
                 <button
                   onClick={handleNext}
-                  disabled={currentStep === 1 && !formData.category}
-                  className={`px-8 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-all ${(currentStep === 1 && !formData.category)
+                  disabled={(currentStep === 1 && !formData.category) || (currentStep === 2 && isDeferredPurpose())}
+                  className={`px-8 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-all ${((currentStep === 1 && !formData.category) || (currentStep === 2 && isDeferredPurpose()))
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     : 'bg-[#1a2b25] text-white shadow-md hover:bg-[#2c4232]'
                     }`}
@@ -608,9 +600,15 @@ const CustomerRequestCreate = () => {
               ) : (
                 <button
                   onClick={handleSubmit}
-                  className="px-8 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#d4af37] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(184,134,11,0.3)] hover:shadow-lg transition-all flex items-center gap-2"
+                  disabled={isSubmitting}
+                  className={`px-8 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#d4af37] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(184,134,11,0.3)] hover:shadow-lg transition-all flex items-center gap-2 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
-                  <CheckCircle2 size={16} /> Submit Request
+                  {isSubmitting ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <CheckCircle2 size={16} />
+                  )}
+                  {isSubmitting ? 'Submitting...' : 'Submit Request'}
                 </button>
               )}
             </div>

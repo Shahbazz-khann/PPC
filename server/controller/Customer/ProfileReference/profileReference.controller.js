@@ -111,6 +111,34 @@ const getPropertyFormData = async (req, res, next) => {
     }
 };
 
+const getPropertyPurposes = async (req, res, next) => {
+    try {
+        const data = await referenceModel.getPropertyPurposes();
+        return res.status(200).json({
+            success: true,
+            message: 'Property purposes retrieved successfully',
+            data
+        });
+    } catch (error) {
+        logger.error('Get Property Purposes Error:', error);
+        next(error);
+    }
+};
+
+const getPPCServices = async (req, res, next) => {
+    try {
+        const data = await referenceModel.getPPCServices();
+        return res.status(200).json({
+            success: true,
+            message: 'PPC services retrieved successfully',
+            data
+        });
+    } catch (error) {
+        logger.error('Get PPC Services Error:', error);
+        next(error);
+    }
+};
+
 const getCities = async (req, res, next) => {
     try {
         const { tehsil_id, search } = req.query;
@@ -159,6 +187,8 @@ module.exports = {
     getCustomerTitles,
     getGenders,
     getPropertyFormData,
+    getPropertyPurposes,
+    getPPCServices,
     getCities,
     getSocieties,
     getAreas

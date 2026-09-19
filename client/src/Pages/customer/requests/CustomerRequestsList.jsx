@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Plus, Search, ChevronRight, Filter, 
   FileText, Home, Wrench, Calendar, MapPin
 } from 'lucide-react';
-import { mockRequestsList, REQUEST_CATEGORIES, PROPERTY_PURPOSES } from './mockRequestsData';
-import { mockPropertiesList } from '../properties/mockPropertyData';
+import { REQUEST_CATEGORIES, PROPERTY_PURPOSES } from './mockRequestsData';
+import { getCustomerRequests } from '../../../Services/customer.services';
+
+
 
 const StatusBadge = ({ status }) => {
   let color = 'bg-gray-100 text-gray-700';
@@ -20,7 +22,7 @@ const StatusBadge = ({ status }) => {
   } else if (status === 'Assigned' || status === 'In Progress') {
     color = 'bg-blue-50 text-blue-700';
     dotColor = 'bg-blue-600';
-  } else if (status === 'Withdrawn') {
+  } else if (status === 'Withdrawn' || status === 'Rejected') {
     color = 'bg-red-50 text-red-700';
     dotColor = 'bg-red-500';
   }
@@ -28,7 +30,7 @@ const StatusBadge = ({ status }) => {
   return (
     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${color}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`}></span>
-      {status}
+      {status || 'Unknown'}
     </span>
   );
 };
@@ -39,17 +41,47 @@ const CustomerRequestsList = () => {
   const [activePurpose, setActivePurpose] = useState('ALL'); // ALL, Sale, Purchase, etc.
   const navigate = useNavigate();
 
-  const getPropertyName = (propertyId) => {
-    if (!propertyId) return 'No linked property';
-    const prop = mockPropertiesList.find(p => p.id === propertyId);
-    return prop ? `${prop.propertyType} in ${prop.society}` : 'Unknown Property';
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  const fetchRequests = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await getCustomerRequests();
+      setRequests(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch requests:', err);
+      // Fallback to error message from api or default
+      setError(err.message || 'Failed to load requests');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filteredRequests = mockRequestsList.filter(req => {
+  const getPropertyName = (req) => {
+    if (!req.propertyId) return 'No linked property';
+    if (req.propertyType && req.societyName) {
+      return `${req.propertyType} in ${req.societyName}`;
+    }
+    return `Property ID: ${req.propertyId}`;
+  };
+
+  const filteredRequests = requests.filter(req => {
+    const searchString = searchTerm.toLowerCase();
+    const idString = req.id ? String(req.id).toLowerCase() : '';
+    const purposeString = (req.purpose || '').toLowerCase();
+    const serviceString = (req.service || '').toLowerCase();
+    
     const matchesSearch = 
-      req.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (req.purpose || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (req.service || '').toLowerCase().includes(searchTerm.toLowerCase());
+      idString.includes(searchString) ||
+      purposeString.includes(searchString) ||
+      serviceString.includes(searchString);
 
     const matchesTab = activeTab === 'ALL' || req.category === activeTab;
     const matchesPurpose = activeTab !== 'PROPERTY' || activePurpose === 'ALL' || req.purpose === activePurpose;
@@ -139,9 +171,43 @@ const CustomerRequestsList = () => {
           </div>
         )}
 
-        {/* Requests List */}
+        {/* Loading / Error / Empty / List States */}
         <div className="space-y-4">
-          {filteredRequests.map((req) => (
+          
+          {loading && (
+            <div className="py-20 flex flex-col items-center justify-center bg-white rounded-[24px] border border-gray-100 shadow-sm">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1a2b25] mb-4"></div>
+              <p className="text-sm font-medium text-gray-500">Loading requests...</p>
+            </div>
+          )}
+
+          {!loading && error && (
+            <div className="py-20 flex flex-col items-center justify-center text-center bg-white rounded-[24px] border border-red-100 shadow-sm">
+              <FileText size={48} className="text-red-200 mb-4" />
+              <h3 className="text-lg font-serif font-bold text-gray-800 mb-2">Failed to load requests</h3>
+              <p className="text-sm font-medium text-gray-500 max-w-sm mb-4">
+                {error}
+              </p>
+              <button 
+                onClick={fetchRequests}
+                className="px-4 py-2 bg-[#1a2b25] text-white rounded-lg text-sm font-bold hover:bg-[#2c4232]"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {!loading && !error && filteredRequests.length === 0 && (
+            <div className="py-20 flex flex-col items-center justify-center text-center bg-white rounded-[24px] border border-dashed border-gray-200 shadow-sm">
+              <FileText size={48} className="text-gray-200 mb-4" />
+              <h3 className="text-lg font-serif font-bold text-gray-800 mb-2">No requests found</h3>
+              <p className="text-sm font-medium text-gray-500 max-w-sm">
+                We couldn't find any requests matching your filters.
+              </p>
+            </div>
+          )}
+
+          {!loading && !error && filteredRequests.length > 0 && filteredRequests.map((req) => (
             <div 
               key={req.id} 
               onClick={() => navigate(`/customer/requests/${req.id}`)}
@@ -173,7 +239,7 @@ const CustomerRequestsList = () => {
                     <div className="flex items-center gap-1.5">
                       <MapPin size={14} className="text-gray-400" />
                       <span className={req.propertyId ? 'text-gray-700' : 'text-gray-400 italic'}>
-                        {getPropertyName(req.propertyId)}
+                        {getPropertyName(req)}
                       </span>
                     </div>
                     <div className="hidden sm:block w-[1px] h-3 bg-gray-300"></div>
@@ -194,15 +260,6 @@ const CustomerRequestsList = () => {
             </div>
           ))}
 
-          {filteredRequests.length === 0 && (
-            <div className="py-20 flex flex-col items-center justify-center text-center bg-white rounded-[24px] border border-dashed border-gray-200 shadow-sm">
-              <FileText size={48} className="text-gray-200 mb-4" />
-              <h3 className="text-lg font-serif font-bold text-gray-800 mb-2">No requests found</h3>
-              <p className="text-sm font-medium text-gray-500 max-w-sm">
-                We couldn't find any requests matching your filters.
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>

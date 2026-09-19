@@ -1,28 +1,67 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ChevronRight, MapPin, Calendar, Clock, User, Building, ShieldCheck, FileText, HelpCircle, CheckCircle2 } from 'lucide-react';
-import { mockVerificationsList } from './mockVerificationsData';
-import { mockPropertiesList } from '../properties/mockPropertyData';
+import { ChevronRight, MapPin, Calendar, Clock, User, Building, ShieldCheck, FileText, HelpCircle, CheckCircle2, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { getApprovalBadge } from './CustomerVerificationReports';
+import { getCustomerVerificationReportByPropertyId, resolveMediaUrl } from '../../../Services/customer.services';
 
 const CustomerVerificationDetails = () => {
-  const { verificationId } = useParams();
+  const { propertyId } = useParams();
   
-  // Note: Since a property might be Pending (verificationId = null), we route using propertyId in this context.
-  const verification = mockVerificationsList.find(v => v.propertyId === verificationId || v.verificationId === verificationId);
+  const [report, setReport] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!verification) {
+  const fetchReport = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getCustomerVerificationReportByPropertyId(propertyId);
+      if (res?.success) {
+        setReport(res.data);
+      } else {
+        setError(res?.message || 'Verification report not found.');
+      }
+    } catch (err) {
+      setError(err.message || 'An error occurred while fetching the report.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReport();
+  }, [propertyId]);
+
+  if (loading) {
     return (
-      <div className="min-h-screen bg-[#FAF8F3] flex flex-col items-center justify-center">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Verification Report Not Found</h2>
-        <Link to="/customer/verification-reports" className="text-[#B8860B] hover:underline font-bold">Return to Verification Reports</Link>
+      <div className="min-h-screen bg-[#FAF8F3] flex flex-col items-center justify-center font-sans">
+        <Loader2 className="w-10 h-10 text-[#1a2b25] animate-spin mb-4" />
+        <p className="text-gray-500 font-medium">Loading details...</p>
       </div>
     );
   }
 
-  const property = mockPropertiesList.find(p => p.id === verification.propertyId);
-  const stage = verification.approvalStage.name;
+  if (error || !report) {
+    return (
+      <div className="min-h-screen bg-[#FAF8F3] flex flex-col items-center justify-center font-sans">
+        <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">{error || 'Verification Report Not Found'}</h2>
+        <Link to="/customer/verification-reports" className="text-[#B8860B] hover:underline font-bold mt-4">
+          Return to Verification Reports
+        </Link>
+      </div>
+    );
+  }
+
+  const stage = report.approvalStage;
   const badge = getApprovalBadge(stage);
+  const property = report.property;
+  const verification = report.verification;
+  const verificationIdStr = report.verificationId || 'N/A';
+
+  const imageSrc = property?.imageUrl ? resolveMediaUrl(property.imageUrl) : null;
+  const locationString = [property?.societyName, property?.cityName].filter(Boolean).join(', ') || 'No location';
+  const titleString = [property?.propertyType, property?.societyName].filter(Boolean).join(' in ') || 'Unknown Property';
 
   // Status text map based on rules
   const getStatusText = (st) => {
@@ -45,7 +84,7 @@ const CustomerVerificationDetails = () => {
           <ChevronRight size={14} className="text-gray-400" />
           <Link to="/customer/verification-reports" className="hover:text-gray-900 transition-colors">Verification Reports</Link>
           <ChevronRight size={14} className="text-gray-400" />
-          <span className="text-[#1a2b25]">{verification.verificationId || 'Pending Verification'}</span>
+          <span className="text-[#1a2b25]">Property {propertyId}</span>
         </div>
       </div>
 
@@ -60,7 +99,7 @@ const CustomerVerificationDetails = () => {
             
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-sm font-bold text-gray-500 tracking-wide uppercase">{verification.verificationId || 'N/A'}</span>
+                <span className="text-sm font-bold text-gray-500 tracking-wide uppercase">Property {propertyId}</span>
                 <span className={`px-3 py-1 bg-opacity-10 backdrop-blur-sm ${badge.text.replace('text-white', badge.bg.replace('bg-', 'text-'))} ${badge.bg.replace('bg-', 'bg-opacity-10 bg-')} text-[11px] font-bold uppercase tracking-wider rounded-full shadow-sm flex items-center gap-1.5 border border-current/20`}>
                   {badge.icon} {stage}
                 </span>
@@ -71,7 +110,7 @@ const CustomerVerificationDetails = () => {
               </h1>
               
               <p className="text-sm font-semibold text-gray-600 flex items-center gap-2">
-                {property ? `${property.propertyType} in ${property.society}` : 'Unknown Property'}
+                {titleString}
               </p>
             </div>
           </div>
@@ -106,11 +145,11 @@ const CustomerVerificationDetails = () => {
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">Verification Information</h3>
               </div>
               <div className="p-6">
-                {verification.verificationDate ? (
+                {verification?.verificationDate ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                     <div>
                       <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Verification ID</span>
-                      <span className="text-sm font-bold text-gray-800">{verification.verificationId}</span>
+                      <span className="text-sm font-bold text-gray-800">{verificationIdStr}</span>
                     </div>
                     <div>
                       <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Verification Date</span>
@@ -123,7 +162,13 @@ const CustomerVerificationDetails = () => {
                     <div className="col-span-2 sm:col-span-3 pt-4 border-t border-gray-50">
                       <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Verified By</span>
                       <span className="text-sm font-bold text-[#1E5631] flex items-center gap-2">
-                        <User size={16} /> {verification.verifiedBy?.name} <span className="text-xs text-gray-500 font-medium ml-1">({verification.verifiedBy?.role})</span>
+                        <User size={16} /> 
+                        {verification.verifiedBy ? (
+                          <>
+                            {verification.verifiedBy.name} 
+                            <span className="text-xs text-gray-500 font-medium ml-1">({verification.verifiedBy.designation})</span>
+                          </>
+                        ) : 'Not assigned yet'}
                       </span>
                     </div>
                   </div>
@@ -142,7 +187,7 @@ const CustomerVerificationDetails = () => {
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">Verification Findings</h3>
               </div>
               <div className="p-8">
-                {verification.findings ? (
+                {verification?.findings ? (
                   <p className="text-[15px] font-medium text-gray-700 leading-relaxed whitespace-pre-wrap">
                     {verification.findings}
                   </p>
@@ -159,7 +204,7 @@ const CustomerVerificationDetails = () => {
                 <h3 className={`text-lg font-serif font-bold ${stage === 'Rejected' ? 'text-[#8c3535]' : 'text-[#1a2b25]'}`}>Verification Remarks</h3>
               </div>
               <div className="p-8">
-                {verification.remarks ? (
+                {verification?.remarks ? (
                   <p className={`text-[15px] font-medium leading-relaxed whitespace-pre-wrap ${stage === 'Rejected' ? 'text-[#8c3535] font-semibold' : 'text-gray-700'}`}>
                     {verification.remarks}
                   </p>
@@ -175,7 +220,7 @@ const CustomerVerificationDetails = () => {
           <div className="space-y-6">
             
             {/* 7. VERIFIED BY */}
-            {verification.verifiedBy && (
+            {verification?.verifiedBy && (
               <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-6 border-b border-gray-50 flex items-center gap-2">
                   <User size={18} className="text-[#B8860B]" />
@@ -187,7 +232,7 @@ const CustomerVerificationDetails = () => {
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-gray-800">{verification.verifiedBy.name}</h4>
-                    <p className="text-xs font-medium text-gray-500">{verification.verifiedBy.role}</p>
+                    <p className="text-xs font-medium text-gray-500">{verification.verifiedBy.designation}</p>
                   </div>
                 </div>
               </div>
@@ -203,19 +248,23 @@ const CustomerVerificationDetails = () => {
               {property ? (
                 <div className="flex-1 flex flex-col">
                   <div className="relative h-48 w-full bg-gray-100">
-                    <img src={property.image || '/placeholder-image.jpg'} alt="Property" className="w-full h-full object-cover" />
+                    {imageSrc ? (
+                      <img src={imageSrc} alt="Property" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.parentElement.innerHTML = '<span class="text-gray-400 font-medium absolute inset-0 flex items-center justify-center">No Image</span>' }} />
+                    ) : (
+                      <span className="text-gray-400 font-medium absolute inset-0 flex items-center justify-center">No Image</span>
+                    )}
                   </div>
                   
                   <div className="p-6 flex-1 flex flex-col">
                     <div className="grid grid-cols-2 gap-y-4 gap-x-2 mb-6 text-sm">
                       <div className="col-span-2">
                         <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Property ID</span>
-                        <span className="font-bold text-gray-800">{property.id}</span>
+                        <span className="font-bold text-gray-800">{propertyId}</span>
                       </div>
                       <div className="col-span-2">
                         <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Location</span>
                         <span className="font-semibold text-gray-600 flex items-center gap-1">
-                          <MapPin size={12} /> {property.society}, {property.city}
+                          <MapPin size={12} /> {locationString}
                         </span>
                       </div>
                       <div>
@@ -225,14 +274,14 @@ const CustomerVerificationDetails = () => {
                       {property.propertySize && (
                         <div>
                           <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Size</span>
-                          <span className="font-semibold text-gray-700">{property.propertySize} {property.sizeUom}</span>
+                          <span className="font-semibold text-gray-700">{property.propertySize} {property.propertySizeUom}</span>
                         </div>
                       )}
                     </div>
 
                     <div className="mt-auto pt-2">
                       <Link 
-                        to={`/customer/properties/${property.id}`} 
+                        to={`/customer/properties/${propertyId}`} 
                         className="w-full flex items-center justify-center gap-2 py-3 border border-gray-200 text-[#1a2b25] rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
                       >
                         View Property

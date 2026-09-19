@@ -12,6 +12,10 @@ router.get('/genders', authenticate, referenceController.getGenders);
 // Bootstrap API for Property Form reference data
 router.get('/property-form', authenticate, referenceController.getPropertyFormData);
 
+// Request Reference APIs
+router.get('/property-purposes', authenticate, referenceController.getPropertyPurposes);
+router.get('/ppc-services', authenticate, referenceController.getPPCServices);
+
 // Autocomplete Location APIs
 router.get('/cities', authenticate, referenceController.getCities);
 router.get('/societies', authenticate, referenceController.getSocieties);

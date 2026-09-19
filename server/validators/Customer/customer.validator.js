@@ -217,6 +217,34 @@ const validateUpdateProperty = [
     }
 ];
 
+const validateRequestId = (req, res, next) => {
+    const { requestId } = req.params;
+    
+    // Validate safely as positive integer string, avoids BigInt conversion precision issues
+    if (!requestId || !/^[1-9]\d*$/.test(requestId)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid request ID. Must be a positive integer.'
+        });
+    }
+
+    next();
+};
+
+const validateInspectionId = (req, res, next) => {
+    const { inspectionId } = req.params;
+    
+    // Validate safely as positive integer string, avoids BigInt conversion precision issues
+    if (!inspectionId || !/^[1-9]\d*$/.test(inspectionId)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid inspection ID. Must be a positive integer.'
+        });
+    }
+
+    next();
+};
+
 module.exports = {
     validateUpdateProfile,
     validateChangePassword,
@@ -224,5 +252,7 @@ module.exports = {
     verifyPropertyOwnership,
     validateAddProperty,
     validateUpdateProperty,
-    validatePropertyDemand
+    validatePropertyDemand,
+    validateRequestId,
+    validateInspectionId
 };

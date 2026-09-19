@@ -1,35 +1,83 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ChevronRight, MapPin, Calendar, Clock, User, Building, Home, FileText, ClipboardList, ShieldCheck, CheckCircle2, AlertCircle, HelpCircle } from 'lucide-react';
-import { mockInspectionsList } from './mockInspectionsData';
-import { mockPropertiesList } from '../properties/mockPropertyData';
+import { ChevronRight, MapPin, Calendar, Clock, User, Building, Home, FileText, ClipboardList, ShieldCheck, CheckCircle2, AlertCircle, HelpCircle, Loader2 } from 'lucide-react';
+import { getCustomerInspectionReportById, resolveMediaUrl } from '../../../Services/customer.services';
 
 const CustomerInspectionDetails = () => {
   const { inspectionId } = useParams();
-  const inspection = mockInspectionsList.find(i => i.inspectionId === inspectionId);
+  const [report, setReport] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!inspection) {
-    return (
-      <div className="min-h-screen bg-[#FAF8F3] flex flex-col items-center justify-center">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Inspection Report Not Found</h2>
-        <Link to="/customer/inspection-reports" className="text-[#B8860B] hover:underline font-bold">Return to Inspection Reports</Link>
-      </div>
-    );
-  }
+  const fetchReport = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await getCustomerInspectionReportById(inspectionId);
+      if (res?.success) {
+        setReport(res.data);
+      } else {
+        setError(res?.message || 'Inspection report not found');
+      }
+    } catch (err) {
+      setError(err.message || 'An error occurred while fetching the report');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const property = mockPropertiesList.find(p => p.id === inspection.propertyId);
+  useEffect(() => {
+    if (inspectionId) {
+      fetchReport();
+    }
+  }, [inspectionId]);
 
-  // Helper for checklist icon/color
+  // Helper for checklist icon/color (compatible with both old mocks and future DB statuses)
   const getStatusStyle = (status) => {
     switch(status) {
+      case 'Verified':
       case 'Satisfactory':
         return { bg: 'bg-[#EAF3EE]', text: 'text-[#1E5631]', border: 'border-[#1E5631]/20', icon: <CheckCircle2 size={16} /> };
       case 'Needs Attention':
+      case 'Partially Verified':
         return { bg: 'bg-[#FFF4E5]', text: 'text-[#B8860B]', border: 'border-[#B8860B]/20', icon: <AlertCircle size={16} /> };
       default:
         return { bg: 'bg-gray-100', text: 'text-gray-500', border: 'border-gray-200', icon: <HelpCircle size={16} /> };
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FAF8F3] flex flex-col items-center justify-center">
+        <Loader2 className="animate-spin text-[#1E5631] mb-4" size={32} />
+        <p className="text-gray-500 font-medium">Loading inspection details...</p>
+      </div>
+    );
+  }
+
+  if (error || !report) {
+    return (
+      <div className="min-h-screen bg-[#FAF8F3] flex flex-col items-center justify-center p-4 text-center">
+        <AlertCircle size={48} className="text-red-500 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">{error || 'Inspection Report Not Found'}</h2>
+        <div className="flex gap-4 mt-4">
+          <Link to="/customer/inspection-reports" className="px-6 py-2.5 bg-white border border-gray-200 text-[#1a2b25] text-sm font-bold rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
+            Return to List
+          </Link>
+          {error && (
+            <button onClick={fetchReport} className="px-6 py-2.5 bg-[#1E5631] text-white text-sm font-bold rounded-lg shadow-sm hover:bg-[#2c4232] transition-colors">
+              Retry
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Derived properties safely
+  const propertyTitle = [report.property?.propertyType, report.property?.societyName].filter(Boolean).join(' in ') || 'Unknown Property';
+  const propertyLocation = [report.property?.societyName, report.property?.cityName].filter(Boolean).join(', ') || 'No location';
+  const imageSrc = report.property?.imageUrl ? resolveMediaUrl(report.property.imageUrl) : '/placeholder-image.jpg';
 
   return (
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
@@ -41,7 +89,7 @@ const CustomerInspectionDetails = () => {
           <ChevronRight size={14} className="text-gray-400" />
           <Link to="/customer/inspection-reports" className="hover:text-gray-900 transition-colors">Inspection Reports</Link>
           <ChevronRight size={14} className="text-gray-400" />
-          <span className="text-[#1a2b25]">{inspection.inspectionId}</span>
+          <span className="text-[#1a2b25]">{report.inspectionId}</span>
         </div>
       </div>
 
@@ -56,7 +104,7 @@ const CustomerInspectionDetails = () => {
             
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-sm font-bold text-gray-500 tracking-wide uppercase">{inspection.inspectionId}</span>
+                <span className="text-sm font-bold text-gray-500 tracking-wide uppercase">{report.inspectionId}</span>
               </div>
               
               <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#1a2b25] mb-2">
@@ -64,9 +112,9 @@ const CustomerInspectionDetails = () => {
               </h1>
               
               <p className="text-sm font-semibold text-gray-600 flex flex-wrap items-center gap-2">
-                <Calendar size={14} className="text-gray-400" /> {inspection.inspectionDate}
+                <Calendar size={14} className="text-gray-400" /> {report.inspectionDate || 'N/A'}
                 <span className="w-1.5 h-1.5 rounded-full bg-gray-300 mx-1"></span>
-                <Home size={14} className="text-gray-400" /> {property ? `${property.propertyType} in ${property.society}` : 'Unknown Property'}
+                <Home size={14} className="text-gray-400" /> {propertyTitle}
               </p>
             </div>
           </div>
@@ -86,20 +134,28 @@ const CustomerInspectionDetails = () => {
               <div className="p-6 grid grid-cols-2 sm:grid-cols-3 gap-6">
                 <div>
                   <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Inspection ID</span>
-                  <span className="text-sm font-bold text-gray-800">{inspection.inspectionId}</span>
+                  <span className="text-sm font-bold text-gray-800">{report.inspectionId}</span>
                 </div>
                 <div>
                   <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Inspection Date</span>
-                  <span className="text-sm font-bold text-gray-800">{inspection.inspectionDate}</span>
+                  <span className="text-sm font-bold text-gray-800">{report.inspectionDate || 'N/A'}</span>
                 </div>
                 <div>
                   <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Inspection Time</span>
-                  <span className="text-sm font-bold text-gray-800">{inspection.inspectionTime}</span>
+                  <span className="text-sm font-bold text-gray-800">{report.inspectionTime || 'N/A'}</span>
                 </div>
                 <div className="col-span-2 sm:col-span-3 pt-4 border-t border-gray-50">
                   <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Inspected By</span>
                   <span className="text-sm font-bold text-[#1E5631] flex items-center gap-2">
-                    <User size={16} /> {inspection.inspectedBy?.name} <span className="text-xs text-gray-500 font-medium ml-1">({inspection.inspectedBy?.role})</span>
+                    <User size={16} /> 
+                    {report.inspectedBy ? (
+                      <>
+                        {report.inspectedBy.name}
+                        <span className="text-xs text-gray-500 font-medium ml-1">({report.inspectedBy.designation})</span>
+                      </>
+                    ) : (
+                      <span className="text-gray-500 font-normal text-sm">Inspector information unavailable</span>
+                    )}
                   </span>
                 </div>
               </div>
@@ -112,12 +168,12 @@ const CustomerInspectionDetails = () => {
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">Inspection Findings</h3>
               </div>
               <div className="p-8">
-                {inspection.findings ? (
+                {report.findings ? (
                   <p className="text-[15px] font-medium text-gray-700 leading-relaxed whitespace-pre-wrap">
-                    {inspection.findings}
+                    {report.findings}
                   </p>
                 ) : (
-                  <p className="text-sm font-medium text-gray-500 italic">No overall findings recorded.</p>
+                  <p className="text-sm font-medium text-gray-500 italic">No inspection findings recorded.</p>
                 )}
               </div>
             </div>
@@ -129,12 +185,12 @@ const CustomerInspectionDetails = () => {
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">Inspection Remarks</h3>
               </div>
               <div className="p-8">
-                {inspection.remarks ? (
+                {report.remarks ? (
                   <p className="text-[15px] font-medium text-gray-700 leading-relaxed whitespace-pre-wrap">
-                    {inspection.remarks}
+                    {report.remarks}
                   </p>
                 ) : (
-                  <p className="text-sm font-medium text-gray-500 italic">No inspection remarks added.</p>
+                  <p className="text-sm font-medium text-gray-500 italic">No inspection remarks recorded.</p>
                 )}
               </div>
             </div>
@@ -146,8 +202,8 @@ const CustomerInspectionDetails = () => {
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">Inspection Checklist</h3>
               </div>
               <div className="p-6 space-y-4">
-                {inspection.checklist?.length > 0 ? (
-                  inspection.checklist.map((item, idx) => {
+                {report.checklist && report.checklist.length > 0 ? (
+                  report.checklist.map((item, idx) => {
                     const style = getStatusStyle(item.status);
                     return (
                       <div key={idx} className="bg-gray-50/50 rounded-xl p-5 border border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-start">
@@ -171,7 +227,7 @@ const CustomerInspectionDetails = () => {
                     );
                   })
                 ) : (
-                  <p className="text-sm font-medium text-gray-500 italic text-center py-6">No checklist items recorded.</p>
+                  <p className="text-sm font-medium text-gray-500 italic text-center py-6">Inspection checklist details are not available yet.</p>
                 )}
               </div>
             </div>
@@ -188,13 +244,19 @@ const CustomerInspectionDetails = () => {
                 <h3 className="text-[15px] font-serif font-bold text-[#1a2b25]">Inspected By</h3>
               </div>
               <div className="p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-[#eaf1ec] text-[#1E5631] font-bold text-lg flex items-center justify-center shrink-0 shadow-sm border border-white ring-2 ring-gray-50">
-                  {inspection.inspectedBy?.name.charAt(0)}
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-gray-800">{inspection.inspectedBy?.name}</h4>
-                  <p className="text-xs font-medium text-gray-500">{inspection.inspectedBy?.role}</p>
-                </div>
+                {report.inspectedBy ? (
+                  <>
+                    <div className="w-12 h-12 rounded-full bg-[#eaf1ec] text-[#1E5631] font-bold text-lg flex items-center justify-center shrink-0 shadow-sm border border-white ring-2 ring-gray-50 uppercase">
+                      {report.inspectedBy.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-800">{report.inspectedBy.name}</h4>
+                      <p className="text-xs font-medium text-gray-500">{report.inspectedBy.designation}</p>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-gray-500 font-normal text-sm">Inspector information unavailable</p>
+                )}
               </div>
             </div>
 
@@ -205,39 +267,44 @@ const CustomerInspectionDetails = () => {
                 <h3 className="text-[15px] font-serif font-bold text-[#1a2b25]">Related Property</h3>
               </div>
               
-              {property ? (
+              {report.property ? (
                 <div className="flex-1 flex flex-col">
                   <div className="relative h-48 w-full bg-gray-100">
-                    <img src={property.image || '/placeholder-image.jpg'} alt="Property" className="w-full h-full object-cover" />
+                    <img 
+                      src={imageSrc} 
+                      alt="Property" 
+                      className="w-full h-full object-cover" 
+                      onError={(e) => { e.target.src = '/placeholder-image.jpg'; }}
+                    />
                   </div>
                   
                   <div className="p-6 flex-1 flex flex-col">
                     <div className="grid grid-cols-2 gap-y-4 gap-x-2 mb-6 text-sm">
                       <div className="col-span-2">
                         <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Property Title</span>
-                        <span className="font-bold text-gray-800 line-clamp-1">{property.propertyType} in {property.society}</span>
+                        <span className="font-bold text-gray-800 line-clamp-1">{propertyTitle}</span>
                       </div>
                       <div className="col-span-2">
                         <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Location</span>
                         <span className="font-semibold text-gray-600 flex items-center gap-1">
-                          <MapPin size={12} /> {property.society}, {property.city}
+                          <MapPin size={12} /> {propertyLocation}
                         </span>
                       </div>
                       <div>
                         <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Type</span>
-                        <span className="font-semibold text-gray-700">{property.propertyType}</span>
+                        <span className="font-semibold text-gray-700">{report.property.propertyType}</span>
                       </div>
-                      {property.propertySize && (
+                      {report.property.propertySize && (
                         <div>
                           <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Size</span>
-                          <span className="font-semibold text-gray-700">{property.propertySize} {property.sizeUom}</span>
+                          <span className="font-semibold text-gray-700">{report.property.propertySize} {report.property.propertySizeUom}</span>
                         </div>
                       )}
                     </div>
 
                     <div className="mt-auto pt-2">
                       <Link 
-                        to={`/customer/properties/${property.id}`} 
+                        to={`/customer/properties/${report.propertyId}`} 
                         className="w-full flex items-center justify-center gap-2 py-3 border border-gray-200 text-[#1a2b25] rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
                       >
                         View Property
