@@ -3,7 +3,7 @@ const router = express.Router();
 
 const customerController = require('../../controller/Customer/customer.controller');
 const { validateUpdateProfile, validateChangePassword, validateAddProperty,
-    validatePropertyId, verifyPropertyOwnership, validatePropertyDemand, validateUpdateProperty, validateRequestId, validateInspectionId } = require('../../validators/Customer/customer.validator');
+    validatePropertyId, verifyPropertyOwnership, validatePropertyDemand, validateUpdateProperty, validateRequestId, validateInspectionId, validateVisitId, validateVisitRemarks } = require('../../validators/Customer/customer.validator');
 const { authenticate, authorize } = require('../../middlewares/authMiddleware');
 const { uploadProfileImage, uploadPropertyPictures, MAX_PROPERTY_PICTURES,
     uploadPropertyVideo } = require('../../middlewares/uploadMiddleware');
@@ -21,6 +21,12 @@ const inspectionsController = require('../../controller/Customer/inspections.con
 router.post('/requests', authenticate, authorize('customer'), requestsController.createRequest);
 router.get('/requests', authenticate, authorize('customer'), requestsController.getRequests);
 router.get('/requests/:requestId', authenticate, authorize('customer'), validateRequestId, requestsController.getRequestById);
+
+const visitsController = require('../../controller/Customer/visits.controller');
+// Property Visits
+router.get('/property-visits', authenticate, authorize('customer'), visitsController.getPropertyVisits);
+router.get('/property-visits/:visitId', authenticate, authorize('customer'), validateVisitId, visitsController.getPropertyVisitById);
+router.patch('/property-visits/:visitId/remarks', authenticate, authorize('customer'), validateVisitId, validateVisitRemarks, visitsController.submitPropertyVisitRemarks);
 
 // Verification Reports
 router.get('/verification-reports', authenticate, authorize('customer'), verificationsController.getVerificationReports);

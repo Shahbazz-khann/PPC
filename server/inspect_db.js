@@ -1,18 +1,30 @@
-require('dotenv').config();
-const { pool } = require('./config/db');
+const { Pool } = require('pg');
 
-async function inspect() {
-    try {
-        const res = await pool.query(`
-            SELECT table_name, column_name, data_type 
-            FROM information_schema.columns 
-            WHERE table_name IN ('properties', 'areas', 'property_use', 'property_location_types', 'amenities', 'property_amenities')
-        `);
-        console.log(JSON.stringify(res.rows, null, 2));
-    } catch (err) {
-        console.error(err);
-    } finally {
-        pool.end();
-    }
+const pool = new Pool({
+  host: 'localhost',
+  port: 5432,
+  database: 'PPC_UPDATED',
+  user: 'postgres',
+  password: '8811287512@s'
+});
+
+async function run() {
+  const tables = [
+    'customer_requests', 'property_types', 'cities', 'societies', 'areas',
+    'properties', 'uom', 'currencies', 'property_demand', 'customer_requests', 'customer_request_purposes'
+  ];
+  
+  for (const table of tables) {
+    const res = await pool.query(`
+      SELECT column_name, data_type, character_maximum_length, is_nullable
+      FROM information_schema.columns 
+      WHERE table_name = $1
+    `, [table]);
+    
+    console.log(`\nTable: ${table}`);
+    res.rows.forEach(r => console.log(`${r.column_name}: ${r.data_type} ${r.character_maximum_length ? '('+r.character_maximum_length+')' : ''} ${r.is_nullable === 'NO' ? 'NOT NULL' : ''}`));
+  }
+  pool.end();
 }
-inspect();
+
+run();

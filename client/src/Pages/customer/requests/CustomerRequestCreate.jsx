@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { getCustomerProperties, getPropertyPurposes, getPPCServices, createCustomerRequest } from '../../../Services/customer.services';
 import { resolveMediaUrl } from '../../../Services/Api';
+import PropertyRequirementsForm from './components/PropertyRequirementsForm';
 
 const REQUEST_CATEGORIES = {
   PROPERTY: 'PROPERTY',
@@ -29,7 +30,24 @@ const CustomerRequestCreate = () => {
     propertyId: '',
     description: '',
     audio: null,
-    audioName: ''
+    audioName: '',
+    requirements: {
+      propertyTypeId: '',
+      propertyTypeLabel: '',
+      cityId: '',
+      cityLabel: '',
+      societyId: '',
+      societyLabel: '',
+      areaId: '',
+      areaLabel: '',
+      minBudget: '',
+      maxBudget: '',
+      minSize: '',
+      maxSize: '',
+      sizeUomId: '',
+      minRooms: '',
+      minBathrooms: ''
+    }
   });
 
   const [errors, setErrors] = useState({});
@@ -87,6 +105,11 @@ const CustomerRequestCreate = () => {
   };
 
   const isDeferredPurpose = () => {
+    // Return true only if we introduce purposes that are entirely deferred
+    return false;
+  };
+
+  const isPurchaseOrLease = () => {
     if (formData.category === REQUEST_CATEGORIES.PROPERTY) {
       const purposeObj = purposesList.find(p => p.purpose_id === formData.purposeId);
       if (purposeObj && (purposeObj.purpose_description === 'Purchase' || purposeObj.purpose_description === 'Lease')) {
@@ -115,28 +138,44 @@ const CustomerRequestCreate = () => {
       }
     }
     else if (step === 3) {
-      if (isPropertyRequired() && !formData.propertyId) {
-        newErrors.propertyId = 'Please select a property for this request'; isValid = false;
-      }
+      if (isPurchaseOrLease()) {
+        const reqs = formData.requirements;
+        if (reqs.minBudget && reqs.maxBudget && Number(reqs.minBudget) > Number(reqs.maxBudget)) {
+          newErrors.budget = 'Minimum budget cannot be greater than maximum budget.';
+          isValid = false;
+        }
+        if (reqs.minSize && reqs.maxSize && Number(reqs.minSize) > Number(reqs.maxSize)) {
+          newErrors.size = 'Minimum size cannot be greater than maximum size.';
+          isValid = false;
+        }
+        if ((reqs.minSize || reqs.maxSize) && !reqs.sizeUomId) {
+          newErrors.sizeUomId = 'Size Unit is required when size values are provided.';
+          isValid = false;
+        }
+      } else {
+        if (isPropertyRequired() && !formData.propertyId) {
+          newErrors.propertyId = 'Please select a property for this request'; isValid = false;
+        }
 
-      const purposeObj = purposesList.find(p => p.purpose_id === formData.purposeId);
-      const selectedPurpose = purposeObj?.purpose_description;
+        const purposeObj = purposesList.find(p => p.purpose_id === formData.purposeId);
+        const selectedPurpose = purposeObj?.purpose_description;
 
-      if (formData.propertyId && (selectedPurpose === 'Sale' || selectedPurpose === 'Rent')) {
-        const selectedProp = propertiesList.find(p => String(p.property_id) === String(formData.propertyId));
-        const currentDemandType = selectedProp?.demand_type || null;
+        if (formData.propertyId && (selectedPurpose === 'Sale' || selectedPurpose === 'Rent')) {
+          const selectedProp = propertiesList.find(p => String(p.property_id) === String(formData.propertyId));
+          const currentDemandType = selectedProp?.demand_type || null;
 
-        if (selectedPurpose === 'Sale') {
-          if (!currentDemandType) {
-            newErrors.demand = 'No Sale Demand has been set for this property.'; isValid = false;
-          } else if (currentDemandType !== 'Sale') {
-            newErrors.demand = `This property currently has a ${currentDemandType} Demand. A Sale Demand is required for a Sale Request.`; isValid = false;
-          }
-        } else if (selectedPurpose === 'Rent') {
-          if (!currentDemandType) {
-            newErrors.demand = 'No Rent Demand has been set for this property.'; isValid = false;
-          } else if (currentDemandType !== 'Rent') {
-            newErrors.demand = `This property currently has a ${currentDemandType} Demand. A Rent Demand is required for a Rent Request.`; isValid = false;
+          if (selectedPurpose === 'Sale') {
+            if (!currentDemandType) {
+              newErrors.demand = 'No Sale Demand has been set for this property.'; isValid = false;
+            } else if (currentDemandType !== 'Sale') {
+              newErrors.demand = `This property currently has a ${currentDemandType} Demand. A Sale Demand is required for a Sale Request.`; isValid = false;
+            }
+          } else if (selectedPurpose === 'Rent') {
+            if (!currentDemandType) {
+              newErrors.demand = 'No Rent Demand has been set for this property.'; isValid = false;
+            } else if (currentDemandType !== 'Rent') {
+              newErrors.demand = `This property currently has a ${currentDemandType} Demand. A Rent Demand is required for a Rent Request.`; isValid = false;
+            }
           }
         }
       }
@@ -171,7 +210,16 @@ const CustomerRequestCreate = () => {
       propertyId: '',
       description: '',
       audio: null,
-      audioName: ''
+      audioName: '',
+      requirements: {
+        propertyTypeId: '', propertyTypeLabel: '',
+        cityId: '', cityLabel: '',
+        societyId: '', societyLabel: '',
+        areaId: '', areaLabel: '',
+        minBudget: '', maxBudget: '',
+        minSize: '', maxSize: '', sizeUomId: '',
+        minRooms: '', minBathrooms: ''
+      }
     });
     setErrors({});
     setCurrentStep(2);
@@ -179,6 +227,11 @@ const CustomerRequestCreate = () => {
 
   const handleSubmit = async () => {
     try {
+      if (isPurchaseOrLease()) {
+        setErrors(prev => ({ ...prev, submit: 'Purchase and Lease request submission is disabled at this time.' }));
+        return;
+      }
+
       setIsSubmitting(true);
       setErrors(prev => ({ ...prev, submit: null }));
 
@@ -418,18 +471,27 @@ const CustomerRequestCreate = () => {
               {/* STEP 3: PROPERTY SELECTION */}
               {currentStep === 3 && (
                 <div className="animate-fadeIn space-y-6">
-                  <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
-                    <MapPin className="text-blue-500 shrink-0 mt-0.5" size={18} />
-                    <p className="text-sm font-medium text-blue-800">
-                      {isPropertyRequired()
-                        ? `A related property is required for this request. Please select one of your registered properties.`
-                        : 'You may optionally link this request to one of your registered properties.'}
-                    </p>
-                  </div>
+                  {isPurchaseOrLease() ? (
+                    <PropertyRequirementsForm 
+                      formData={formData} 
+                      setFormData={setFormData} 
+                      errors={errors} 
+                      purpose={purposesList.find(p => p.purpose_id === formData.purposeId)?.purpose_description} 
+                    />
+                  ) : (
+                    <>
+                      <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
+                        <MapPin className="text-blue-500 shrink-0 mt-0.5" size={18} />
+                        <p className="text-sm font-medium text-blue-800">
+                          {isPropertyRequired()
+                            ? `A related property is required for this request. Please select one of your registered properties.`
+                            : 'You may optionally link this request to one of your registered properties.'}
+                        </p>
+                      </div>
 
-                  <div className="space-y-4">
-                    <label className="block text-sm font-bold text-gray-800">Select Property {isPropertyRequired() ? <span className="text-red-500">*</span> : <span className="text-gray-400 font-normal text-xs ml-1">(Optional)</span>}</label>
-                    <div className="grid grid-cols-1 gap-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                      <div className="space-y-4">
+                        <label className="block text-sm font-bold text-gray-800">Select Property {isPropertyRequired() ? <span className="text-red-500">*</span> : <span className="text-gray-400 font-normal text-xs ml-1">(Optional)</span>}</label>
+                        <div className="grid grid-cols-1 gap-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                       <button
                         onClick={() => { setFormData(prev => ({ ...prev, propertyId: '' })); setErrors({}); }}
                         className={`p-4 rounded-xl border-2 text-left transition-all ${formData.propertyId === '' ? 'border-[#1a2b25] bg-gray-50' : 'border-gray-200 hover:border-gray-300'
@@ -487,6 +549,8 @@ const CustomerRequestCreate = () => {
                       </div>
                     </div>
                   )}
+                    </>
+                  )}
 
                 </div>
               )}
@@ -495,7 +559,9 @@ const CustomerRequestCreate = () => {
               {currentStep === 4 && (
                 <div className="animate-fadeIn space-y-8">
                   <div className="space-y-2">
-                    <label className="block text-sm font-bold text-gray-800">Request Description <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-gray-800">
+                      {isPurchaseOrLease() ? "Additional Requirements" : "Request Description"} <span className="text-red-500">*</span>
+                    </label>
                     <textarea
                       rows={5}
                       value={formData.description}
@@ -503,7 +569,7 @@ const CustomerRequestCreate = () => {
                         setFormData(prev => ({ ...prev, description: e.target.value }));
                         if (errors.description) setErrors(prev => ({ ...prev, description: null }));
                       }}
-                      placeholder="Please provide detailed information about your request..."
+                      placeholder={isPurchaseOrLease() ? "Tell PPC anything else that would help us find the right property." : "Please provide detailed information about your request..."}
                       className={`w-full p-4 rounded-xl border ${errors.description ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none bg-gray-50/50 text-sm font-medium resize-none transition-all`}
                     />
                     {errors.description && <p className="text-sm text-red-500 font-semibold">{errors.description}</p>}
@@ -523,7 +589,13 @@ const CustomerRequestCreate = () => {
               {/* STEP 5: REVIEW */}
               {currentStep === 5 && (
                 <div className="animate-fadeIn space-y-6">
-                  {errors.submit && (
+                  {isPurchaseOrLease() && (
+                    <div className="bg-orange-50 border border-orange-200 text-orange-800 text-sm font-bold p-4 rounded-xl flex items-center gap-2 mb-4">
+                      <AlertTriangle size={18} />
+                      Purchase and Lease request submission will be enabled after property requirement storage is connected.
+                    </div>
+                  )}
+                  {errors.submit && !isPurchaseOrLease() && (
                     <div className="bg-red-50 border border-red-200 text-red-800 text-sm font-bold p-4 rounded-xl flex items-center gap-2">
                       <AlertTriangle size={18} />
                       {errors.submit}
@@ -551,12 +623,71 @@ const CustomerRequestCreate = () => {
                             : servicesList.find(s => s.service_id === formData.serviceId)?.service_english}
                         </span>
                       </div>
-                      <div className="md:col-span-2">
-                        <span className="text-gray-400 block mb-1 text-xs font-bold uppercase tracking-wider">Linked Property</span>
-                        <span className="font-semibold text-gray-800">{getSelectedPropertyName()}</span>
-                      </div>
+                      
+                      {!isPurchaseOrLease() ? (
+                        <div className="md:col-span-2">
+                          <span className="text-gray-400 block mb-1 text-xs font-bold uppercase tracking-wider">Linked Property</span>
+                          <span className="font-semibold text-gray-800">{getSelectedPropertyName()}</span>
+                        </div>
+                      ) : (
+                        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 mt-2 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                          {formData.requirements.propertyTypeLabel && (
+                            <div>
+                              <span className="text-gray-400 block text-xs font-bold uppercase tracking-wider mb-1">Property Type</span>
+                              <span className="font-semibold text-gray-800">{formData.requirements.propertyTypeLabel}</span>
+                            </div>
+                          )}
+                          <div>
+                            <span className="text-gray-400 block text-xs font-bold uppercase tracking-wider mb-1">City</span>
+                            <span className="font-semibold text-gray-800">Pending global city API</span>
+                          </div>
+                          {formData.requirements.societyLabel && (
+                            <div>
+                              <span className="text-gray-400 block text-xs font-bold uppercase tracking-wider mb-1">Society</span>
+                              <span className="font-semibold text-gray-800">{formData.requirements.societyLabel}</span>
+                            </div>
+                          )}
+                          {formData.requirements.areaLabel && (
+                            <div>
+                              <span className="text-gray-400 block text-xs font-bold uppercase tracking-wider mb-1">Area</span>
+                              <span className="font-semibold text-gray-800">{formData.requirements.areaLabel}</span>
+                            </div>
+                          )}
+                          {(formData.requirements.minBudget || formData.requirements.maxBudget) && (
+                            <div>
+                              <span className="text-gray-400 block text-xs font-bold uppercase tracking-wider mb-1">Budget Range (PKR)</span>
+                              <span className="font-semibold text-gray-800">
+                                {formData.requirements.minBudget || "0"} - {formData.requirements.maxBudget || "No Limit"}
+                              </span>
+                            </div>
+                          )}
+                          {(formData.requirements.minSize || formData.requirements.maxSize) && (
+                            <div>
+                              <span className="text-gray-400 block text-xs font-bold uppercase tracking-wider mb-1">Size Range</span>
+                              <span className="font-semibold text-gray-800">
+                                {formData.requirements.minSize || "0"} - {formData.requirements.maxSize || "No Limit"}
+                              </span>
+                            </div>
+                          )}
+                          {formData.requirements.minRooms && (
+                            <div>
+                              <span className="text-gray-400 block text-xs font-bold uppercase tracking-wider mb-1">Min Rooms</span>
+                              <span className="font-semibold text-gray-800">{formData.requirements.minRooms}</span>
+                            </div>
+                          )}
+                          {formData.requirements.minBathrooms && (
+                            <div>
+                              <span className="text-gray-400 block text-xs font-bold uppercase tracking-wider mb-1">Min Bathrooms</span>
+                              <span className="font-semibold text-gray-800">{formData.requirements.minBathrooms}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       <div className="md:col-span-2 border-t border-gray-200/60 pt-6">
-                        <span className="text-gray-400 block mb-2 text-xs font-bold uppercase tracking-wider">Description</span>
+                        <span className="text-gray-400 block mb-2 text-xs font-bold uppercase tracking-wider">
+                          {isPurchaseOrLease() ? "Additional Requirements" : "Description"}
+                        </span>
                         <p className="font-medium text-gray-700 bg-white p-4 rounded-xl border border-gray-100 leading-relaxed whitespace-pre-wrap">
                           {formData.description}
                         </p>
@@ -600,8 +731,8 @@ const CustomerRequestCreate = () => {
               ) : (
                 <button
                   onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className={`px-8 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#d4af37] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(184,134,11,0.3)] hover:shadow-lg transition-all flex items-center gap-2 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  disabled={isSubmitting || isPurchaseOrLease()}
+                  className={`px-8 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#d4af37] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(184,134,11,0.3)] hover:shadow-lg transition-all flex items-center gap-2 ${(isSubmitting || isPurchaseOrLease()) ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {isSubmitting ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

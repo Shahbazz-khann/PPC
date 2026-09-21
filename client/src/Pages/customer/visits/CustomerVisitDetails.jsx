@@ -1,57 +1,117 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ChevronRight, MapPin, Calendar, CheckCircle2, Clock, User, Building, Home, Map, MessageSquare, ShieldCheck } from 'lucide-react';
-import { mockVisitsList } from './mockVisitsData';
-import { mockPropertiesList } from '../properties/mockPropertyData';
+import { ChevronRight, MapPin, Calendar, CheckCircle2, Clock, User, Building, Home, MessageSquare, ShieldCheck, Loader2, AlertCircle } from 'lucide-react';
+import { getCustomerPropertyVisitById, submitCustomerPropertyVisitRemarks, resolveMediaUrl } from '../../../Services/customer.services';
 
 const CustomerVisitDetails = () => {
   const { visitId } = useParams();
+  const [visit, setVisit] = useState(null);
   
-  // Find mock visit
-  const initialVisit = mockVisitsList.find(v => v.id === visitId);
-  const [visit, setVisit] = useState(initialVisit);
-  
-  // Form state for remarks
-  const [remarksInput, setRemarksInput] = useState(initialVisit?.visitorRemarks || '');
-  const [isSaving, setIsSaving] = useState(false);
+  // API State
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showSuccess, setShowSuccess] = useState(false);
 
-  if (!visit) {
+  // Form state for remarks
+  const [remarksInput, setRemarksInput] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  const fetchVisitDetails = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      setSubmitError('');
+      const res = await getCustomerPropertyVisitById(visitId);
+      
+      if (res?.success) {
+        setVisit(res.data);
+      } else {
+        setError(res?.message || 'Failed to fetch visit details');
+      }
+    } catch (err) {
+      setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (visitId) {
+      fetchVisitDetails();
+    }
+  }, [visitId]);
+
+  if (loading) {
     return (
-      <div className="min-h-screen bg-[#FAF8F3] flex flex-col items-center justify-center">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Visit Not Found</h2>
-        <Link to="/customer/visits" className="text-[#B8860B] hover:underline font-bold">Return to Property Visits</Link>
+      <div className="w-full bg-[#FAF8F3] min-h-screen flex flex-col items-center justify-center font-sans">
+        <Loader2 className="animate-spin text-[#B8860B] mb-4" size={40} />
+        <h3 className="text-xl font-serif font-bold text-gray-900">Loading Visit Details</h3>
+        <p className="text-sm font-medium text-gray-500 mt-2">Please wait...</p>
       </div>
     );
   }
 
-  const property = mockPropertiesList.find(p => p.id === visit.propertyId);
+  if (error || !visit) {
+    return (
+      <div className="w-full bg-[#FAF8F3] min-h-screen flex flex-col items-center justify-center p-4 font-sans">
+        <div className="bg-white rounded-[24px] shadow-sm border border-red-100 p-8 sm:p-12 flex flex-col items-center justify-center max-w-lg w-full text-center">
+          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-6">
+            <AlertCircle size={32} />
+          </div>
+          <h3 className="text-xl font-serif font-bold text-gray-900 mb-3">Property visit not found</h3>
+          <p className="text-sm font-medium text-red-600 mb-8">{error || 'The requested property visit does not exist or you do not have permission to view it.'}</p>
+          <div className="flex gap-4">
+            <Link 
+              to="/customer/visits" 
+              className="px-6 py-2.5 bg-gray-100 text-gray-700 text-sm font-bold rounded-xl shadow-sm hover:bg-gray-200 transition-colors"
+            >
+              Return to Visits
+            </Link>
+            <button
+              onClick={fetchVisitDetails}
+              className="px-6 py-2.5 bg-[#1a2b25] text-white text-sm font-bold rounded-xl shadow-sm hover:bg-[#2c4232] transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const property = visit.property;
   const isCompleted = visit.actualDate !== null;
+  const propertyTitle = [property?.propertyType, property?.societyName].filter(Boolean).join(' in ') || 'Unknown Property';
+  const propertyLocation = [property?.societyName, property?.cityName].filter(Boolean).join(', ') || 'No location';
+  const sizeString = (property?.propertySize && property?.propertySizeUom) ? `${property.propertySize} ${property.propertySizeUom}` : '';
+  const imageSrc = property?.imageUrl ? resolveMediaUrl(property.imageUrl) : '/placeholder-image.jpg';
 
-  const handleSaveRemarks = () => {
-    setError('');
-    setShowSuccess(false);
+  const handleSaveRemarks = async () => {
+    setSubmitError('');
+    const trimmedRemarks = remarksInput.trim();
+    if (!trimmedRemarks) return;
 
-    const trimmed = remarksInput.trim();
-    if (trimmed === '') {
-      setError('Remarks cannot be empty.');
-      return;
+    try {
+      setIsSubmitting(true);
+      const res = await submitCustomerPropertyVisitRemarks(visit.visitId, trimmedRemarks);
+      if (res?.success) {
+        setVisit(prev => ({
+          ...prev,
+          visitorRemarks: res.data.visitorRemarks
+        }));
+        setRemarksInput('');
+      } else {
+        setSubmitError(res?.message || 'Failed to submit remarks. Please try again.');
+        // If the error implies state desync, gracefully refetch.
+        if (res?.message === 'Remarks have already been submitted for this property visit.') {
+           fetchVisitDetails();
+        }
+      }
+    } catch (err) {
+      setSubmitError(err.message || 'An unexpected error occurred while submitting remarks.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (trimmed.length > 1000) {
-      setError('Remarks cannot exceed 1000 characters.');
-      return;
-    }
-
-    // Mock save
-    setIsSaving(true);
-    setTimeout(() => {
-      setVisit(prev => ({ ...prev, visitorRemarks: trimmed }));
-      setIsSaving(false);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-    }, 800);
   };
 
   return (
@@ -64,7 +124,7 @@ const CustomerVisitDetails = () => {
           <ChevronRight size={14} className="text-gray-400" />
           <Link to="/customer/visits" className="hover:text-gray-900 transition-colors">Property Visits</Link>
           <ChevronRight size={14} className="text-gray-400" />
-          <span className="text-[#1a2b25]">{visit.id}</span>
+          <span className="text-[#1a2b25]">{visit.visitId}</span>
         </div>
       </div>
 
@@ -81,7 +141,7 @@ const CustomerVisitDetails = () => {
             
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-sm font-bold text-gray-500 tracking-wide uppercase">{visit.id}</span>
+                <span className="text-sm font-bold text-gray-500 tracking-wide uppercase">{visit.visitId}</span>
                 {isCompleted ? (
                   <span className="px-3 py-1 bg-[#EAF3EE] text-[#1E5631] text-[11px] font-bold uppercase tracking-wider rounded-full shadow-sm border border-[#1E5631]/20 flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#1E5631]"></span> Completed
@@ -89,6 +149,12 @@ const CustomerVisitDetails = () => {
                 ) : (
                   <span className="px-3 py-1 bg-[#FFF4E5] text-[#B8860B] text-[11px] font-bold uppercase tracking-wider rounded-full shadow-sm border border-[#B8860B]/20 flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#B8860B]"></span> Upcoming
+                  </span>
+                )}
+                {/* Request ID Display */}
+                {visit.requestId && (
+                  <span className="px-3 py-1 bg-gray-100 text-gray-600 text-[11px] font-bold uppercase tracking-wider rounded-full shadow-sm border border-gray-200 ml-2">
+                    Req: {visit.requestId}
                   </span>
                 )}
               </div>
@@ -120,8 +186,8 @@ const CustomerVisitDetails = () => {
                   </div>
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Scheduled Visit</h4>
                   <div className="space-y-1">
-                    <div className="text-2xl font-bold text-[#1a2b25]">{visit.scheduledDate}</div>
-                    <div className="text-sm font-semibold text-[#B8860B]">{visit.scheduledTime}</div>
+                    <div className="text-2xl font-bold text-[#1a2b25]">{visit.scheduledDate || 'TBD'}</div>
+                    <div className="text-sm font-semibold text-[#B8860B]">{visit.scheduledTime || 'TBD'}</div>
                   </div>
                 </div>
 
@@ -139,7 +205,7 @@ const CustomerVisitDetails = () => {
                   {isCompleted ? (
                     <div className="space-y-1">
                       <div className="text-2xl font-bold text-[#1E5631]">{visit.actualDate}</div>
-                      <div className="text-sm font-semibold text-[#1E5631]/80">{visit.actualTime}</div>
+                      <div className="text-sm font-semibold text-[#1E5631]/80">{visit.actualTime || '-'}</div>
                     </div>
                   ) : (
                     <div className="flex flex-col h-[52px] justify-center">
@@ -162,7 +228,7 @@ const CustomerVisitDetails = () => {
                     {visit.employeeRemarks}
                   </p>
                 ) : (
-                  <p className="text-sm font-medium text-gray-500 italic">No remarks added by PPC yet.</p>
+                  <p className="text-sm font-medium text-gray-500 italic">No PPC employee remarks recorded.</p>
                 )}
               </div>
             </div>
@@ -183,33 +249,45 @@ const CustomerVisitDetails = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <label className="block text-sm font-bold text-gray-700">Leave a note about your visit</label>
-                    <textarea 
-                      value={remarksInput}
-                      onChange={(e) => setRemarksInput(e.target.value)}
-                      placeholder="e.g. Property was well maintained and the location was suitable."
-                      className="w-full h-32 px-4 py-3 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-medium text-gray-800 bg-gray-50/50 resize-none"
-                    ></textarea>
-                    
-                    {error && <p className="text-sm font-semibold text-red-500">{error}</p>}
-                    
-                    <div className="flex items-center justify-between">
-                      {showSuccess ? (
-                        <span className="text-sm font-bold text-[#1E5631] flex items-center gap-2">
-                          <CheckCircle2 size={16} /> Remarks saved successfully!
-                        </span>
-                      ) : (
-                        <span></span> // Empty span for flex-between spacing
-                      )}
-                      
-                      <button 
-                        onClick={handleSaveRemarks}
-                        disabled={isSaving}
-                        className="px-8 py-2.5 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-md hover:bg-[#2c4232] transition-colors disabled:opacity-70 flex items-center gap-2"
-                      >
-                        {isSaving ? 'Saving...' : 'Save Remarks'}
-                      </button>
-                    </div>
+                    {visit.visitorRemarks ? (
+                       <p className="text-[15px] font-medium text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {visit.visitorRemarks}
+                      </p>
+                    ) : (
+                      <>
+                        <label className="block text-sm font-bold text-gray-700">Leave a note about your visit</label>
+                        <textarea 
+                          value={remarksInput}
+                          onChange={(e) => setRemarksInput(e.target.value)}
+                          placeholder="e.g. Property was well maintained and the location was suitable."
+                          disabled={isSubmitting}
+                          className="w-full h-32 px-4 py-3 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-medium text-gray-800 bg-gray-50/50 resize-none disabled:opacity-75 disabled:cursor-not-allowed"
+                        ></textarea>
+                        
+                        {submitError && (
+                          <div className="p-3 bg-red-50 border border-red-100 rounded-lg flex items-start gap-2">
+                            <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
+                            <p className="text-sm font-semibold text-red-600">{submitError}</p>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-end">
+                          <button 
+                            onClick={handleSaveRemarks}
+                            disabled={isSubmitting || !remarksInput.trim()}
+                            className="px-8 py-2.5 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-sm hover:bg-[#2c4232] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                          >
+                            {isSubmitting ? (
+                              <>
+                                <Loader2 size={16} className="animate-spin" /> Submitting...
+                              </>
+                            ) : (
+                              'Submit Remarks'
+                            )}
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -227,13 +305,23 @@ const CustomerVisitDetails = () => {
                 <h3 className="text-[15px] font-serif font-bold text-[#1a2b25]">PPC Representative</h3>
               </div>
               <div className="p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-[#eaf1ec] text-[#1E5631] font-bold text-lg flex items-center justify-center shrink-0 shadow-sm border border-white ring-2 ring-gray-50">
-                  {visit.conductedBy?.name.charAt(0)}
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-gray-800">{visit.conductedBy?.name}</h4>
-                  <p className="text-xs font-medium text-gray-500">{visit.conductedBy?.role}</p>
-                </div>
+                {visit.conductedBy ? (
+                  <>
+                    <div className="w-12 h-12 rounded-full bg-[#eaf1ec] text-[#1E5631] font-bold text-lg flex items-center justify-center shrink-0 shadow-sm border border-white ring-2 ring-gray-50">
+                      {visit.conductedBy.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-800">{visit.conductedBy.name}</h4>
+                      <p className="text-xs font-medium text-gray-500">{visit.conductedBy.designation}</p>
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-500">
+                      {isCompleted ? 'Representative information unavailable' : 'PPC representative not assigned yet'}
+                    </h4>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -247,34 +335,43 @@ const CustomerVisitDetails = () => {
               {property ? (
                 <div className="flex-1 flex flex-col">
                   <div className="relative h-48 w-full bg-gray-100">
-                    <img src={property.image || '/placeholder-image.jpg'} alt="Property" className="w-full h-full object-cover" />
+                    <img 
+                      src={imageSrc} 
+                      alt="Property" 
+                      className="w-full h-full object-cover" 
+                      onError={(e) => { e.target.src = '/placeholder-image.jpg'; }}
+                    />
                   </div>
                   
                   <div className="p-6 flex-1 flex flex-col">
                     <div className="grid grid-cols-2 gap-y-4 gap-x-2 mb-6 text-sm">
                       <div className="col-span-2">
                         <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Property Title</span>
-                        <span className="font-bold text-gray-800 line-clamp-1">{property.propertyType} in {property.society}</span>
+                        <span className="font-bold text-gray-800 line-clamp-1">{propertyTitle}</span>
                       </div>
                       <div className="col-span-2">
                         <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Location</span>
                         <span className="font-semibold text-gray-600 flex items-center gap-1">
-                          <MapPin size={12} /> {property.society}, {property.city}
+                          <MapPin size={12} /> {propertyLocation}
                         </span>
                       </div>
-                      <div>
-                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Type</span>
-                        <span className="font-semibold text-gray-700">{property.propertyType}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Size</span>
-                        <span className="font-semibold text-gray-700">{property.propertySize} {property.sizeUom}</span>
-                      </div>
+                      {property.propertyType && (
+                        <div>
+                          <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Type</span>
+                          <span className="font-semibold text-gray-700">{property.propertyType}</span>
+                        </div>
+                      )}
+                      {sizeString && (
+                        <div>
+                          <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Size</span>
+                          <span className="font-semibold text-gray-700">{sizeString}</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="mt-auto pt-2">
                       <Link 
-                        to={`/customer/properties/${property.id}`} 
+                        to={`/customer/properties/${visit.propertyId}`} 
                         className="w-full flex items-center justify-center gap-2 py-3 border border-gray-200 text-[#1a2b25] rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
                       >
                         View Property

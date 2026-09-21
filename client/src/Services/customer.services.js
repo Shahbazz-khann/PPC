@@ -153,3 +153,27 @@ export const uploadCustomerPropertyVideo = async (propertyId, file) => {
   formData.append('video', file);
   return await api.post(`/customer/properties/${propertyId}/video`, formData);
 };
+
+/**
+ * Get all property visits for the authenticated customer.
+ */
+export const getCustomerPropertyVisits = async () => {
+  return await api.get('/customer/property-visits');
+};
+
+/**
+ * Get details of a single property visit.
+ * @param {string|number} visitId 
+ */
+export const getCustomerPropertyVisitById = async (visitId) => {
+  return await api.get(`/customer/property-visits/${visitId}`);
+};
+
+/**
+ * Submit one-time customer remarks for a completed property visit.
+ * @param {string|number} visitId 
+ * @param {string} remarks 
+ */
+export const submitCustomerPropertyVisitRemarks = async (visitId, remarks) => {
+  return await api.patch(`/customer/property-visits/${visitId}/remarks`, { remarks });
+};

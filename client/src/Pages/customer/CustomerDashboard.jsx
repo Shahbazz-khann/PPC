@@ -13,19 +13,13 @@ import {
   Plus
 } from 'lucide-react';
 import CustomerAccountMenu from '../../Components/common/CustomerAccountMenu';
-import { getCustomerDashboardSummary, getCustomerDashboardProperties } from '../../Services/customer.services';
+import { getCustomerDashboardSummary, getCustomerDashboardProperties, getCustomerRequests } from '../../Services/customer.services';
 import { resolveMediaUrl } from '../../Services/Api';
 
 // Assets
 import PropVilla from '../../assets/prop_villa.png';
 import PropApartment from '../../assets/prop_apartment.png';
 import HeroBg from '../../assets/hero_bg_villa.jpg';
-
-const mockRequests = [
-  { id: '#101', type: 'Property Request', subType: 'Sale', status: 'Pending', date: 'Oct 12, 2026' },
-  { id: '#103', type: 'Property Request', subType: 'Rent', status: 'Completed', date: 'Sep 28, 2026' },
-  { id: '#102', type: 'PPC Service Request', subType: 'Property Care', status: 'In Progress', date: 'Oct 10, 2026' }
-];
 
 const StatusBadge = ({ status }) => {
   let color = 'bg-gray-100 text-gray-700';
@@ -34,12 +28,15 @@ const StatusBadge = ({ status }) => {
   if (status === 'Active' || status === 'Completed') {
     color = 'bg-[#EAF3EE] text-[#1E5631]'; // soft green
     dotColor = 'bg-[#1E5631]';
-  } else if (status === 'Pending') {
+  } else if (status === 'Pending' || status === 'Under Review') {
     color = 'bg-[#FFF4E5] text-[#B8860B]'; // soft gold
     dotColor = 'bg-[#B8860B]';
-  } else if (status === 'In Progress') {
+  } else if (status === 'In Progress' || status === 'Assigned') {
     color = 'bg-[#E6F0FA] text-[#0066CC]'; // soft blue
     dotColor = 'bg-[#0066CC]';
+  } else if (status === 'Rejected' || status === 'Withdrawn') {
+    color = 'bg-[#faebe9] text-[#c46a62]'; // soft red
+    dotColor = 'bg-[#c46a62]';
   }
 
   return (
@@ -90,6 +87,10 @@ const CustomerDashboard = () => {
   const [myProperties, setMyProperties] = useState([]);
   const [propertiesLoading, setPropertiesLoading] = useState(true);
 
+  const [requests, setRequests] = useState([]);
+  const [requestsLoading, setRequestsLoading] = useState(true);
+  const [requestsError, setRequestsError] = useState(null);
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -118,12 +119,33 @@ const CustomerDashboard = () => {
     fetchDashboardData();
   }, []);
 
-  const filteredRequests = mockRequests.filter(req => {
+  const fetchRequests = async () => {
+    try {
+      setRequestsLoading(true);
+      setRequestsError(null);
+      const res = await getCustomerRequests();
+      if (res?.success) {
+        setRequests(res.data || []);
+      } else {
+        setRequestsError(res?.message || 'Failed to fetch requests');
+      }
+    } catch (err) {
+      setRequestsError(err.message || 'Error loading requests');
+    } finally {
+      setRequestsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  const filteredRequests = requests.filter(req => {
     if (activeTab === 'All') return true;
-    if (activeTab === 'Property Request' && req.type === 'Property Request') return true;
-    if (activeTab === 'Service Requests' && req.type === 'PPC Service Request') return true;
+    if (activeTab === 'Property Request' && req.category === 'PROPERTY') return true;
+    if (activeTab === 'Service Requests' && req.category === 'SERVICE') return true;
     return false;
-  });
+  }).slice(0, 5);
 
   return (
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
@@ -345,36 +367,65 @@ const CustomerDashboard = () => {
 
               {/* List */}
               <div className="space-y-2 flex-1">
-                {filteredRequests.map((req, idx) => (
-                  <React.Fragment key={req.id}>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between group cursor-pointer p-3 hover:bg-[#faf9f7] rounded-2xl transition-colors gap-4">
-                      <div className="flex items-start sm:items-center gap-4 sm:gap-5 w-full sm:w-auto">
-                        <div className={`w-[46px] h-[46px] rounded-full flex items-center justify-center ${req.type === 'Property Request' ? 'bg-[#faebe9] text-[#c46a62]' : 'bg-[#eaf1ec] text-[#36684a]'
-                          }`}>
-                          {req.type === 'Property Request' ? <Home size={18} /> : <Wrench size={18} />}
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-[#1a2b25] mb-0.5">{req.id}</div>
-                          <div className="text-[11px] font-semibold text-gray-400 mb-1">{req.date}</div>
-                          <div className="text-[13px] font-medium text-gray-600">{req.type} · {req.subType}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between sm:justify-end gap-5 w-full sm:w-auto pl-[62px] sm:pl-0">
-                        <StatusBadge status={req.status} />
-                        <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-600 transition-colors" />
-                      </div>
+                {requestsLoading ? (
+                  <div className="py-12 flex flex-col items-center justify-center text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1a2b25] mb-4"></div>
+                    <p className="text-sm font-medium text-gray-500">Loading requests...</p>
+                  </div>
+                ) : requestsError ? (
+                  <div className="py-12 flex flex-col items-center justify-center text-center">
+                    <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-3">
+                       <span className="text-red-500 font-bold">!</span>
                     </div>
-                    {idx < filteredRequests.length - 1 && (
-                      <div className="px-4"><hr className="border-gray-50" /></div>
-                    )}
-                  </React.Fragment>
-                ))}
-
-                {filteredRequests.length === 0 && (
+                    <p className="text-sm font-medium text-red-500 mb-4">{requestsError}</p>
+                    <button onClick={fetchRequests} className="px-4 py-2 bg-[#FAF8F3] text-gray-600 rounded-full text-xs font-bold hover:bg-[#f3eedd] transition-colors">
+                      Retry
+                    </button>
+                  </div>
+                ) : filteredRequests.length === 0 ? (
                   <div className="py-12 flex flex-col items-center justify-center text-center">
                     <FileText size={40} className="text-gray-200 mb-4" />
-                    <p className="text-sm font-medium text-gray-500">No requests found.</p>
+                    <p className="text-sm font-medium text-gray-500">
+                      {activeTab === 'Property Request' 
+                        ? 'No property requests found.' 
+                        : activeTab === 'Service Requests' 
+                          ? 'No service requests found.' 
+                          : 'No requests found.'}
+                    </p>
                   </div>
+                ) : (
+                  filteredRequests.map((req, idx) => {
+                    const isProperty = req.category === 'PROPERTY';
+                    const displayType = isProperty ? 'Property Request' : 'PPC Service Request';
+                    const displaySubType = isProperty ? req.purpose : req.service;
+                    const displayDate = req.createdAt ? new Date(req.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
+                    const displayTitle = `${displayType} · ${displaySubType || ''}`;
+
+                    return (
+                      <React.Fragment key={req.id}>
+                        <Link to={`/customer/requests/${req.id}`} className="flex flex-col sm:flex-row sm:items-center justify-between group cursor-pointer p-3 hover:bg-[#faf9f7] rounded-2xl transition-colors gap-4">
+                          <div className="flex items-start sm:items-center gap-4 sm:gap-5 w-full sm:w-auto">
+                            <div className={`w-[46px] h-[46px] rounded-full flex items-center justify-center ${isProperty ? 'bg-[#faebe9] text-[#c46a62]' : 'bg-[#eaf1ec] text-[#36684a]'
+                              }`}>
+                              {isProperty ? <Home size={18} /> : <Wrench size={18} />}
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold text-[#1a2b25] mb-0.5">#{req.id}</div>
+                              <div className="text-[11px] font-semibold text-gray-400 mb-1">{displayDate}</div>
+                              <div className="text-[13px] font-medium text-gray-600">{displayTitle}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between sm:justify-end gap-5 w-full sm:w-auto pl-[62px] sm:pl-0">
+                            <StatusBadge status={req.status} />
+                            <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-600 transition-colors" />
+                          </div>
+                        </Link>
+                        {idx < filteredRequests.length - 1 && (
+                          <div className="px-4"><hr className="border-gray-50" /></div>
+                        )}
+                      </React.Fragment>
+                    );
+                  })
                 )}
               </div>
 

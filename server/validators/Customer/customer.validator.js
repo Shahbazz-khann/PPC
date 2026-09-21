@@ -245,6 +245,33 @@ const validateInspectionId = (req, res, next) => {
     next();
 };
 
+const validateVisitId = (req, res, next) => {
+    const { visitId } = req.params;
+    
+    // Check if visitId is a positive integer using regex
+    if (!visitId || !/^[1-9]\d*$/.test(visitId)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid visit ID. Must be a positive integer.'
+        });
+    }
+
+    next();
+};
+
+const validateVisitRemarks = (req, res, next) => {
+    const { remarks } = req.body;
+    
+    if (remarks === undefined || remarks === null || typeof remarks !== 'string' || remarks.trim() === '') {
+        return res.status(400).json({
+            success: false,
+            message: 'Remarks must be a non-empty string.'
+        });
+    }
+
+    next();
+};
+
 module.exports = {
     validateUpdateProfile,
     validateChangePassword,
@@ -254,5 +281,7 @@ module.exports = {
     validateUpdateProperty,
     validatePropertyDemand,
     validateRequestId,
-    validateInspectionId
+    validateInspectionId,
+    validateVisitId,
+    validateVisitRemarks
 };
