@@ -7,9 +7,14 @@ const PG_NOT_NULL_VIOLATION = '23502';
 const PG_CHECK_VIOLATION = '23514';
 
 const errorHandler = (err, req, res, next) => {
-  logger.error('Error occurred', err);
+  let statusCode = err.statusCode || err.status || 500;
 
-  let statusCode = err.statusCode || 500;
+  if (statusCode >= 500) {
+    logger.error(`${req.method} ${req.originalUrl}`, err);
+  } else {
+    logger.warn(`${req.method} ${req.originalUrl} - ${statusCode}: ${err.message}`);
+  }
+
   let message = err.message || 'Internal Server Error';
 
   // PostgreSQL constraint errors
@@ -52,6 +57,22 @@ const errorHandler = (err, req, res, next) => {
       message = err.message;
     }
     statusCode = 400;
+  }
+
+  // Malformed JSON body
+  if (err.type === 'entity.parse.failed') {
+    message = 'Invalid JSON payload';
+    statusCode = 400;
+  }
+
+  if (err.type === 'entity.too.large') {
+    message = 'Request payload is too large';
+    statusCode = 413;
+  }
+
+  // Never leak internal error details to clients in production
+  if (statusCode >= 500 && process.env.NODE_ENV === 'production') {
+    message = 'Internal Server Error';
   }
 
   res.status(statusCode).json({
