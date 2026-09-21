@@ -126,6 +126,29 @@ const Approutes = () => {
             <Route path="/inspector/logout" element={<Logout />} />
           </Route>
 
+          {/* Unified User Routes (Phase 3) */}
+          <Route element={<ProtectedRoute allowedRoles={['user', 'owner', 'customer']} />}>
+            {/* Dashboard */}
+            <Route path="/user/dashboard"             element={<OwnerDashboard />} />
+            
+            {/* Selling Features */}
+            <Route path="/user/selling/properties"            element={<OwnerProperties />} />
+            <Route path="/user/selling/property-verification" element={<OwnerPropertyVerification />} />
+            <Route path="/user/selling/inspections"           element={<OwnerInspections />} />
+            <Route path="/user/selling/property-visits"       element={<OwnerPropertyVisits />} />
+            
+            {/* Buying Features */}
+            <Route path="/user/buying/visits"             element={<CustomerMyVisits />} />
+            <Route path="/user/buying/transactions"       element={<CustomerMyTransactions />} />
+            <Route path="/user/buying/inspection-reports" element={<CustomerInspectionReport />} />
+            
+            {/* Shared / Account */}
+            <Route path="/user/transactions"          element={<OwnerTransactions />} />
+            <Route path="/user/payments-invoices"     element={<OwnerPaymentAndInvoices />} />
+            <Route path="/user/account-settings"      element={<OwnerAccountSetting />} />
+            <Route path="/user/logout"                element={<Logout />} />
+          </Route>
+
           {/* Property Owner Role Routes */}
           <Route element={<ProtectedRoute allowedRoles={['owner']} />}>
             <Route path="/owner/dashboard"             element={<OwnerDashboard />} />

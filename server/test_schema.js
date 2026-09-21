@@ -1,9 +1,1 @@
-require('dotenv').config();
-const { pool } = require('./config/db');
-
-pool.query("SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'transactions';")
-  .then(res => {
-    console.log(res.rows);
-    process.exit(0);
-  })
-  .catch(console.error);
+require('dotenv').config(); const { pool } = require('./config/db'); pool.query('SELECT constraint_name, constraint_type FROM information_schema.table_constraints WHERE table_name = ''pending_users''').then(r => { console.log(r.rows); process.exit(0); });

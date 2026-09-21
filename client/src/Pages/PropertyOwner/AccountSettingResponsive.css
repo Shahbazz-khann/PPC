@@ -1,0 +1,38 @@
+/* Responsive CSS Overrides for AccountSetting.jsx */
+@media (max-width: 768px) {
+  .account-responsive-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .account-responsive-banner {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  
+  .account-responsive-banner-info {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  .account-responsive-banner-tags {
+    justify-content: center !important;
+  }
+
+  .account-responsive-banner-stats {
+    width: 100% !important;
+    justify-content: space-around !important;
+  }
+
+  .account-responsive-grid {
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+  }
+
+  .account-responsive-fields-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

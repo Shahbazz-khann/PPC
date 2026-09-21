@@ -22,7 +22,7 @@ const Logout = () => {
     if (window.history.length > 2) {
       navigate(-1);
     } else {
-      navigate('/customer/dashboard', { replace: true });
+      navigate('/user/dashboard', { replace: true });
     }
   }, [navigate]);
 

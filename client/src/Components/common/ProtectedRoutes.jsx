@@ -30,6 +30,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
       // User is authenticated but doesn't have the required role.
       // Redirect to their respective dashboard or a default route.
       const roleDashboardMap = {
+        user: '/user/dashboard',
         customer: '/customer/dashboard',
         owner: '/owner/dashboard',
         inspector: '/inspector/dashboard',

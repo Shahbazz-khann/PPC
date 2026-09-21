@@ -610,7 +610,7 @@ const PropertyDetails = () => {
     setVisitModalOpen(false);
     // When backend is ready: POST /api/customer/visits { property_id }
     // Then navigate to My Visits
-    setTimeout(() => navigate('/customer/my-visits'), 1800);
+    setTimeout(() => navigate('/user/buying/visits'), 1800);
   };
 
   // ── Loading state ──
@@ -632,7 +632,7 @@ const PropertyDetails = () => {
         <p style={s.notFoundText}>
           This property is no longer available or may have been removed.
         </p>
-        <button style={s.backBtn} onClick={() => navigate('/customer/properties')}>
+        <button style={s.backBtn} onClick={() => navigate('/properties')}>
           <ArrowLeft size={15} color="#1D6A4A" strokeWidth={2} />
           Back to Properties
         </button>
@@ -667,7 +667,7 @@ const PropertyDetails = () => {
     <div style={s.page}>
       {/* ── Back navigation ── */}
       <div style={s.backNav}>
-        <button style={s.backNavBtn} onClick={() => navigate('/customer/properties')}>
+        <button style={s.backNavBtn} onClick={() => navigate('/properties')}>
           <ArrowLeft size={15} color="#1D6A4A" strokeWidth={2.5} />
           Back to Properties
         </button>

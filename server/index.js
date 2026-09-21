@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { connectDB } = require('./config/db');
 const logger = require('./utils/logger');
 const { errorHandler } = require('./middlewares/errorMiddleware');
@@ -33,6 +34,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // --------------------------------------------------
+// Static Files
+// --------------------------------------------------
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+
+// --------------------------------------------------
 // Versioned API Router
 // --------------------------------------------------
 
@@ -53,6 +60,10 @@ apiRouter.use('/customer', customerRoutes);
 // Owner
 const ownerRoutes = require('./routes/Owner/owner.routes');
 apiRouter.use('/owner', ownerRoutes);
+
+// Unified User
+const userRoutes = require('./routes/User/user.routes');
+apiRouter.use('/user', userRoutes);
 
 // Inspector
 const inspectorRoutes = require('./routes/Inspector/inspector.routes');
@@ -87,12 +98,17 @@ app.use(errorHandler);
 // --------------------------------------------------
 // Start Server
 // --------------------------------------------------
+const http = require('http');
+const { initializeSocket } = require('./socket/socket.server');
 
 const startServer = async () => {
   try {
     await connectDB();
 
-    app.listen(port, () => {
+    const httpServer = http.createServer(app);
+    initializeSocket(httpServer);
+
+    httpServer.listen(port, () => {
       logger.info(`PPC server running on http://localhost:${port}`);
       logger.info(`API version ${API_VERSION} available at /api/${API_VERSION}`);
     });

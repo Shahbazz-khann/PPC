@@ -555,7 +555,7 @@ const Dashboard = () => {
                     </button>
                     <button
                       style={styles.btnSecondary}
-                      onClick={() => navigate('/customer/my-visits')}
+                      onClick={() => navigate('/user/buying/visits')}
                     >
                       Visit Details
                     </button>
@@ -632,7 +632,7 @@ const Dashboard = () => {
           <div style={styles.activityCard}>
             <div style={styles.activityHeader}>
               <span style={styles.sectionTitle}>Recent Activity</span>
-              <button style={styles.viewAllSmall} onClick={() => navigate('/customer/my-visits')}>View All</button>
+              <button style={styles.viewAllSmall} onClick={() => navigate('/user/buying/visits')}>View All</button>
             </div>
 
             <div style={styles.activityList}>
@@ -684,7 +684,7 @@ const Dashboard = () => {
               )}
             </div>
 
-            <button style={styles.goActivityBtn} onClick={() => navigate('/customer/my-visits')}>Go to Activity</button>
+            <button style={styles.goActivityBtn} onClick={() => navigate('/user/buying/visits')}>Go to Activity</button>
           </div>
         </aside>
       </div>
