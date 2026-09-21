@@ -10,11 +10,13 @@ import {
   Bell,
   ChevronRight,
   MoreHorizontal,
-  Plus
+  Plus,
+  AlertTriangle
 } from 'lucide-react';
 import CustomerAccountMenu from '../../Components/common/CustomerAccountMenu';
 import { getCustomerDashboardSummary, getCustomerDashboardProperties, getCustomerRequests } from '../../Services/customer.services';
 import { resolveMediaUrl } from '../../Services/Api';
+import { useAuth } from '../../Context/AuthContext';
 
 // Assets
 import PropVilla from '../../assets/prop_villa.png';
@@ -72,8 +74,15 @@ const SummaryCard = ({ title, value, subtitle, icon: Icon, colorClass, iconBgCol
 );
 
 const CustomerDashboard = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('All');
-  const customerName = 'Ahmed';
+  
+  const customerName = [
+    user?.user_first_name,
+    user?.user_middle_name,
+    user?.user_last_name,
+  ].filter(Boolean).join(' ') || 'Customer';
+
   const [language, setLanguage] = useState('en');
 
   const [summary, setSummary] = useState({
