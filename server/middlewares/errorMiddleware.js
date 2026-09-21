@@ -70,8 +70,12 @@ const errorHandler = (err, req, res, next) => {
     statusCode = 413;
   }
 
+  // Set EXPOSE_ERRORS=true to see real error details (e.g. while debugging a deployment)
+  const exposeErrors =
+    process.env.NODE_ENV === 'development' || process.env.EXPOSE_ERRORS === 'true';
+
   // Never leak internal error details to clients in production
-  if (statusCode >= 500 && process.env.NODE_ENV === 'production') {
+  if (statusCode >= 500 && process.env.NODE_ENV === 'production' && !exposeErrors) {
     message = 'Internal Server Error';
   }
 
@@ -79,7 +83,7 @@ const errorHandler = (err, req, res, next) => {
     success: false,
     error: message,
 
-    ...(process.env.NODE_ENV === 'development' && {
+    ...(exposeErrors && {
       stack: err.stack,
       code: err.code,
       detail: err.detail,

@@ -29,7 +29,8 @@ if (missingEnv.length) {
 }
 
 const isProduction = process.env.NODE_ENV === 'production';
-const port = parseInt(process.env.PORT, 10) || 5000;
+// Under IIS/iisnode, PORT is a named pipe (e.g. "\\.\pipe\...") — pass it through as-is
+const port = process.env.PORT || 5000;
 const VERSION = process.env.VERSION || '1.0.0';
 const API_VERSION = process.env.API_VERSION || 'v1';
 
