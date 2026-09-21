@@ -11,12 +11,16 @@ const CustomerAccountMenu = ({ theme = 'light' }) => {
   const dropdownRef = useRef(null);
   
   // Use user data or fallback
-  const firstName = 'Ahmad';
-  const lastName = user?.lastName || '';
+  const displayName = [
+    user?.user_first_name,
+    user?.user_middle_name,
+    user?.user_last_name,
+  ].filter(Boolean).join(' ') || 'Customer';
+  
   const email = user?.email || 'customer@example.com';
   
   // Create initials
-  const initials = `${firstName.charAt(0) || ''}${lastName.charAt(0) || ''}`.toUpperCase() || 'CU';
+  const initials = user?.user_first_name?.trim()?.charAt(0)?.toUpperCase() || 'U';
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -59,7 +63,7 @@ const CustomerAccountMenu = ({ theme = 'light' }) => {
         className="flex items-center gap-3 p-1 rounded-xl hover:bg-black/5 transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-[#B8860B] focus:ring-offset-2"
       >
         <div className="text-right hidden sm:block">
-          <p className="text-sm font-bold text-[#1a2b25] leading-tight">{firstName} {lastName}</p>
+          <p className="text-sm font-bold text-[#1a2b25] leading-tight">{displayName}</p>
           <p className="text-[11px] font-semibold text-[#B8860B]">PPC Member</p>
         </div>
         <div className="w-10 h-10 rounded-full bg-[#a9b0a6] text-[#2c3e34] flex items-center justify-center font-serif font-bold text-sm tracking-wide shadow-sm border border-gray-100/50">
@@ -76,7 +80,7 @@ const CustomerAccountMenu = ({ theme = 'light' }) => {
         
         {/* Header info */}
         <div className="p-4 border-b border-[#e4d7be]/50 bg-white">
-          <p className="text-sm font-bold text-[#1a2b25] truncate">{firstName} {lastName}</p>
+          <p className="text-sm font-bold text-[#1a2b25] truncate">{displayName}</p>
           <p className="text-xs font-medium text-gray-500 truncate mt-0.5">{email}</p>
           <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-[#B8860B]/10 text-[#B8860B] uppercase tracking-wider">
             PPC Member
