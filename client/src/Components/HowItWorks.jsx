@@ -49,23 +49,32 @@ const HowItWorks = () => {
           HOW IT WORKS
         </h2>
 
-        <div className="flex items-start justify-between w-full gap-1 md:gap-2">
+        <div className="flex items-start justify-start md:justify-between w-full gap-2 md:gap-1 lg:gap-2 overflow-x-auto pb-4 md:pb-0 snap-x snap-mandatory scrollbar-hide">
+          <style>{`
+            .scrollbar-hide::-webkit-scrollbar {
+              display: none;
+            }
+            .scrollbar-hide {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+          `}</style>
           {steps.map((step, index) => (
             <React.Fragment key={step.number}>
-              <div className="flex flex-col items-center text-center flex-1 min-w-[90px] max-w-[130px]">
+              <div className="flex flex-col items-center text-center shrink-0 md:flex-1 w-[120px] md:w-auto md:min-w-[90px] max-w-[130px] snap-center">
                 <div className="w-14 h-14 md:w-18 md:h-18 lg:w-20 lg:h-20 rounded-full bg-white border border-gray-200/80 flex items-center justify-center shadow-xs mb-2.5 md:mb-3 shrink-0">
                   <step.icon className="w-6 h-6 md:w-8 md:h-8 text-[#063B29] stroke-[1.5]" />
                 </div>
                 <span className="text-[#063B29] font-bold text-base md:text-lg mb-0.5">
                   {step.number}
                 </span>
-                <h3 className="text-slate-800 font-semibold text-xs md:text-sm leading-tight">
+                <h3 className="text-slate-800 font-semibold text-xs md:text-sm leading-tight px-1 md:px-0">
                   {step.title}
                 </h3>
               </div>
 
               {index < steps.length - 1 && (
-                <div className="flex items-center justify-center flex-1 mt-4 md:mt-6 lg:mt-7 shrink-0 min-w-[16px]">
+                <div className="flex items-center justify-center shrink-0 md:flex-1 w-[24px] md:w-auto mt-4 md:mt-6 lg:mt-7 min-w-[16px]">
                   <svg
                     className="w-6 md:w-10 lg:w-12 text-gray-400 shrink-0"
                     viewBox="0 0 40 16"
