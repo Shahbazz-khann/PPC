@@ -19,6 +19,11 @@ const pool = new Pool({
     parseInt(process.env.DB_CONNECTION_TIMEOUT_MS, 10) || 30000,
 });
 
+// Errors on idle clients (e.g. DB restart) would otherwise crash the process
+pool.on('error', (error) => {
+  logger.error('Unexpected PostgreSQL pool error', error);
+});
+
 const connectDB = async () => {
   try {
     const client = await pool.connect();

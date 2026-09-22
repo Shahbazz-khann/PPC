@@ -38,7 +38,7 @@ const authenticate = (req, res, next) => {
         next();
 
     } catch (error) {
-        logger.error('Authentication error:', error);
+        logger.warn(`Authentication failed: ${error.message}`);
 
         if (error.name === 'TokenExpiredError') {
             return res.status(401).json({
