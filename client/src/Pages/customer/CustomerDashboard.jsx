@@ -157,10 +157,10 @@ const CustomerDashboard = () => {
   }).slice(0, 5);
 
   return (
-    <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
+    <div className="w-full bg-[#FAF8F3] min-h-screen pb-16  font-sans">
 
       {/* --- HERO AREA --- */}
-      <div className="relative w-full bg-[#FAF8F3] pt-4 pb-20 sm:pb-28 px-4 sm:px-8 lg:px-12 xl:px-16 overflow-hidden">
+      <div className="relative w-full bg-[#FAF8F3] pt-4 pb-20 sm:pb-28 overflow-hidden">
 
         {/* Background Image & Gradient */}
         <div className="absolute top-0 right-0 w-full lg:w-[60%] h-full z-0">
@@ -168,72 +168,75 @@ const CustomerDashboard = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-[#FAF8F3] via-[#FAF8F3]/95 lg:via-[#FAF8F3]/80 to-transparent"></div>
         </div>
 
-        {/* Top Navigation inside Hero */}
-        <div className="relative z-10 flex justify-between items-center mb-4">
-          <div className="flex items-center text-sm font-semibold text-gray-500 gap-2">
-            <Home size={18} />
-            <ChevronRight size={14} className="text-gray-400" />
-            <span className="text-gray-700">Dashboard</span>
-          </div>
-
-          <div className="flex items-center gap-4 sm:gap-6">
-            {/* Temporary Language Toggle */}
-            <div className="hidden sm:flex bg-white border border-gray-200 rounded-full p-1 shadow-sm items-center">
-              <button 
-                onClick={() => setLanguage('en')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all duration-200 ${
-                  language === 'en' 
-                    ? 'bg-[#1a2b25] text-white shadow-sm' 
-                    : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                English
-              </button>
-              <button 
-                onClick={() => setLanguage('ur')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all duration-200 ${
-                  language === 'ur' 
-                    ? 'bg-[#1a2b25] text-white shadow-sm' 
-                    : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                اردو
-              </button>
+        {/* Inner Container for alignment */}
+        <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
+          {/* Top Navigation inside Hero */}
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center text-sm font-semibold text-gray-500 gap-2">
+              <Home size={18} />
+              <ChevronRight size={14} className="text-gray-400" />
+              <span className="text-gray-700">Dashboard</span>
             </div>
 
-            <button className="relative p-2.5 text-gray-600 hover:text-gray-900 bg-white rounded-full shadow-sm border border-gray-100">
-              <Bell size={18} />
-              <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-            </button>
-            <CustomerAccountMenu />
+            <div className="flex items-center gap-4 sm:gap-6">
+              {/* Temporary Language Toggle */}
+              <div className="hidden sm:flex bg-white border border-gray-200 rounded-full p-1 shadow-sm items-center">
+                <button 
+                  onClick={() => setLanguage('en')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all duration-200 ${
+                    language === 'en' 
+                      ? 'bg-[#1a2b25] text-white shadow-sm' 
+                      : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  English
+                </button>
+                <button 
+                  onClick={() => setLanguage('ur')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all duration-200 ${
+                    language === 'ur' 
+                      ? 'bg-[#1a2b25] text-white shadow-sm' 
+                      : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  اردو
+                </button>
+              </div>
+
+              <button className="relative p-2.5 text-gray-600 hover:text-gray-900 bg-white rounded-full shadow-sm border border-gray-100">
+                <Bell size={18} />
+                <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+              </button>
+              <CustomerAccountMenu />
+            </div>
           </div>
-        </div>
 
-        {/* Hero Content */}
-        <div className="relative z-10 max-w-2xl mt-4  ">
-          <h1 className="text-2xl sm:text-3xl xl:text-4xl font-serif font-bold text-[#1a2b25] mb-4 sm:mb-0.5 tracking-tight leading-tight">
-            Good afternoon, {customerName}.
-          </h1>
-          <p className="text-lg text-gray-600 font-medium leading-relaxed max-w-xl">
-            Here's what's happening across your properties this week — <br className="hidden sm:block" />
-            two listings are live, one service request is in progress.
-          </p>
+          {/* Hero Content */}
+          <div className="max-w-2xl mt-4">
+            <h1 className="text-2xl sm:text-3xl xl:text-4xl font-serif font-bold text-[#1a2b25] mb-4 sm:mb-0.5 tracking-tight leading-tight">
+              Good afternoon, {customerName}.
+            </h1>
+            <p className="text-lg text-gray-600 font-medium leading-relaxed max-w-xl">
+              Here's what's happening across your properties this week — <br className="hidden sm:block" />
+              two listings are live, one service request is in progress.
+            </p>
 
-          <div className="mt-2 flex flex-wrap items-center gap-4">
-            <Link to="/customer/properties/new" className="flex items-center gap-2 px-6 py-3 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(26,43,37,0.2)] hover:bg-[#2c4232] hover:-translate-y-0.5 transition-all duration-300">
-              <Plus size={18} />
-              Add Property
-            </Link>
-            <Link to="/customer/requests/new" className="flex items-center gap-2 px-6 py-3 bg-white text-[#1a2b25] border border-[#e4d7be] rounded-full font-bold text-sm shadow-sm hover:bg-[#faf7f2] hover:border-[#B8860B] hover:text-[#B8860B] hover:-translate-y-0.5 transition-all duration-300">
-              <Plus size={18} />
-              Create Request
-            </Link>
+            <div className="mt-2 flex flex-wrap items-center gap-4">
+              <Link to="/customer/properties/new" className="flex items-center gap-2 px-6 py-3 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(26,43,37,0.2)] hover:bg-[#2c4232] hover:-translate-y-0.5 transition-all duration-300">
+                <Plus size={18} />
+                Add Property
+              </Link>
+              <Link to="/customer/requests/new" className="flex items-center gap-2 px-6 py-3 bg-white text-[#1a2b25] border border-[#e4d7be] rounded-full font-bold text-sm shadow-sm hover:bg-[#faf7f2] hover:border-[#B8860B] hover:text-[#B8860B] hover:-translate-y-0.5 transition-all duration-300">
+                <Plus size={18} />
+                Create Request
+              </Link>
+            </div>
           </div>
         </div>
       </div>
 
       {/* --- MAIN CONTENT AREA --- */}
-      <div className="px-4 sm:px-8 lg:px-12 xl:px-16 max-w-[1600px] mx-auto">
+      <div className="px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
 
         {/* Summary Stats (Overlapping Hero) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative z-20 mt-4 sm:-mt-12 lg:-mt-20 mb-6">
