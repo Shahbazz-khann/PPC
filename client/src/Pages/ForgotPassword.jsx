@@ -11,8 +11,10 @@ import {
 
 import bgImage from '../assets/FaisalMosque.png';
 import logoImg from '../assets/Logo3.png';
+import { useTranslation } from 'react-i18next';
 
 const ForgotPassword = () => {
+  const { t } = useTranslation(['public']);
   const [isSuccess, setIsSuccess] = useState(false);
   const {
     register,
@@ -63,19 +65,17 @@ const ForgotPassword = () => {
         </div>
 
         {/* Lower-Left Main Text */}
-        <div className="relative z-10 my-8 sm:my-12 lg:my-auto max-w-xl">
+        <div className="relative z-10 my-8 sm:my-12 lg:my-auto max-w-xl rtl:text-right">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
-            Find. Buy. Rent.
+            {t('public:findBuyRent')}
           </h2>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#C59B27] tracking-tight mt-1 leading-tight">
-            Your Perfect Property
+            {t('public:yourPerfectProperty')}
           </h2>
 
           <p className="text-gray-200 text-sm sm:text-base leading-relaxed mt-4 max-w-lg font-normal drop-shadow-sm">
-            Pakistan Property Care is your trusted platform
-            <br />
-            to discover verified properties with ease.
+            {t('public:ppcTrustedPlatform')}
           </p>
         </div>
 
@@ -90,11 +90,11 @@ const ForgotPassword = () => {
 
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-white leading-snug">
-                Trusted &amp; Secure
+                {t('public:trustedSecure')}
               </h4>
 
               <p className="text-[11px] text-gray-300">
-                Verified by our team
+                {t('public:verifiedByTeam')}
               </p>
             </div>
           </div>
@@ -107,11 +107,11 @@ const ForgotPassword = () => {
 
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-white leading-snug">
-                Wide Range
+                {t('public:wideRange')}
               </h4>
 
               <p className="text-[11px] text-gray-300">
-                Residential &amp; Commercial
+                {t('public:residentialCommercial')}
               </p>
             </div>
           </div>
@@ -124,11 +124,11 @@ const ForgotPassword = () => {
 
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-white leading-snug">
-                24/7 Support
+                {t('public:support247')}
               </h4>
 
               <p className="text-[11px] text-gray-300">
-                We are here to help
+                {t('public:hereToHelp')}
               </p>
             </div>
           </div>
@@ -144,11 +144,11 @@ const ForgotPassword = () => {
           {/* Header */}
           <div className="text-center mb-6">
             <h3 className="text-2xl sm:text-3xl font-bold text-[#1E293B] tracking-tight">
-              Forgot Password?
+              {t('public:forgotPassword')}
             </h3>
 
             <p className="text-xs sm:text-sm text-gray-500 mt-1.5 font-medium">
-              Enter your registered email address and we'll help you reset your password.
+              {t('public:enterRegisteredEmail')}
             </p>
           </div>
 
@@ -160,22 +160,22 @@ const ForgotPassword = () => {
 
             {/* Email Address */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                Email Address
+              <label className="block text-xs font-bold text-gray-700 mb-1.5 rtl:text-right">
+                {t('public:emailAddress')}
               </label>
 
               <div className="relative flex items-center">
-                <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none" />
 
                 <input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
-                  className="w-full pl-10 pr-4 py-2 sm:py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                  placeholder={t('public:enterEmail')}
+                  className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-2 sm:py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                   autoComplete="email"
                   aria-invalid={errors.email ? 'true' : 'false'}
                   {...register('email', {
-                    required: 'Email is required.',
+                    required: t('public:emailRequired'),
 
                     setValueAs: (value) =>
                       typeof value === 'string'
@@ -184,7 +184,7 @@ const ForgotPassword = () => {
 
                     pattern: {
                       value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: 'Please enter a valid email address.',
+                      message: t('public:emailInvalid'),
                     },
                   })}
                 />
@@ -203,7 +203,7 @@ const ForgotPassword = () => {
               disabled={isSubmitting}
               className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#B8860B] via-[#C59B27] to-[#B8860B] hover:from-[#a37609] hover:to-[#a37609] text-white font-bold text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center mt-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Sending...' : isSuccess ? 'Resend Reset Link' : 'Send Reset Link'}
+              {isSubmitting ? t('public:sending') : isSuccess ? t('public:resendResetLink') : t('public:sendResetLink')}
             </button>
 
           </form>
@@ -211,13 +211,13 @@ const ForgotPassword = () => {
           {/* Login Navigation */}
           <div className="flex items-center justify-center mt-6 pt-5 border-t border-gray-100">
             <span className="text-xs sm:text-sm text-gray-600 font-medium">
-              Remember your password?{' '}
+              {t('public:rememberPassword')}{' '}
 
               <Link
                 to="/login"
                 className="text-[#B8860B] hover:text-[#966d09] font-semibold transition-colors ml-1"
               >
-                Login
+                {t('public:login')}
               </Link>
             </span>
           </div>

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getPublicProperties } from '../Services/property.service';
 import { resolveMediaUrl } from '../Services/Api';
+import { useTranslation } from 'react-i18next';
 
 const Properties = () => {
+  const { t } = useTranslation(['public']);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -41,29 +43,29 @@ const Properties = () => {
     <div className="min-h-screen bg-gray-50 pb-16 pt-24">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 rtl:text-right">
           <h1 className="text-[#063B29] font-bold text-2xl md:text-3xl tracking-tight uppercase mb-2">
-            Property Search Results
+            {t('public:propertySearchResults')}
           </h1>
           <p className="text-gray-500 font-medium">
             {!loading && !error && (
-              <span>Found {properties.length} propert{properties.length === 1 ? 'y' : 'ies'} matching your criteria</span>
+              <span>{t('public:foundPropertiesMatching', { count: properties.length })}</span>
             )}
-            {loading && <span>Searching properties...</span>}
+            {loading && <span>{t('public:searchingProperties')}</span>}
           </p>
         </div>
 
         {/* Content */}
         {loading ? (
-          <div className="text-center py-20 text-gray-500 font-semibold text-lg">Loading properties...</div>
+          <div className="text-center py-20 text-gray-500 font-semibold text-lg">{t('public:loadingProperties')}</div>
         ) : error ? (
           <div className="text-center py-20 text-red-500 font-semibold bg-red-50 rounded-xl border border-red-100">
             {error}
           </div>
         ) : properties.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-200">
-            <h3 className="text-slate-800 font-bold text-lg mb-2">No properties found</h3>
-            <p className="text-gray-500 text-sm">Try adjusting your search filters to find what you're looking for.</p>
+            <h3 className="text-slate-800 font-bold text-lg mb-2">{t('public:noPropertiesFound')}</h3>
+            <p className="text-gray-500 text-sm">{t('public:tryAdjustingSearchFilters')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -80,8 +82,8 @@ const Properties = () => {
                       alt={property.formatted_id}
                       className="w-full h-40 object-cover rounded-lg"
                     />
-                    <span className="absolute top-2 left-2 bg-[#063B29] text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                      {property.demand_type === 'Sale' ? 'FOR SALE' : 'FOR RENT'}
+                    <span className="absolute top-2 rtl:left-auto rtl:right-2 left-2 bg-[#063B29] text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                      {property.demand_type === 'Sale' ? t('public:forSale') : t('public:forRent')}
                     </span>
                   </div>
 
@@ -95,20 +97,20 @@ const Properties = () => {
                   </p>
 
                   {/* Details */}
-                  <p className="text-gray-500 text-[10px] md:text-[11px] mb-3">
-                    {property.rooms ? property.rooms + ' Bed • ' : ''}
-                    {property.bathrooms ? property.bathrooms + ' Bath • ' : ''}
+                  <p className="text-gray-500 text-[10px] md:text-[11px] mb-3 text-left rtl:text-right" dir="ltr">
+                    {property.rooms ? property.rooms + t('public:dotBed') : ''}
+                    {property.bathrooms ? property.bathrooms + t('public:dotBath') : ''}
                     {Number(property.property_size)} {property.size_uom}
                   </p>
                 </div>
 
                 {/* Price */}
-                <div className="text-[#063B29] font-bold text-sm md:text-base mt-auto">
+                <div className="text-[#063B29] font-bold text-sm md:text-base mt-auto text-left rtl:text-right" dir="ltr">
                   <span>{property.currency_code} {Number(property.current_price).toLocaleString()}</span>
                   {property.demand_type === 'Rent' && (
                     <span className="text-gray-500 font-normal text-[10px] md:text-[11px]">
                       {' '}
-                      / Month
+                      {t('public:perMonth')}
                     </span>
                   )}
                 </div>

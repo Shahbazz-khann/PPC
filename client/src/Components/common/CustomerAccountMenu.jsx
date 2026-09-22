@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronDown, User, LogOut } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 
 const CustomerAccountMenu = ({ theme = 'light' }) => {
+  const { t } = useTranslation(['common']);
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -62,9 +64,9 @@ const CustomerAccountMenu = ({ theme = 'light' }) => {
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         className="flex items-center gap-3 p-1 rounded-xl hover:bg-black/5 transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-[#B8860B] focus:ring-offset-2"
       >
-        <div className="text-right hidden sm:block">
+        <div className="text-end hidden sm:block">
           <p className="text-sm font-bold text-[#1a2b25] leading-tight">{displayName}</p>
-          <p className="text-[11px] font-semibold text-[#B8860B]">PPC Member</p>
+          <p className="text-[11px] font-semibold text-[#B8860B]">{t('common:ppcMember')}</p>
         </div>
         <div className="w-10 h-10 rounded-full bg-[#a9b0a6] text-[#2c3e34] flex items-center justify-center font-serif font-bold text-sm tracking-wide shadow-sm border border-gray-100/50">
           {initials}
@@ -76,14 +78,14 @@ const CustomerAccountMenu = ({ theme = 'light' }) => {
       </button>
 
       {/* Dropdown Menu */}
-      <div className={`absolute right-0 mt-3 w-64 bg-[#FAF8F3] rounded-[16px] shadow-xl border border-[#e4d7be] overflow-hidden transition-all duration-200 origin-top-right ${isDropdownOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}>
+      <div className={`absolute end-0 mt-3 w-64 bg-[#FAF8F3] rounded-[16px] shadow-xl border border-[#e4d7be] overflow-hidden transition-all duration-200 origin-top-right rtl:origin-top-left ${isDropdownOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}>
         
         {/* Header info */}
         <div className="p-4 border-b border-[#e4d7be]/50 bg-white">
           <p className="text-sm font-bold text-[#1a2b25] truncate">{displayName}</p>
           <p className="text-xs font-medium text-gray-500 truncate mt-0.5">{email}</p>
           <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-[#B8860B]/10 text-[#B8860B] uppercase tracking-wider">
-            PPC Member
+            {t('common:ppcMember')}
           </div>
         </div>
 
@@ -94,7 +96,7 @@ const CustomerAccountMenu = ({ theme = 'light' }) => {
             className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-[#1a2b25] hover:bg-[#1a2b25] hover:text-white rounded-xl transition-colors group"
           >
             <User size={16} className="text-gray-400 group-hover:text-[#e4d7be]" />
-            My Profile
+            {t('common:myProfile')}
           </button>
           
           <div className="h-px bg-gray-200/60 my-1"></div>
@@ -104,7 +106,7 @@ const CustomerAccountMenu = ({ theme = 'light' }) => {
             className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors group"
           >
             <LogOut size={16} className="text-gray-400 group-hover:text-red-500" />
-            Logout
+            {t('common:logout')}
           </button>
         </div>
         

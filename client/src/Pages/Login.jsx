@@ -18,8 +18,10 @@ import logoImg from '../assets/IMAGEEEEEEEEEEEEEEEEEEEE.png';
 // import { saveSession } from '../services/AuthSession';
 import { loginUser } from '../Services/auth.services';
 import { useAuth } from '../Context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const Login = () => {
+  const { t } = useTranslation(['public']);
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
 
@@ -98,19 +100,17 @@ const Login = () => {
           </div>
 
           {/* Lower-Left Main Text */}
-          <div className="relative z-10 my-4 sm:my-8 lg:my-auto max-w-xl text-center lg:text-left">
+          <div className="relative z-10 my-4 sm:my-8 lg:my-auto max-w-xl text-center lg:text-left rtl:text-right">
             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight break-words">
-              Find, Buy, Rent,
+              {t('public:findBuyRent')}
             </h2>
 
             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#C59B27] tracking-tight mt-1 leading-tight break-words">
-              Your Perfect Property
+              {t('public:yourPerfectProperty')}
             </h2>
 
             <p className="text-gray-200 text-sm sm:text-base leading-relaxed mt-3 sm:mt-4 max-w-lg font-normal drop-shadow-sm mx-auto lg:mx-0">
-              Pakistan Property Care is your trusted platform
-              <br className="hidden sm:block" />
-              to discover verified properties with ease.
+              {t('public:ppcTrustedPlatform')}
             </p>
           </div>
 
@@ -125,11 +125,11 @@ const Login = () => {
 
               <div>
                 <h4 className="text-xs sm:text-sm font-semibold text-white leading-snug">
-                  Trusted &amp; Secure
+                  {t('public:trustedSecure')}
                 </h4>
 
                 <p className="text-[10px] sm:text-[11px] text-gray-300">
-                  Verified by our team
+                  {t('public:verifiedByTeam')}
                 </p>
               </div>
             </div>
@@ -142,11 +142,11 @@ const Login = () => {
 
               <div>
                 <h4 className="text-xs sm:text-sm font-semibold text-white leading-snug">
-                  Wide Range
+                  {t('public:wideRange')}
                 </h4>
 
                 <p className="text-[10px] sm:text-[11px] text-gray-300">
-                  Residential &amp; Commercial
+                  {t('public:residentialCommercial')}
                 </p>
               </div>
             </div>
@@ -159,11 +159,11 @@ const Login = () => {
 
               <div>
                 <h4 className="text-xs sm:text-sm font-semibold text-white leading-snug">
-                  24/7 Support
+                  {t('public:support247')}
                 </h4>
 
                 <p className="text-[10px] sm:text-[11px] text-gray-300">
-                  We are here to help
+                  {t('public:hereToHelp')}
                 </p>
               </div>
             </div>
@@ -179,11 +179,11 @@ const Login = () => {
           {/* Header */}
           <div className="text-center mb-5 sm:mb-6">
             <h3 className="text-xl sm:text-3xl font-bold text-[#1E293B] tracking-tight">
-              Welcome Back
+              {t('public:welcomeBack')}
             </h3>
 
             <p className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-1.5 font-medium">
-              Login to your PPC account
+              {t('public:loginToAccount')}
             </p>
           </div>
 
@@ -195,22 +195,22 @@ const Login = () => {
 
             {/* Email Address */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                Email Address
+              <label className="block text-xs font-bold text-gray-700 mb-1.5 rtl:text-right">
+                {t('public:emailAddress')}
               </label>
 
               <div className="relative flex items-center">
-                <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none" />
 
                 <input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                  placeholder={t('public:enterEmail')}
+                  className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                   autoComplete="email"
                   aria-invalid={errors.email ? 'true' : 'false'}
                   {...register('email', {
-                    required: 'Email is required.',
+                    required: t('public:emailRequired'),
 
                     setValueAs: (value) =>
                       typeof value === 'string'
@@ -219,7 +219,7 @@ const Login = () => {
 
                     pattern: {
                       value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: 'Please enter a valid email address.',
+                      message: t('public:emailInvalid'),
                     },
                   })}
                 />
@@ -234,22 +234,22 @@ const Login = () => {
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                Password
+              <label className="block text-xs font-bold text-gray-700 mb-1.5 rtl:text-right">
+                {t('public:password')}
               </label>
 
               <div className="relative flex items-center">
-                <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none" />
 
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  className="w-full pl-10 pr-10 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                  placeholder={t('public:enterPassword')}
+                  className="w-full pl-10 pr-10 rtl:pl-10 rtl:pr-10 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                   autoComplete="current-password"
                   aria-invalid={errors.password ? 'true' : 'false'}
                   {...register('password', {
-                    required: 'Password is required.',
+                    required: t('public:passwordRequired'),
 
                     setValueAs: (value) =>
                       typeof value === 'string'
@@ -258,12 +258,12 @@ const Login = () => {
 
                     minLength: {
                       value: 8,
-                      message: 'Password must be at least 8 characters.',
+                      message: t('public:passwordMinLength'),
                     },
 
                     maxLength: {
                       value: 128,
-                      message: 'Password cannot exceed 128 characters.',
+                      message: t('public:passwordMaxLength'),
                     },
                   })}
                 />
@@ -272,11 +272,11 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                  className="absolute right-2 rtl:right-auto rtl:left-2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
                   aria-label={
                     showPassword
-                      ? 'Hide password'
-                      : 'Show password'
+                      ? t('public:hidePassword')
+                      : t('public:showPassword')
                   }
                 >
                   {showPassword ? (
@@ -295,12 +295,12 @@ const Login = () => {
             </div>
 
             {/* Forgot Password */}
-            <div className="text-right pt-0.5">
+            <div className="text-right rtl:text-left pt-0.5">
               <Link
                 to="/forgot-password"
                 className="inline-block py-1 text-[11px] sm:text-xs font-semibold text-[#B8860B] hover:text-[#966d09] transition-colors"
               >
-                Forgot Password?
+                {t('public:forgotPassword')}
               </Link>
             </div>
 
@@ -310,7 +310,7 @@ const Login = () => {
               disabled={isSubmitting}
               className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#B8860B] via-[#C59B27] to-[#B8860B] hover:from-[#a37609] hover:to-[#a37609] text-white font-bold text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed break-words"
             >
-              {isSubmitting ? 'Logging in...' : 'Login'}
+              {isSubmitting ? t('public:loggingIn') : t('public:login')}
             </button>
 
           </form>
@@ -318,13 +318,13 @@ const Login = () => {
           {/* Sign Up */}
           <div className="flex items-center justify-center mt-6 pt-5 border-t border-gray-100">
             <span className="text-[11px] sm:text-sm text-gray-600 font-medium">
-              Don't have an account?{' '}
+              {t('public:noAccount')}{' '}
 
               <Link
                 to="/signup"
                 className="inline-block p-1 text-[#B8860B] hover:text-[#966d09] font-semibold transition-colors"
               >
-                Sign Up
+                {t('public:signUp')}
               </Link>
             </span>
           </div>

@@ -2,8 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { MapPin, ChevronDown, Search, SlidersHorizontal, Check } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getPublicPropertyFilters } from '../Services/property.service';
+import { useTranslation } from 'react-i18next';
 
 const PropertySearch = () => {
+  const { t } = useTranslation(['public']);
   const location = useLocation();
   const getUrlParam = (key) => new URLSearchParams(location.search).get(key) || '';
 
@@ -12,23 +14,23 @@ const PropertySearch = () => {
 
   // Dynamic filter lists
   const [cities, setCities] = useState([]);
-  const [propertyTypes, setPropertyTypes] = useState(['All Types']);
+  const [propertyTypes, setPropertyTypes] = useState([t('public:allTypes')]);
   const [societies, setSocieties] = useState([]);
   const [areas, setAreas] = useState([]);
-  const [propertyUses, setPropertyUses] = useState(['All Uses']);
+  const [propertyUses, setPropertyUses] = useState([t('public:allUses')]);
   const [sizeUoms, setSizeUoms] = useState([]);
 
   // Selected filter values (Basic)
   const [city, setCity] = useState(getUrlParam('city'));
   const [intent, setIntent] = useState(getUrlParam('intent') || 'Buy');
-  const [propertyType, setPropertyType] = useState(getUrlParam('propertyType') || 'All Types');
+  const [propertyType, setPropertyType] = useState(getUrlParam('propertyType') || t('public:allTypes'));
   const [minPrice, setMinPrice] = useState(getUrlParam('minPrice'));
   const [maxPrice, setMaxPrice] = useState(getUrlParam('maxPrice'));
 
   // Selected filter values (Advanced V1)
   const [society, setSociety] = useState(getUrlParam('society'));
   const [area, setArea] = useState(getUrlParam('area'));
-  const [propertyUse, setPropertyUse] = useState(getUrlParam('propertyUse') || 'All Uses');
+  const [propertyUse, setPropertyUse] = useState(getUrlParam('propertyUse') || t('public:allUses'));
   const [minSize, setMinSize] = useState(getUrlParam('minSize'));
   const [maxSize, setMaxSize] = useState(getUrlParam('maxSize'));
   const [sizeUom, setSizeUom] = useState(getUrlParam('sizeUom'));
@@ -37,7 +39,7 @@ const PropertySearch = () => {
 
   // If any advanced filter is present, open the panel
   useEffect(() => {
-    if (getUrlParam('society') || getUrlParam('area') || (getUrlParam('propertyUse') && getUrlParam('propertyUse') !== 'All Uses') || getUrlParam('minSize') || getUrlParam('maxSize') || getUrlParam('sizeUom') || getUrlParam('rooms') || getUrlParam('bathrooms')) {
+    if (getUrlParam('society') || getUrlParam('area') || (getUrlParam('propertyUse') && getUrlParam('propertyUse') !== t('public:allUses')) || getUrlParam('minSize') || getUrlParam('maxSize') || getUrlParam('sizeUom') || getUrlParam('rooms') || getUrlParam('bathrooms')) {
       setIsAdvancedOpen(true);
     }
   }, [location.search]);
@@ -72,8 +74,8 @@ const PropertySearch = () => {
           // Global
           if (!city && !society) {
             setCities(res.data.cities || []);
-            setPropertyTypes(['All Types', ...(res.data.propertyTypes || [])]);
-            setPropertyUses(['All Uses', ...(res.data.propertyUses || [])]);
+            setPropertyTypes([t('public:allTypes'), ...(res.data.propertyTypes || [])]);
+            setPropertyUses([t('public:allUses'), ...(res.data.propertyUses || [])]);
             setSizeUoms(res.data.sizeUoms || []);
             if (res.data.cities && res.data.cities.length > 0 && !city && !getUrlParam('city')) {
               setCity(res.data.cities[0]);
@@ -120,7 +122,7 @@ const PropertySearch = () => {
   const handleResetAdvanced = () => {
     setSociety('');
     setArea('');
-    setPropertyUse('All Uses');
+    setPropertyUse(t('public:allUses'));
     setMinSize('');
     setMaxSize('');
     setSizeUom('');
@@ -133,39 +135,39 @@ const PropertySearch = () => {
     setSearchError('');
 
     // Price Validation
-    if (minPrice && Number(minPrice) < 0) return setSearchError('Min price must be >= 0');
-    if (maxPrice && Number(maxPrice) < 0) return setSearchError('Max price must be >= 0');
+    if (minPrice && Number(minPrice) < 0) return setSearchError(t('public:minPriceError'));
+    if (maxPrice && Number(maxPrice) < 0) return setSearchError(t('public:maxPriceError'));
     if (minPrice && maxPrice && Number(minPrice) > Number(maxPrice)) {
-      return setSearchError('Min price cannot be greater than max price');
+      return setSearchError(t('public:priceRangeError'));
     }
 
     // Size Validation
-    if (minSize && Number(minSize) < 0) return setSearchError('Min size must be >= 0');
-    if (maxSize && Number(maxSize) < 0) return setSearchError('Max size must be >= 0');
+    if (minSize && Number(minSize) < 0) return setSearchError(t('public:minSizeError'));
+    if (maxSize && Number(maxSize) < 0) return setSearchError(t('public:maxSizeError'));
     if (minSize && maxSize && Number(minSize) > Number(maxSize)) {
-      return setSearchError('Min size cannot be greater than max size');
+      return setSearchError(t('public:sizeRangeError'));
     }
     if ((minSize || maxSize) && !sizeUom) {
-      return setSearchError('Size Unit (UOM) is required when filtering by size');
+      return setSearchError(t('public:sizeUnitError'));
     }
 
     // Rooms Validation
-    if (rooms && (Number(rooms) < 0 || !Number.isInteger(Number(rooms)))) return setSearchError('Rooms must be a non-negative integer');
-    if (bathrooms && (Number(bathrooms) < 0 || !Number.isInteger(Number(bathrooms)))) return setSearchError('Bathrooms must be a non-negative integer');
+    if (rooms && (Number(rooms) < 0 || !Number.isInteger(Number(rooms)))) return setSearchError(t('public:roomsError'));
+    if (bathrooms && (Number(bathrooms) < 0 || !Number.isInteger(Number(bathrooms)))) return setSearchError(t('public:bathroomsError'));
 
     const params = new URLSearchParams();
     
     // Basic
     if (intent) params.append('intent', intent);
     if (city) params.append('city', city);
-    if (propertyType && propertyType !== 'All Types') params.append('propertyType', propertyType);
+    if (propertyType && propertyType !== t('public:allTypes')) params.append('propertyType', propertyType);
     if (minPrice) params.append('minPrice', minPrice);
     if (maxPrice) params.append('maxPrice', maxPrice);
 
     // Advanced
     if (society) params.append('society', society);
     if (area) params.append('area', area);
-    if (propertyUse && propertyUse !== 'All Uses') params.append('propertyUse', propertyUse);
+    if (propertyUse && propertyUse !== t('public:allUses')) params.append('propertyUse', propertyUse);
     if (minSize) params.append('minSize', minSize);
     if (maxSize) params.append('maxSize', maxSize);
     if (sizeUom) params.append('sizeUom', sizeUom);
@@ -187,7 +189,7 @@ const PropertySearch = () => {
         {/* Top Search Properties Button */}
         <div className="absolute left-1/2 -translate-x-1/2 -top-6 z-20 w-max">
           <button className="bg-[#063B29] text-white text-xs md:text-sm font-bold tracking-wider uppercase px-6 py-3.5 rounded-md shadow-[0_4px_12px_rgba(0,0,0,0.15)] ">
-            SEARCH PROPERTIES
+            {t('public:searchProperties')}
           </button>
         </div>
 
@@ -198,13 +200,13 @@ const PropertySearch = () => {
               onClick={() => setIntent('Buy')}
               className={`font-bold text-xs md:text-sm px-5 py-2 rounded-md transition-colors ${intent === 'Buy' ? 'bg-[#063B29] text-white' : 'bg-transparent text-slate-800 hover:bg-gray-100'}`}
             >
-              Buy
+              {t('public:buy')}
             </button>
             <button
               onClick={() => setIntent('Rent')}
               className={`font-bold text-xs md:text-sm px-5 py-2 rounded-md transition-colors ${intent === 'Rent' ? 'bg-[#063B29] text-white' : 'bg-transparent text-slate-800 hover:bg-gray-100'}`}
             >
-              Rent
+              {t('public:rent')}
             </button>
           </div>
 
@@ -212,8 +214,8 @@ const PropertySearch = () => {
             onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
             className={`flex items-center space-x-2 font-bold text-xs md:text-sm cursor-pointer transition-colors ${isAdvancedOpen ? 'text-[#063B29]' : 'text-slate-800 hover:text-[#063B29]'}`}
           >
-            <span>Advanced Search</span>
-            <SlidersHorizontal className={`w-4 h-4 transition-transform ${isAdvancedOpen ? 'rotate-180' : ''}`} />
+            <span>{t('public:advancedSearch')}</span>
+            <SlidersHorizontal className={`w-4 h-4 rtl:ml-2 transition-transform ${isAdvancedOpen ? 'rotate-180' : ''}`} />
           </div>
         </div>
 
@@ -221,21 +223,21 @@ const PropertySearch = () => {
         <div className="border border-gray-100 rounded-xl bg-[#FAFBFB] p-2 md:p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-center">
           {/* City */}
           <div className="relative w-full" ref={cityRef}>
-            <div className="px-3 py-1 flex items-center justify-between border-b sm:border-b-0 sm:border-r border-gray-200 cursor-pointer" onClick={() => setIsCityOpen(!isCityOpen)}>
+            <div className="px-3 py-1 flex items-center justify-between border-b sm:border-b-0 sm:border-e border-gray-200 cursor-pointer" onClick={() => setIsCityOpen(!isCityOpen)}>
               <div>
-                <label className="block text-[11px] font-medium text-gray-500 cursor-pointer">City</label>
+                <label className="block text-[11px] font-medium text-gray-500 cursor-pointer">{t('public:city')}</label>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-xs md:text-sm font-bold text-slate-900">{city || 'Select City'}</span>
+                  <span className="text-xs md:text-sm font-bold text-slate-900">{city || t('public:selectCity')}</span>
                   <ChevronDown className={`w-3.5 h-3.5 text-slate-900 transition-transform ${isCityOpen ? 'rotate-180' : ''}`} />
                 </div>
               </div>
-              <MapPin className="w-4 h-4 text-[#063B29] ml-2 shrink-0" />
+              <MapPin className="w-4 h-4 text-[#063B29] ml-2 rtl:mr-2 rtl:ml-0 shrink-0" />
             </div>
             {isCityOpen && (
               <div className="absolute top-[calc(100%+8px)] left-0 w-full min-w-[200px] bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 max-h-64 overflow-y-auto">
                 {cities.map((c) => (
                   <button key={c} className="w-full text-left px-4 py-2.5 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => handleCityChange(c)}>
-                    {c} {city === c && <Check className="inline w-3.5 h-3.5 ml-2 text-[#063B29]" />}
+                    {c} {city === c && <Check className="inline w-3.5 h-3.5 ml-2 rtl:mr-2 rtl:ml-0 text-[#063B29]" />}
                   </button>
                 ))}
               </div>
@@ -244,14 +246,14 @@ const PropertySearch = () => {
 
           {/* Property Type */}
           <div className="relative w-full" ref={propertyTypeRef}>
-            <div className="px-3 py-1 flex items-center justify-between border-b sm:border-b-0 sm:border-r border-gray-200 cursor-pointer" onClick={() => setIsPropertyTypeOpen(!isPropertyTypeOpen)}>
+            <div className="px-3 py-1 flex items-center justify-between border-b sm:border-b-0 sm:border-e border-gray-200 cursor-pointer" onClick={() => setIsPropertyTypeOpen(!isPropertyTypeOpen)}>
               <div>
-                <label className="block text-[11px] font-medium text-gray-500 cursor-pointer">Property Type</label>
+                <label className="block text-[11px] font-medium text-gray-500 cursor-pointer">{t('public:propertyType')}</label>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-xs md:text-sm font-bold text-slate-900">{propertyType}</span>
                 </div>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-gray-600 ml-2 shrink-0" />
+              <ChevronDown className="w-3.5 h-3.5 text-gray-600 ml-2 rtl:mr-2 rtl:ml-0 shrink-0" />
             </div>
             {isPropertyTypeOpen && (
               <div className="absolute top-[calc(100%+8px)] left-0 w-full min-w-[200px] bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 max-h-64 overflow-y-auto">
@@ -265,22 +267,22 @@ const PropertySearch = () => {
           </div>
 
           {/* Min Price */}
-          <div className="px-3 py-1 flex flex-col justify-center border-b sm:border-b-0 sm:border-r border-gray-200 h-full">
-            <label className="block text-[11px] font-medium text-gray-500 mb-0.5">Min Price</label>
-            <input type="number" min="0" value={minPrice} onChange={(e) => { setMinPrice(e.target.value); setSearchError(''); }} placeholder="e.g. 1000000" className="w-full text-xs md:text-sm font-semibold text-slate-900 bg-transparent outline-none placeholder:font-normal placeholder:text-gray-400" />
+          <div className="px-3 py-1 flex flex-col justify-center border-b sm:border-b-0 sm:border-e border-gray-200 h-full">
+            <label className="block text-[11px] font-medium text-gray-500 mb-0.5">{t('public:minPrice')}</label>
+            <input type="number" min="0" value={minPrice} onChange={(e) => { setMinPrice(e.target.value); setSearchError(''); }} placeholder={t('public:eg1m')} className="w-full text-xs md:text-sm font-semibold text-slate-900 bg-transparent outline-none placeholder:font-normal placeholder:text-gray-400" />
           </div>
 
           {/* Max Price */}
-          <div className="px-3 py-1 flex flex-col justify-center border-b sm:border-b-0 sm:border-r lg:border-r-0 border-gray-200 h-full">
-            <label className="block text-[11px] font-medium text-gray-500 mb-0.5">Max Price</label>
-            <input type="number" min="0" value={maxPrice} onChange={(e) => { setMaxPrice(e.target.value); setSearchError(''); }} placeholder="e.g. 50000000" className="w-full text-xs md:text-sm font-semibold text-slate-900 bg-transparent outline-none placeholder:font-normal placeholder:text-gray-400" />
+          <div className="px-3 py-1 flex flex-col justify-center border-b sm:border-b-0 sm:border-e lg:border-e-0 border-gray-200 h-full">
+            <label className="block text-[11px] font-medium text-gray-500 mb-0.5">{t('public:maxPrice')}</label>
+            <input type="number" min="0" value={maxPrice} onChange={(e) => { setMaxPrice(e.target.value); setSearchError(''); }} placeholder={t('public:eg50m')} className="w-full text-xs md:text-sm font-semibold text-slate-900 bg-transparent outline-none placeholder:font-normal placeholder:text-gray-400" />
           </div>
 
           {/* Search Button */}
           <div className="lg:col-span-1 pt-2 sm:pt-0">
             <button onClick={handleSearch} className="w-full bg-[#063B29] hover:bg-[#052b1e] transition-colors text-white font-bold text-xs md:text-sm tracking-wider uppercase px-6 py-3.5 rounded-lg flex items-center justify-center space-x-2">
-              <Search className="w-4 h-4 stroke-[2.5]" />
-              <span>SEARCH</span>
+              <Search className="w-4 h-4 stroke-[2.5] rtl:ml-2 rtl:mr-0" />
+              <span>{t('public:search')}</span>
             </button>
           </div>
         </div>
@@ -292,14 +294,14 @@ const PropertySearch = () => {
               
               {/* Row 1: Society | Area | Property Use */}
               <div className="relative w-full" ref={societyRef}>
-                <label className="block text-[11px] font-medium text-gray-500 mb-1">Society</label>
+                <label className="block text-[11px] font-medium text-gray-500 mb-1">{t('public:society')}</label>
                 <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-between cursor-pointer" onClick={() => setIsSocietyOpen(!isSocietyOpen)}>
-                  <span className="text-xs md:text-sm font-semibold text-slate-800">{society || 'Any Society'}</span>
+                  <span className="text-xs md:text-sm font-semibold text-slate-800">{society || t('public:anySociety')}</span>
                   <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
                 </div>
                 {isSocietyOpen && (
                   <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 max-h-48 overflow-y-auto">
-                    <button className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => handleSocietyChange('')}>Any Society</button>
+                    <button className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => handleSocietyChange('')}>{t('public:anySociety')}</button>
                     {societies.map((s) => (
                       <button key={s} className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => handleSocietyChange(s)}>{s}</button>
                     ))}
@@ -308,14 +310,14 @@ const PropertySearch = () => {
               </div>
 
               <div className="relative w-full" ref={areaRef}>
-                <label className="block text-[11px] font-medium text-gray-500 mb-1">Area / Block</label>
+                <label className="block text-[11px] font-medium text-gray-500 mb-1">{t('public:areaBlock')}</label>
                 <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-between cursor-pointer" onClick={() => setIsAreaOpen(!isAreaOpen)}>
-                  <span className="text-xs md:text-sm font-semibold text-slate-800">{area || 'Any Area'}</span>
+                  <span className="text-xs md:text-sm font-semibold text-slate-800">{area || t('public:anyArea')}</span>
                   <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
                 </div>
                 {isAreaOpen && (
                   <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 max-h-48 overflow-y-auto">
-                    <button className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => { setArea(''); setIsAreaOpen(false); }}>Any Area</button>
+                    <button className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => { setArea(''); setIsAreaOpen(false); }}>{t('public:anyArea')}</button>
                     {areas.map((a) => (
                       <button key={a} className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => { setArea(a); setIsAreaOpen(false); }}>{a}</button>
                     ))}
@@ -324,14 +326,14 @@ const PropertySearch = () => {
               </div>
 
               <div className="relative w-full" ref={propertyUseRef}>
-                <label className="block text-[11px] font-medium text-gray-500 mb-1">Property Use</label>
+                <label className="block text-[11px] font-medium text-gray-500 mb-1">{t('public:propertyUse')}</label>
                 <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-between cursor-pointer" onClick={() => setIsPropertyUseOpen(!isPropertyUseOpen)}>
                   <span className="text-xs md:text-sm font-semibold text-slate-800">{propertyUse}</span>
                   <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
                 </div>
                 {isPropertyUseOpen && (
                   <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 max-h-48 overflow-y-auto">
-                    <button className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => { setPropertyUse('All Uses'); setIsPropertyUseOpen(false); }}>All Uses</button>
+                    <button className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => { setPropertyUse(t('public:allUses')); setIsPropertyUseOpen(false); }}>{t('public:allUses')}</button>
                     {propertyUses.map((u) => (
                       <button key={u} className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => { setPropertyUse(u); setIsPropertyUseOpen(false); }}>{u}</button>
                     ))}
@@ -341,24 +343,24 @@ const PropertySearch = () => {
 
               {/* Row 2: Min Size | Max Size | Size UOM */}
               <div className="w-full">
-                <label className="block text-[11px] font-medium text-gray-500 mb-1">Min Size</label>
-                <input type="number" min="0" value={minSize} onChange={(e) => { setMinSize(e.target.value); setSearchError(''); }} placeholder="e.g. 5" className="w-full px-3 py-2 text-xs md:text-sm font-semibold text-slate-800 bg-gray-50 border border-gray-200 rounded-lg outline-none placeholder:font-normal placeholder:text-gray-400" />
+                <label className="block text-[11px] font-medium text-gray-500 mb-1">{t('public:minSize')}</label>
+                <input type="number" min="0" value={minSize} onChange={(e) => { setMinSize(e.target.value); setSearchError(''); }} placeholder={t('public:eg5')} className="w-full px-3 py-2 text-xs md:text-sm font-semibold text-slate-800 bg-gray-50 border border-gray-200 rounded-lg outline-none placeholder:font-normal placeholder:text-gray-400" />
               </div>
 
               <div className="w-full">
-                <label className="block text-[11px] font-medium text-gray-500 mb-1">Max Size</label>
-                <input type="number" min="0" value={maxSize} onChange={(e) => { setMaxSize(e.target.value); setSearchError(''); }} placeholder="e.g. 20" className="w-full px-3 py-2 text-xs md:text-sm font-semibold text-slate-800 bg-gray-50 border border-gray-200 rounded-lg outline-none placeholder:font-normal placeholder:text-gray-400" />
+                <label className="block text-[11px] font-medium text-gray-500 mb-1">{t('public:maxSize')}</label>
+                <input type="number" min="0" value={maxSize} onChange={(e) => { setMaxSize(e.target.value); setSearchError(''); }} placeholder={t('public:eg20')} className="w-full px-3 py-2 text-xs md:text-sm font-semibold text-slate-800 bg-gray-50 border border-gray-200 rounded-lg outline-none placeholder:font-normal placeholder:text-gray-400" />
               </div>
 
               <div className="relative w-full" ref={sizeUomRef}>
-                <label className="block text-[11px] font-medium text-gray-500 mb-1">Size Unit</label>
+                <label className="block text-[11px] font-medium text-gray-500 mb-1">{t('public:sizeUnit')}</label>
                 <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-between cursor-pointer" onClick={() => setIsSizeUomOpen(!isSizeUomOpen)}>
-                  <span className="text-xs md:text-sm font-semibold text-slate-800">{sizeUom || 'Select Unit'}</span>
+                  <span className="text-xs md:text-sm font-semibold text-slate-800">{sizeUom || t('public:selectUnit')}</span>
                   <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
                 </div>
                 {isSizeUomOpen && (
                   <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 max-h-48 overflow-y-auto">
-                    <button className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => { setSizeUom(''); setIsSizeUomOpen(false); }}>Select Unit</button>
+                    <button className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => { setSizeUom(''); setIsSizeUomOpen(false); }}>{t('public:selectUnit')}</button>
                     {sizeUoms.map((u) => (
                       <button key={u} className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => { setSizeUom(u); setIsSizeUomOpen(false); }}>{u}</button>
                     ))}
@@ -368,23 +370,23 @@ const PropertySearch = () => {
 
               {/* Row 3: Bedrooms | Bathrooms */}
               <div className="w-full">
-                <label className="block text-[11px] font-medium text-gray-500 mb-1">Min Bedrooms</label>
-                <input type="number" min="0" value={rooms} onChange={(e) => { setRooms(e.target.value); setSearchError(''); }} placeholder="e.g. 3" className="w-full px-3 py-2 text-xs md:text-sm font-semibold text-slate-800 bg-gray-50 border border-gray-200 rounded-lg outline-none placeholder:font-normal placeholder:text-gray-400" />
+                <label className="block text-[11px] font-medium text-gray-500 mb-1">{t('public:minBedrooms')}</label>
+                <input type="number" min="0" value={rooms} onChange={(e) => { setRooms(e.target.value); setSearchError(''); }} placeholder={t('public:eg3')} className="w-full px-3 py-2 text-xs md:text-sm font-semibold text-slate-800 bg-gray-50 border border-gray-200 rounded-lg outline-none placeholder:font-normal placeholder:text-gray-400" />
               </div>
 
               <div className="w-full">
-                <label className="block text-[11px] font-medium text-gray-500 mb-1">Min Bathrooms</label>
-                <input type="number" min="0" value={bathrooms} onChange={(e) => { setBathrooms(e.target.value); setSearchError(''); }} placeholder="e.g. 2" className="w-full px-3 py-2 text-xs md:text-sm font-semibold text-slate-800 bg-gray-50 border border-gray-200 rounded-lg outline-none placeholder:font-normal placeholder:text-gray-400" />
+                <label className="block text-[11px] font-medium text-gray-500 mb-1">{t('public:minBathrooms')}</label>
+                <input type="number" min="0" value={bathrooms} onChange={(e) => { setBathrooms(e.target.value); setSearchError(''); }} placeholder={t('public:eg2')} className="w-full px-3 py-2 text-xs md:text-sm font-semibold text-slate-800 bg-gray-50 border border-gray-200 rounded-lg outline-none placeholder:font-normal placeholder:text-gray-400" />
               </div>
             </div>
             
             {/* Advanced Footer */}
             <div className="mt-6 flex items-center justify-end space-x-3">
               <button onClick={handleResetAdvanced} className="text-gray-500 hover:text-gray-700 text-xs md:text-sm font-semibold px-4 py-2 transition-colors">
-                Reset Filters
+                {t('public:resetFilters')}
               </button>
               <button onClick={handleSearch} className="bg-[#063B29] hover:bg-[#052b1e] text-white text-xs md:text-sm font-bold tracking-wider uppercase px-6 py-2.5 rounded-lg shadow transition-colors">
-                Apply Search
+                {t('public:applySearch')}
               </button>
             </div>
           </div>

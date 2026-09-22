@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { customerMenu } from '../../Config/menuconfig';
 import { LogOut, Menu } from 'lucide-react';
 
@@ -8,6 +9,7 @@ import LogoImg from '../../assets/Footery.png';
 import LogoIcon from '../../assets/Logo.png';
 
 const Sidebar = () => {
+  const { t } = useTranslation(['common']);
   const navigate = useNavigate();
   // Initialize state based on window size
   const [isExpanded, setIsExpanded] = useState(window.innerWidth > 768);
@@ -34,7 +36,7 @@ const Sidebar = () => {
       {!isExpanded && (
         <button 
           onClick={toggleSidebar}
-          className="md:hidden fixed top-6 left-4 z-[60] bg-white text-[#002a1b] p-2 rounded-xl shadow-[0_4px_15px_-4px_rgba(0,0,0,0.1)] border border-gray-100 flex items-center justify-center transition-transform hover:scale-105"
+          className="md:hidden fixed top-6 start-4 z-[60] bg-white text-[#002a1b] p-2 rounded-xl shadow-[0_4px_15px_-4px_rgba(0,0,0,0.1)] border border-gray-100 flex items-center justify-center transition-transform hover:scale-105"
         >
           <Menu size={22} />
         </button>
@@ -53,7 +55,7 @@ const Sidebar = () => {
         className={`fixed md:relative flex flex-col h-screen bg-[#002a1b] text-white transition-all duration-300 z-[50] ${
           isExpanded 
             ? 'w-64 translate-x-0' 
-            : 'w-64 md:w-20 -translate-x-full md:translate-x-0'
+            : 'w-64 md:w-20 -translate-x-full md:translate-x-0 rtl:translate-x-full md:rtl:translate-x-0'
         }`}
       >
         {/* Header / Logo Area */}
@@ -62,7 +64,7 @@ const Sidebar = () => {
           <img 
             src={LogoImg} 
             alt="PPC Logo" 
-            className={`absolute left-5 h-10 md:h-12 w-auto max-w-[130px] object-contain transition-all duration-300 ${
+            className={`absolute start-5 h-10 md:h-12 w-auto max-w-[130px] object-contain transition-all duration-300 ${
               isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
             }`} 
           />
@@ -72,8 +74,8 @@ const Sidebar = () => {
             onClick={toggleSidebar} 
             className={`absolute text-gray-300 hover:text-white p-1.5 rounded-lg hover:bg-[#003624] transition-all duration-300 ${
               isExpanded 
-                ? 'right-4 top-1/2 -translate-y-1/2' 
-                : 'hidden md:block left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
+                ? 'end-4 top-1/2 -translate-y-1/2' 
+                : 'hidden md:block start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rtl:translate-x-1/2'
             }`}
             aria-label="Toggle Sidebar"
           >
@@ -104,20 +106,20 @@ const Sidebar = () => {
                   {/* Text for expanded mode */}
                   <div 
                     className={`flex items-center overflow-hidden transition-all duration-300 ${
-                      isExpanded ? 'w-40 opacity-100 ml-3' : 'w-0 opacity-0 ml-0'
+                      isExpanded ? 'w-40 opacity-100 ms-3' : 'w-0 opacity-0 ms-0'
                     }`}
                   >
                     <span className="font-medium text-sm whitespace-nowrap">
-                      {item.title}
+                      {t(`common:${item.key}`)}
                     </span>
                   </div>
 
                   {/* Tooltip for collapsed mode */}
                   {!isExpanded && (
-                    <div className="hidden md:block absolute left-full ml-4 px-3 py-2 bg-[#001f14] text-white text-xs font-medium rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap shadow-xl border border-[#003d29]">
-                      {item.title}
+                    <div className="hidden md:block absolute start-full ms-4 px-3 py-2 bg-[#001f14] text-white text-xs font-medium rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap shadow-xl border border-[#003d29]">
+                      {t(`common:${item.key}`)}
                       {/* Tooltip Arrow */}
-                      <div className="absolute top-1/2 -left-1 -translate-y-1/2 border-[5px] border-transparent border-r-[#001f14]" />
+                      <div className="absolute top-1/2 -start-1 -translate-y-1/2 border-[5px] border-transparent border-e-[#001f14]" />
                     </div>
                   )}
                 </NavLink>

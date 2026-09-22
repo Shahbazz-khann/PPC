@@ -5,60 +5,64 @@ import propertyCareImg from '../assets/PropertyCare.webp';
 import constructionImg from '../assets/Construction.jpg';
 import legalServicesImg from '../assets/LegalServices.webp';
 import investmentAdvisoryImg from '../assets/InvestmentAdvisory.webp';
+import { useTranslation } from 'react-i18next';
 
-const servicesData = [
+const getServicesData = (t) => [
   {
     id: 1,
-    title: 'Buy & Sell Properties',
-    description: 'Residential, Commercial, Industrial, Plots & Agricultural Properties.',
+    title: t('public:buySellProperties'),
+    description: t('public:buySellPropertiesDesc'),
     image: homeImg,
   },
   {
     id: 2,
-    title: 'Rental Management',
-    description: 'Tenant search, verification, agreements, rent collection & renewals.',
+    title: t('public:rentalManagement'),
+    description: t('public:rentalManagementDesc'),
     image: rentHouseImg,
   },
   {
     id: 3,
-    title: 'Property Care',
-    description: 'Inspections, Cleaning, Gardening, Security, Utilities & more.',
+    title: t('public:propertyCare'),
+    description: t('public:propertyCareDesc'),
     image: propertyCareImg,
   },
   {
     id: 4,
-    title: 'Renovation & Construction',
-    description: 'Interior, Exterior, Painting, Plumbing, Electrical & Civil Works.',
+    title: t('public:renovationConstruction'),
+    description: t('public:renovationConstructionDesc'),
     image: constructionImg,
   },
   {
     id: 5,
-    title: 'Legal Documentation',
-    description: 'Documentation, Registry, Verification, Taxation & Legal Dispute Support.',
+    title: t('public:legalDocumentation'),
+    description: t('public:legalDocumentationDesc'),
     image: legalServicesImg,
   },
   {
     id: 6,
-    title: 'Investment Advisory',
-    description: 'ROI Estimation, Yield Analysis, Portfolio Management & more.',
+    title: t('public:investmentAdvisory'),
+    description: t('public:investmentAdvisoryDesc'),
     image: investmentAdvisoryImg,
   },
 ];
 
 const Services = () => {
+  const { t } = useTranslation(['public']);
+  const servicesData = getServicesData(t);
+  
   return (
     <section id="our-core-services" className="max-w-7xl mx-auto px-6 md:px-12 mb-16 scroll-mt-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-[#063B29] font-bold text-lg md:text-xl tracking-tight uppercase">
-          OUR CORE SERVICES
+          {t('public:ourCoreServices')}
         </h2>
         <Link
           to="/services"
           className="text-[#063B29] font-semibold text-xs md:text-sm flex items-center gap-1"
         >
-          <span>View All Services</span>
-          <span>&rarr;</span>
+          <span>{t('public:viewAllServices')}</span>
+          <span className="rtl:rotate-180">&rarr;</span>
         </Link>
       </div>
 
@@ -86,8 +90,8 @@ const Services = () => {
               to="/services"
               className="text-[#063B29] font-bold text-[11px] tracking-wider uppercase flex items-center gap-1 mt-auto"
             >
-              <span>EXPLORE</span>
-              <span>&rarr;</span>
+              <span>{t('public:explore')}</span>
+              <span className="rtl:rotate-180">&rarr;</span>
             </Link>
           </div>
         ))}

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getPublicProperties } from '../Services/property.service';
 import { resolveMediaUrl } from '../Services/Api';
+import { useTranslation } from 'react-i18next';
 
 const FeaturedProperties = () => {
+  const { t } = useTranslation(['public']);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,19 +30,19 @@ const FeaturedProperties = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-[#063B29] font-bold text-lg md:text-xl tracking-tight uppercase">
-          FEATURED PROPERTIES IN ISLAMABAD
+          {t('public:featuredPropertiesIslamabad')}
         </h2>
         <Link
           to="/properties"
           className="text-[#063B29] font-semibold text-xs md:text-sm flex items-center gap-1"
         >
-          <span>View All Properties</span>
-          <span>&rarr;</span>
+          <span>{t('public:viewAllProperties')}</span>
+          <span className="rtl:rotate-180">&rarr;</span>
         </Link>
       </div>
 
       {loading ? (
-        <div className="text-center py-10 text-gray-500 font-semibold">Loading...</div>
+        <div className="text-center py-10 text-gray-500 font-semibold">{t('public:loading')}</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {properties.map((property) => (
@@ -56,8 +58,8 @@ const FeaturedProperties = () => {
                     alt={property.formatted_id}
                     className="w-full h-32 object-cover rounded-lg"
                   />
-                  <span className="absolute top-2 left-2 bg-[#063B29] text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                    {property.demand_type === 'Sale' ? 'FOR SALE' : 'FOR RENT'}
+                  <span className="absolute top-2 left-2 rtl:left-auto rtl:right-2 bg-[#063B29] text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                    {property.demand_type === 'Sale' ? t('public:forSale') : t('public:forRent')}
                   </span>
                 </div>
 
@@ -71,8 +73,8 @@ const FeaturedProperties = () => {
 
                 {/* Details */}
                 <p className="text-gray-500 text-[10px] md:text-[11px] mb-3">
-                  {property.rooms ? property.rooms + ' Bed • ' : ''}
-                  {property.bathrooms ? property.bathrooms + ' Bath • ' : ''}
+                  {property.rooms ? property.rooms + ` ${t('public:bed')} • ` : ''}
+                  {property.bathrooms ? property.bathrooms + ` ${t('public:bath')} • ` : ''}
                   {Number(property.property_size)} {property.size_uom}
                 </p>
               </div>
@@ -83,7 +85,7 @@ const FeaturedProperties = () => {
                 {property.demand_type === 'Rent' && (
                   <span className="text-gray-500 font-normal text-[10px] md:text-[11px]">
                     {' '}
-                    / Month
+                    {t('public:perMonth')}
                   </span>
                 )}
               </div>

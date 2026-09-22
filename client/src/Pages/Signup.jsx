@@ -5,8 +5,10 @@ import { User, Mail, Globe, Phone, Lock, Eye, EyeOff, ShieldCheck, Home, Headpho
 import bgImage from '../assets/faisalmosqueSignup.png';
 import logoImg from '../assets/IMAGEEEEEEEEEEEEEEEEEEEE.png';
 import { signupUser, verifyEmail } from '../Services/auth.services';
+import { useTranslation } from 'react-i18next';
 
 const Signup = () => {
+  const { t } = useTranslation(['public']);
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -106,16 +108,15 @@ const Signup = () => {
           </div>
 
           {/* Lower-Left Main Text */}
-          <div className="relative z-10 my-4 sm:my-8 lg:my-auto max-w-xl text-center lg:text-left">
+          <div className="relative z-10 my-4 sm:my-8 lg:my-auto max-w-xl text-center lg:text-left rtl:text-right">
             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight break-words">
-              Buy, Rent, or Sell,
+              {t('public:buyRentOrSell')}
             </h2>
             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#C59B27] tracking-tight mt-1 leading-tight break-words">
-              Your Perfect Property
+              {t('public:yourPerfectProperty')}
             </h2>
             <p className="text-gray-200 text-sm sm:text-base leading-relaxed mt-3 sm:mt-4 max-w-lg font-normal drop-shadow-sm mx-auto lg:mx-0">
-              Pakistan Property Care is your trusted platform<br className="hidden sm:block" />
-              to discover and list properties with ease.
+              {t('public:ppcTrustedPlatformSignup')}
             </p>
           </div>
 
@@ -163,12 +164,12 @@ const Signup = () => {
         <div className="relative lg:w-1/2 w-full flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12 z-10 pb-12 sm:pb-16 lg:min-h-screen">
           <div className="w-full max-w-[520px] bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 lg:p-10 text-gray-800 my-auto mx-auto lg:mx-0 lg:mr-auto lg:ml-4 xl:ml-12 border border-gray-100">
             {/* Header */}
-            <div className="mb-4 sm:mb-6">
+            <div className="mb-4 sm:mb-6 text-left rtl:text-right">
               <h3 className="text-xl sm:text-3xl font-bold text-[#1E293B] tracking-tight">
-                {isVerifying ? "Verify Email" : "Create Account"}
+                {isVerifying ? t('public:verifyEmailTitle') : t('public:createAccount')}
               </h3>
               <p className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-1.5 font-medium">
-                {isVerifying ? `Enter the 6-digit code sent to ${registeredEmail}` : "Sign up to get started with PPC"}
+                {isVerifying ? `${t('public:enterCodeSentTo')} ${registeredEmail}` : t('public:signUpToGetStarted')}
               </p>
             </div>
 
@@ -182,18 +183,18 @@ const Signup = () => {
             {isVerifying ? (
               <form className="space-y-4" onSubmit={handleVerify}>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    Verification Code
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5 rtl:text-right">
+                    {t('public:verificationCode')}
                   </label>
                   <div className="relative flex items-center">
-                    <Key className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                    <Key className="w-4 h-4 text-gray-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none" />
                     <input
                       type="text"
                       maxLength="6"
-                      placeholder="Enter 6-digit code"
+                      placeholder={t('public:enter6DigitCode')}
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all tracking-widest text-center font-bold"
+                      className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all tracking-widest text-center font-bold"
                     />
                   </div>
                   {verifyError && (
@@ -205,7 +206,7 @@ const Signup = () => {
                   disabled={isVerifyingSubmit}
                   className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#B8860B] via-[#C59B27] to-[#B8860B] hover:from-[#a37609] hover:to-[#a37609] text-white font-bold text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center mt-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  {isVerifyingSubmit ? 'Verifying...' : 'Verify Email'}
+                  {isVerifyingSubmit ? t('public:verifying') : t('public:verifyEmailTitle')}
                 </button>
                 <div className="flex items-center justify-center mt-4">
                   <button
@@ -213,7 +214,7 @@ const Signup = () => {
                     onClick={() => setIsVerifying(false)}
                     className="p-1 text-xs sm:text-sm text-gray-600 font-medium hover:text-[#B8860B] transition-colors"
                   >
-                    Change Email Address
+                    {t('public:changeEmailAddress')}
                   </button>
                 </div>
               </form>
@@ -222,26 +223,26 @@ const Signup = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* First Name Field */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                      First Name
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5 rtl:text-right">
+                      {t('public:firstName')}
                     </label>
                     <div className="relative flex items-center">
-                      <User className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                      <User className="w-4 h-4 text-gray-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none" />
                       <input
                         id="firstName"
                         type="text"
-                        placeholder="First name"
-                        className="w-full pl-10 pr-4 py-2.5 sm:py-2 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                        placeholder={t('public:firstNamePlaceholder')}
+                        className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-2.5 sm:py-2 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                         autoComplete="given-name"
                         aria-invalid={errors.firstName ? "true" : "false"}
                         {...register('firstName', {
-                          required: 'First Name is required.',
+                          required: t('public:firstNameRequired'),
                           setValueAs: (v) => (typeof v === 'string' ? v.trim() : v),
-                          minLength: { value: 2, message: 'Min 2 chars.' },
-                          maxLength: { value: 50, message: 'Max 50 chars.' },
+                          minLength: { value: 2, message: t('public:min2Chars') },
+                          maxLength: { value: 50, message: t('public:max50Chars') },
                           pattern: {
                             value: /^[a-zA-Z\s]+$/,
-                            message: 'Letters only.',
+                            message: t('public:lettersOnly'),
                           }
                         })}
                       />
@@ -253,26 +254,26 @@ const Signup = () => {
 
                   {/* Last Name Field */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                      Last Name
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5 rtl:text-right">
+                      {t('public:lastName')}
                     </label>
                     <div className="relative flex items-center">
-                      <User className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                      <User className="w-4 h-4 text-gray-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none" />
                       <input
                         id="lastName"
                         type="text"
-                        placeholder="Last name"
-                        className="w-full pl-10 pr-4 py-2.5 sm:py-2 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                        placeholder={t('public:lastNamePlaceholder')}
+                        className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-2.5 sm:py-2 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                         autoComplete="family-name"
                         aria-invalid={errors.lastName ? "true" : "false"}
                         {...register('lastName', {
-                          required: 'Last Name is required.',
+                          required: t('public:lastNameRequired'),
                           setValueAs: (v) => (typeof v === 'string' ? v.trim() : v),
-                          minLength: { value: 2, message: 'Min 2 chars.' },
-                          maxLength: { value: 50, message: 'Max 50 chars.' },
+                          minLength: { value: 2, message: t('public:min2Chars') },
+                          maxLength: { value: 50, message: t('public:max50Chars') },
                           pattern: {
                             value: /^[a-zA-Z\s]+$/,
-                            message: 'Letters only.',
+                            message: t('public:lettersOnly'),
                           }
                         })}
                       />
@@ -285,24 +286,24 @@ const Signup = () => {
 
                 {/* Email Address Field */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    Email Address
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5 rtl:text-right">
+                    {t('public:emailAddress')}
                   </label>
                   <div className="relative flex items-center">
-                    <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                    <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none" />
                     <input
                       id="email"
                       type="email"
-                      placeholder="Enter your email"
-                      className="w-full pl-10 pr-4 py-2.5 sm:py-2 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                      placeholder={t('public:enterEmail')}
+                      className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-2.5 sm:py-2 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                       autoComplete="email"
                       aria-invalid={errors.email ? "true" : "false"}
                       {...register('email', {
-                        required: 'Email is required.',
+                        required: t('public:emailRequired'),
                         setValueAs: (v) => (typeof v === 'string' ? v.trim() : v),
                         pattern: {
                           value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                          message: 'Please enter a valid email address.',
+                          message: t('public:emailInvalid'),
                         },
                       })}
                     />
@@ -314,26 +315,26 @@ const Signup = () => {
 
                 {/* Country Field */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    Country
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5 rtl:text-right">
+                    {t('public:country')}
                   </label>
                   <div className="relative flex items-center">
-                    <Globe className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                    <Globe className="w-4 h-4 text-gray-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none" />
                     <select
                       id="country"
-                      className={`w-full pl-10 pr-10 py-2.5 sm:py-2 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all appearance-none cursor-pointer`}
+                      className={`w-full pl-10 pr-10 rtl:pl-10 rtl:pr-10 py-2.5 sm:py-2 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all appearance-none cursor-pointer`}
                       autoComplete="country-name"
                       aria-invalid={errors.country ? "true" : "false"}
                       {...register('country', {
-                        required: 'Country is required.',
+                        required: t('public:countryRequired'),
                       })}
                       defaultValue="2"
                     >
-                      <option value="" disabled hidden>Select your country</option>
-                      <option value="2" className="text-gray-800">Pakistan</option>
-                      <option value="1" className="text-gray-800">United States</option>
+                      <option value="" disabled hidden>{t('public:selectCountry')}</option>
+                      <option value="2" className="text-gray-800">{t('public:pakistan')}</option>
+                      <option value="1" className="text-gray-800">{t('public:unitedStates')}</option>
                     </select>
-                    <div className="absolute right-3.5 pointer-events-none text-gray-400">
+                    <div className="absolute right-3.5 rtl:right-auto rtl:left-3.5 pointer-events-none text-gray-400">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                   </div>
@@ -344,28 +345,29 @@ const Signup = () => {
 
                 {/* Mobile No. Field */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    Mobile No.
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5 rtl:text-right">
+                    {t('public:mobileNo')}
                   </label>
                   <div className="relative flex items-center">
-                    <Phone className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
-                    <span className="absolute left-9 text-gray-800 font-medium text-sm pointer-events-none flex items-center gap-1 whitespace-nowrap">
+                    <Phone className="w-4 h-4 text-gray-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none" />
+                    <span className="absolute left-9 rtl:left-auto rtl:right-9 text-gray-800 font-medium text-sm pointer-events-none flex items-center gap-1 whitespace-nowrap" dir="ltr">
                       {currentDialCode} <span className="text-gray-300">|</span>
                     </span>
                     <input
                       id="mobile"
                       type="tel"
                       placeholder="3001234567"
-                      className="w-full pl-[5.5rem] pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                      className="w-full pl-[5.5rem] rtl:pl-4 rtl:pr-[5.5rem] pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all text-left"
                       autoComplete="tel-national"
                       aria-invalid={errors.mobile ? "true" : "false"}
+                      dir="ltr"
                       {...register('mobile', {
-                        required: 'Mobile number is required.',
+                        required: t('public:mobileRequired'),
                         setValueAs: (v) => (typeof v === 'string' ? v.trim() : v),
                         validate: {
-                          onlyNumbers: (v) => /^\d+$/.test(v) || 'Only numbers are allowed.',
+                          onlyNumbers: (v) => /^\d+$/.test(v) || t('public:numbersOnly'),
                           exactLength: (v) => {
-                            if (selectedCountry === '2' && v.length !== 10) return 'Must be exactly 10 digits for Pakistan.';
+                            if (selectedCountry === '2' && v.length !== 10) return t('public:mustBe10Digits');
                             return true;
                           }
                         }
@@ -381,32 +383,32 @@ const Signup = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Password Field */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                      Choose Password
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5 rtl:text-right">
+                      {t('public:choosePassword')}
                     </label>
                     <div className="relative flex items-center">
-                      <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                      <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none" />
                       <input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Create a password"
-                        className="w-full pl-10 pr-10 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                        placeholder={t('public:createPassword')}
+                        className="w-full pl-10 pr-10 rtl:pl-10 rtl:pr-10 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                         autoComplete="new-password"
                         aria-invalid={errors.password ? "true" : "false"}
                         {...register('password', {
-                          required: 'Password is required.',
+                          required: t('public:passwordRequired'),
                           setValueAs: (v) => (typeof v === 'string' ? v.trim() : v),
                           minLength: {
                             value: 8,
-                            message: 'Minimum 8 characters.',
+                            message: t('public:passwordMinLength'),
                           },
                           maxLength: {
                             value: 128,
-                            message: 'Maximum 128 characters.',
+                            message: t('public:passwordMaxLength'),
                           },
                           validate: (value) => {
                             if (!/[A-Z]/.test(value) || !/[a-z]/.test(value) || !/\d/.test(value) || !/[^a-zA-Z\d]/.test(value)) {
-                              return 'Password must contain:\n• One uppercase letter\n• One lowercase letter\n• One number\n• One special character';
+                              return t('public:passwordRequirements');
                             }
                             return true;
                           }
@@ -415,8 +417,8 @@ const Signup = () => {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        className="absolute right-2 rtl:right-auto rtl:left-2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                        aria-label={showPassword ? t('public:hidePassword') : t('public:showPassword')}
                       >
                         {showPassword ? (
                           <EyeOff className="w-4 h-4" />
@@ -427,13 +429,13 @@ const Signup = () => {
                     </div>
                     
                     {/* Live Password Validation */}
-                    <div className="mt-2 space-y-1">
+                    <div className="mt-2 space-y-1 rtl:text-right">
                       {[
-                        { label: 'At least 8 characters', met: (password || '').length >= 8 },
-                        { label: 'One uppercase letter', met: /[A-Z]/.test(password || '') },
-                        { label: 'One lowercase letter', met: /[a-z]/.test(password || '') },
-                        { label: 'One number', met: /\d/.test(password || '') },
-                        { label: 'One special character', met: /[^a-zA-Z\d]/.test(password || '') },
+                        { label: t('public:atLeast8Chars'), met: (password || '').length >= 8 },
+                        { label: t('public:oneUpperCase'), met: /[A-Z]/.test(password || '') },
+                        { label: t('public:oneLowerCase'), met: /[a-z]/.test(password || '') },
+                        { label: t('public:oneNumber'), met: /\d/.test(password || '') },
+                        { label: t('public:oneSpecialChar'), met: /[^a-zA-Z\d]/.test(password || '') },
                       ].map((rule, idx) => (
                         <div key={idx} className="flex items-center gap-1.5 transition-colors duration-200">
                           {rule.met ? (
@@ -455,28 +457,28 @@ const Signup = () => {
 
                   {/* Confirm Password Field */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                      Confirm Password
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5 rtl:text-right">
+                      {t('public:confirmPassword')}
                     </label>
                     <div className="relative flex items-center">
-                      <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                      <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none" />
                       <input
                         id="confirmPassword"
                         type={showConfirmPassword ? 'text' : 'password'}
-                        placeholder="Confirm password"
-                        className="w-full pl-10 pr-10 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                        placeholder={t('public:confirmPassword')}
+                        className="w-full pl-10 pr-10 rtl:pl-10 rtl:pr-10 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                         autoComplete="new-password"
                         aria-invalid={errors.confirmPassword ? "true" : "false"}
                         {...register('confirmPassword', {
-                          required: 'Please confirm your password.',
-                          validate: (value) => value === password || 'Passwords do not match.',
+                          required: t('public:confirmPasswordRequired'),
+                          validate: (value) => value === password || t('public:passwordsDoNotMatch'),
                         })}
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
-                        aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                        className="absolute right-2 rtl:right-auto rtl:left-2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                        aria-label={showConfirmPassword ? t('public:hidePassword') : t('public:showPassword')}
                       >
                         {showConfirmPassword ? (
                           <EyeOff className="w-4 h-4" />
@@ -499,7 +501,7 @@ const Signup = () => {
                   disabled={isSubmitting}
                   className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#B8860B] via-[#C59B27] to-[#B8860B] hover:from-[#a37609] hover:to-[#a37609] text-white font-bold text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center mt-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? 'Creating Account...' : 'Sign Up'}
+                  {isSubmitting ? t('public:creatingAccount') : t('public:signUp')}
                 </button>
               </form>
             )}
@@ -507,12 +509,12 @@ const Signup = () => {
             {/* Bottom Card Footer - Login Navigation */}
             <div className="flex items-center justify-center mt-6 pt-5 border-t border-gray-100">
               <span className="text-[11px] sm:text-sm text-gray-600 font-medium">
-                Already have an account?{' '}
+                {t('public:alreadyHaveAccount')}{' '}
                 <Link
                   to="/login"
                   className="inline-block p-1 text-[#B8860B] hover:text-[#966d09] font-semibold transition-colors"
                 >
-                  Login
+                  {t('public:login')}
                 </Link>
               </span>
             </div>

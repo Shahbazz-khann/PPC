@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react';
 import PropertyForm from './components/PropertyForm';
 import { getCustomerPropertyDetail, updateCustomerProperty } from '../../../Services/customer.services';
@@ -7,6 +8,7 @@ import { getCustomerPropertyDetail, updateCustomerProperty } from '../../../Serv
 const CustomerPropertyEdit = () => {
   const { propertyId } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation(['properties', 'common', 'propertyDetails']);
 
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -160,7 +162,7 @@ const CustomerPropertyEdit = () => {
     return (
       <div className="min-h-screen bg-[#FAF8F3] flex flex-col items-center justify-center">
         <div className="w-10 h-10 border-4 border-[#1E5631]/20 border-t-[#1E5631] rounded-full animate-spin"></div>
-        <h2 className="text-lg font-bold text-gray-800 mt-4">Loading Property...</h2>
+        <h2 className="text-lg font-bold text-gray-800 mt-4">{t('properties:loadingProperty')}</h2>
       </div>
     );
   }
@@ -168,9 +170,9 @@ const CustomerPropertyEdit = () => {
   if (error && !property) {
     return (
       <div className="min-h-screen bg-[#FAF8F3] flex flex-col items-center justify-center">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Property Not Found</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('propertyDetails:notFound')}</h2>
         <p className="text-gray-500 mb-4">{error}</p>
-        <Link to="/customer/properties" className="text-[#B8860B] hover:underline font-bold">Return to My Properties</Link>
+        <Link to="/customer/properties" className="text-[#B8860B] hover:underline font-bold">{t('propertyDetails:returnToProperties')}</Link>
       </div>
     );
   }
@@ -181,13 +183,13 @@ const CustomerPropertyEdit = () => {
       {/* Header Breadcrumb Area */}
       <div className="pt-6 px-4 sm:px-8 lg:px-12 xl:px-14">
         <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-8">
-          <Link to="/customer/dashboard" className="hover:text-gray-900 transition-colors">Dashboard</Link>
-          <ChevronRight size={14} className="text-gray-400" />
-          <Link to="/customer/properties" className="hover:text-gray-900 transition-colors">My Properties</Link>
-          <ChevronRight size={14} className="text-gray-400" />
+          <Link to="/customer/dashboard" className="hover:text-gray-900 transition-colors">{t('common:dashboard')}</Link>
+          <ChevronRight size={14} className="text-gray-400 rtl:rotate-180" />
+          <Link to="/customer/properties" className="hover:text-gray-900 transition-colors">{t('common:myProperties')}</Link>
+          <ChevronRight size={14} className="text-gray-400 rtl:rotate-180" />
           <Link to={`/customer/properties/${propertyId}`} className="hover:text-gray-900 transition-colors">{property.formattedId || propertyId}</Link>
-          <ChevronRight size={14} className="text-gray-400" />
-          <span className="text-[#1a2b25]">Edit</span>
+          <ChevronRight size={14} className="text-gray-400 rtl:rotate-180" />
+          <span className="text-[#1a2b25]">{t('properties:edit')}</span>
         </div>
       </div>
 
@@ -213,7 +215,7 @@ const CustomerPropertyEdit = () => {
           <div className="fixed inset-0 bg-white/50 backdrop-blur-sm z-50 flex items-center justify-center">
             <div className="bg-white p-6 rounded-2xl shadow-xl flex items-center gap-4">
               <div className="w-6 h-6 border-2 border-[#B8860B]/20 border-t-[#B8860B] rounded-full animate-spin"></div>
-              <span className="font-bold text-gray-800">Saving Changes...</span>
+              <span className="font-bold text-gray-800">{t('properties:savingChanges')}</span>
             </div>
           </div>
         )}

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronRight, CheckCircle2, DollarSign, Loader2, AlertTriangle } from 'lucide-react';
 import PropertyForm from './components/PropertyForm';
 import { addCustomerProperty, uploadCustomerPropertyPictures, uploadCustomerPropertyVideo } from '../../../Services/customer.services';
 
 const CustomerPropertyAdd = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation(['properties', 'common', 'propertyDetails']);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -166,11 +168,11 @@ const CustomerPropertyAdd = () => {
       {/* Header Breadcrumb Area */}
       <div className="pt-4 px-4 sm:px-8 lg:px-12 xl:px-14">
         <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-8">
-          <Link to="/customer/dashboard" className="hover:text-gray-900 transition-colors">Dashboard</Link>
-          <ChevronRight size={14} className="text-gray-400" />
-          <Link to="/customer/properties" className="hover:text-gray-900 transition-colors">My Properties</Link>
-          <ChevronRight size={14} className="text-gray-400" />
-          <span className="text-[#1a2b25]">Add Property</span>
+          <Link to="/customer/dashboard" className="hover:text-gray-900 transition-colors">{t('common:dashboard')}</Link>
+          <ChevronRight size={14} className="text-gray-400 rtl:rotate-180" />
+          <Link to="/customer/properties" className="hover:text-gray-900 transition-colors">{t('common:myProperties')}</Link>
+          <ChevronRight size={14} className="text-gray-400 rtl:rotate-180" />
+          <span className="text-[#1a2b25]">{t('properties:addProperty')}</span>
         </div>
       </div>
 
@@ -181,7 +183,7 @@ const CustomerPropertyAdd = () => {
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm rounded-[24px]">
             <div className="flex flex-col items-center bg-white p-6 rounded-2xl shadow-xl">
               <Loader2 className="w-10 h-10 text-[#B8860B] animate-spin mb-3" />
-              <p className="text-sm font-bold text-[#1a2b25]">Submitting Property...</p>
+              <p className="text-sm font-bold text-[#1a2b25]">{t('properties:submittingProperty')}</p>
             </div>
           </div>
         )}
@@ -191,7 +193,7 @@ const CustomerPropertyAdd = () => {
           <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
             <div>
-              <p className="text-sm font-bold text-red-700">Submission Failed</p>
+              <p className="text-sm font-bold text-red-700">{t('properties:submissionFailed')}</p>
               <p className="text-sm text-red-600 mt-0.5">{submitError}</p>
             </div>
           </div>
@@ -202,14 +204,14 @@ const CustomerPropertyAdd = () => {
             <div className="w-20 h-20 bg-[#eaf1ec] text-[#1E5631] rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 size={40} />
             </div>
-            <h2 className="text-3xl font-serif font-bold text-[#1a2b25] mb-4">Property Created Successfully</h2>
-            <p className="text-gray-600 mb-6 font-medium">Your property has been registered with PPC.</p>
+            <h2 className="text-3xl font-serif font-bold text-[#1a2b25] mb-4">{t('properties:propertyCreatedSuccess')}</h2>
+            <p className="text-gray-600 mb-6 font-medium">{t('properties:propertyRegistered')}</p>
 
             {pictureUploadWarning && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 flex items-start gap-3 text-left">
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 flex items-start gap-3 text-start">
                 <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-bold text-amber-700">Pictures Not Uploaded</p>
+                  <p className="text-sm font-bold text-amber-700">{t('properties:picturesNotUploaded')}</p>
                   <p className="text-sm text-amber-600 mt-0.5">{pictureUploadWarning}</p>
                 </div>
               </div>
@@ -217,10 +219,10 @@ const CustomerPropertyAdd = () => {
 
             {/* Video upload partial failure warning */}
             {videoUploadWarning && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 flex items-start gap-3 text-left">
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 flex items-start gap-3 text-start">
                 <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-bold text-amber-700">Video Not Uploaded</p>
+                  <p className="text-sm font-bold text-amber-700">{t('properties:videoNotUploaded')}</p>
                   <p className="text-sm text-amber-600 mt-0.5">{videoUploadWarning}</p>
                 </div>
               </div>
@@ -229,23 +231,23 @@ const CustomerPropertyAdd = () => {
             <div className="bg-[#FAF8F3] p-6 rounded-2xl border border-[#e4d7be] mb-8">
               <div className="flex items-center justify-center gap-3 mb-4 text-[#B8860B]">
                 <DollarSign size={24} />
-                <h3 className="text-lg font-bold">Pricing & Demand</h3>
+                <h3 className="text-lg font-bold">{t('propertyDetails:pricingDemand')}</h3>
               </div>
               <p className="text-sm text-gray-600 font-semibold mb-6">
-                Would you like to set the Sale or Rent Demand for this property now?
+                {t('properties:setDemandPrompt')}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button
                   onClick={() => navigate(`/customer/properties/${createdPropertyId}?tab=pricing`)}
                   className="w-full sm:w-auto px-8 py-3 bg-[#1a2b25] text-white rounded-xl text-sm font-bold shadow-md hover:bg-[#2c4232] transition-colors"
                 >
-                  Set Pricing & Demand
+                  {t('properties:setPricingDemand')}
                 </button>
                 <button
                   onClick={() => navigate('/customer/properties')}
                   className="w-full sm:w-auto px-8 py-3 bg-white border-2 border-gray-200 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors"
                 >
-                  Do It Later
+                  {t('properties:doItLater')}
                 </button>
               </div>
             </div>

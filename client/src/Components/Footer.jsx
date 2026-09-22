@@ -7,34 +7,35 @@ import {
 } from 'react-icons/fa';
 import LogoS from '../assets/Footery.png';
 // import LogoS from '../assets/IMAGEEEEEEEEEEEEEEEEEEEE.png';
+import { useTranslation } from 'react-i18next';
 
 
-const companyLinks = [
-  { label: 'About Us', href: '#' },
-  { label: 'Careers', href: '#' },
-  { label: 'Our Team', href: '#' },
-  { label: 'Blog', href: '#' },
-  { label: 'News & Media', href: '#' },
+const getCompanyLinks = (t) => [
+  { label: t('public:aboutUsFooter'), href: '#' },
+  { label: t('public:careers'), href: '#' },
+  { label: t('public:ourTeam'), href: '#' },
+  { label: t('public:blog'), href: '#' },
+  { label: t('public:newsMedia'), href: '#' },
 ];
 
-const serviceLinks = [
-  { label: 'All Services', href: '#' },
-  { label: 'Property Care', href: '#' },
-  { label: 'Renovation', href: '#' },
-  { label: 'Legal Services', href: '#' },
-  { label: 'Investment Advisory', href: '#' },
+const getServiceLinks = (t) => [
+  { label: t('public:allServices'), href: '#' },
+  { label: t('public:propertyCareFooter'), href: '#' },
+  { label: t('public:renovation'), href: '#' },
+  { label: t('public:legalServices'), href: '#' },
+  { label: t('public:investmentAdvisoryFooter'), href: '#' },
 ];
 
-const resourceLinks = [
-  { label: 'Property Guide', href: '#' },
-  { label: 'Market Insights', href: '#' },
-  { label: 'FAQs', href: '#' },
-  { label: 'Videos', href: '#' },
-  { label: 'Downloads', href: '#' },
+const getResourceLinks = (t) => [
+  { label: t('public:propertyGuide'), href: '#' },
+  { label: t('public:marketInsights'), href: '#' },
+  { label: t('public:faqs'), href: '#' },
+  { label: t('public:videos'), href: '#' },
+  { label: t('public:downloads'), href: '#' },
 ];
 
-const contactInfo = [
-  'Head Office, Islamabad',
+const getContactInfo = (t) => [
+  t('public:headOffice'),
   'info@propertycare.pk',
   '051-111-CARE-111',
   'www.propertycare.pk',
@@ -48,6 +49,13 @@ const socialLinks = [
 ];
 
 const Footer = () => {
+  const { t } = useTranslation(['public']);
+  
+  const companyLinks = getCompanyLinks(t);
+  const serviceLinks = getServiceLinks(t);
+  const resourceLinks = getResourceLinks(t);
+  const contactInfo = getContactInfo(t);
+
   return (
     <footer className="w-full bg-[#063B29] text-white pt-10 pb-6 px-6 md:px-12">
       <div className="max-w-7xl mx-auto">
@@ -68,7 +76,7 @@ const Footer = () => {
           {/* Column 2: Company */}
           <div>
             <h3 className="font-bold text-xs md:text-sm tracking-wider uppercase mb-4 text-white">
-              COMPANY
+              {t('public:company')}
             </h3>
             <ul className="space-y-2.5">
               {companyLinks.map((link) => (
@@ -87,7 +95,7 @@ const Footer = () => {
           {/* Column 3: Services */}
           <div>
             <h3 className="font-bold text-xs md:text-sm tracking-wider uppercase mb-4 text-white">
-              SERVICES
+              {t('public:servicesFooter')}
             </h3>
             <ul className="space-y-2.5">
               {serviceLinks.map((link) => (
@@ -106,7 +114,7 @@ const Footer = () => {
           {/* Column 4: Resources */}
           <div>
             <h3 className="font-bold text-xs md:text-sm tracking-wider uppercase mb-4 text-white">
-              RESOURCES
+              {t('public:resourcesFooter')}
             </h3>
             <ul className="space-y-2.5">
               {resourceLinks.map((link) => (
@@ -125,7 +133,7 @@ const Footer = () => {
           {/* Column 5: Contact Us */}
           <div>
             <h3 className="font-bold text-xs md:text-sm tracking-wider uppercase mb-4 text-white">
-              CONTACT US
+              {t('public:contactUsFooter')}
             </h3>
             <ul className="space-y-2.5">
               {contactInfo.map((info, idx) => (
@@ -139,7 +147,7 @@ const Footer = () => {
           {/* Column 6: Follow Us */}
           <div>
             <h3 className="font-bold text-xs md:text-sm tracking-wider uppercase mb-4 text-white">
-              FOLLOW US
+              {t('public:followUs')}
             </h3>
             <div className="flex items-center gap-2.5">
               {socialLinks.map((social) => {
@@ -161,11 +169,11 @@ const Footer = () => {
 
         {/* Bottom Section */}
         <div className="border-t border-emerald-800/60 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-emerald-100/70">
-          <p>© 2025 Property Care Pakistan. All Rights Reserved.</p>
+          <p>{t('public:copyright')}</p>
           <div className="flex items-center gap-3">
-            <a href="#">Privacy Policy</a>
+            <a href="#">{t('public:privacyPolicy')}</a>
             <span>|</span>
-            <a href="#">Terms & Conditions</a>
+            <a href="#">{t('public:termsConditions')}</a>
           </div>
         </div>
       </div>

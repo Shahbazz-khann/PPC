@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   Plus, Search, ChevronRight, Filter, 
   FileText, Home, Wrench, Calendar, MapPin
@@ -36,6 +37,7 @@ const StatusBadge = ({ status }) => {
 };
 
 const CustomerRequestsList = () => {
+  const { t } = useTranslation(['requests', 'common']);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('ALL'); // ALL, PROPERTY, SERVICE
   const [activePurpose, setActivePurpose] = useState('ALL'); // ALL, Sale, Purchase, etc.
@@ -65,11 +67,11 @@ const CustomerRequestsList = () => {
   };
 
   const getPropertyName = (req) => {
-    if (!req.propertyId) return 'No linked property';
+    if (!req.propertyId) return t('requests:noLinkedProperty');
     if (req.propertyType && req.societyName) {
       return `${req.propertyType} in ${req.societyName}`;
     }
-    return `Property ID: ${req.propertyId}`;
+    return `${t('requests:propertyId')} ${req.propertyId}`;
   };
 
   const filteredRequests = requests.filter(req => {
@@ -97,10 +99,10 @@ const CustomerRequestsList = () => {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div>
             <h1 className="text-3xl sm:text-3xl font-serif font-bold text-[#1a2b25] mb-1 tracking-tight">
-              My Requests
+              {t('requests:myRequests')}
             </h1>
             <p className="text-gray-500 font-medium text-sm max-w-md">
-              View, track, and manage your property and PPC service requests.
+              {t('requests:myRequestsDesc')}
             </p>
           </div>
           
@@ -109,7 +111,7 @@ const CustomerRequestsList = () => {
             className="flex items-center justify-center gap-2 px-6 py-3 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(26,43,37,0.2)] hover:bg-[#2c4232] transition-colors whitespace-nowrap"
           >
             <Plus size={18} />
-            Create Request
+            {t('requests:createRequest')}
           </button>
         </div>
 
@@ -120,32 +122,32 @@ const CustomerRequestsList = () => {
               onClick={() => { setActiveTab('ALL'); setActivePurpose('ALL'); }}
               className={`px-5 py-2.5 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${activeTab === 'ALL' ? 'bg-white text-[#1a2b25] shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
             >
-              All Requests
+              {t('requests:allRequests')}
             </button>
             <button
               onClick={() => setActiveTab(REQUEST_CATEGORIES.PROPERTY)}
               className={`px-5 py-2.5 rounded-lg text-sm font-bold whitespace-nowrap transition-colors flex items-center gap-2 ${activeTab === REQUEST_CATEGORIES.PROPERTY ? 'bg-white text-[#1E5631] shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
             >
-              <Home size={16} /> Property Requests
+              <Home size={16} /> {t('requests:propertyRequests')}
             </button>
             <button
               onClick={() => setActiveTab(REQUEST_CATEGORIES.SERVICE)}
               className={`px-5 py-2.5 rounded-lg text-sm font-bold whitespace-nowrap transition-colors flex items-center gap-2 ${activeTab === REQUEST_CATEGORIES.SERVICE ? 'bg-white text-[#B8860B] shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
             >
-              <Wrench size={16} /> PPC Service Requests
+              <Wrench size={16} /> {t('requests:serviceRequests')}
             </button>
           </div>
 
           <div className="relative w-full flex-1">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 start-0 pl-4 flex items-center pointer-events-none rtl:pr-4 rtl:pl-0">
               <Search size={18} className="text-gray-400" />
             </div>
             <input
               type="text"
-              placeholder="Search by ID or type..."
+              placeholder={t('requests:searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-medium text-gray-800"
+              className="w-full ps-11 pe-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-medium text-gray-800"
             />
           </div>
         </div>
@@ -157,7 +159,7 @@ const CustomerRequestsList = () => {
               onClick={() => setActivePurpose('ALL')}
               className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${activePurpose === 'ALL' ? 'bg-[#1a2b25] text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
             >
-              All Purposes
+              {t('requests:allPurposes')}
             </button>
             {PROPERTY_PURPOSES.map(purpose => (
               <button
@@ -177,14 +179,14 @@ const CustomerRequestsList = () => {
           {loading && (
             <div className="py-20 flex flex-col items-center justify-center bg-white rounded-[24px] border border-gray-100 shadow-sm">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1a2b25] mb-4"></div>
-              <p className="text-sm font-medium text-gray-500">Loading requests...</p>
+              <p className="text-sm font-medium text-gray-500">{t('requests:loadingRequests')}</p>
             </div>
           )}
 
           {!loading && error && (
             <div className="py-20 flex flex-col items-center justify-center text-center bg-white rounded-[24px] border border-red-100 shadow-sm">
               <FileText size={48} className="text-red-200 mb-4" />
-              <h3 className="text-lg font-serif font-bold text-gray-800 mb-2">Failed to load requests</h3>
+              <h3 className="text-lg font-serif font-bold text-gray-800 mb-2">{t('requests:failedToLoad')}</h3>
               <p className="text-sm font-medium text-gray-500 max-w-sm mb-4">
                 {error}
               </p>
@@ -192,7 +194,7 @@ const CustomerRequestsList = () => {
                 onClick={fetchRequests}
                 className="px-4 py-2 bg-[#1a2b25] text-white rounded-lg text-sm font-bold hover:bg-[#2c4232]"
               >
-                Try Again
+                {t('common:tryAgain')}
               </button>
             </div>
           )}
@@ -200,9 +202,9 @@ const CustomerRequestsList = () => {
           {!loading && !error && filteredRequests.length === 0 && (
             <div className="py-20 flex flex-col items-center justify-center text-center bg-white rounded-[24px] border border-dashed border-gray-200 shadow-sm">
               <FileText size={48} className="text-gray-200 mb-4" />
-              <h3 className="text-lg font-serif font-bold text-gray-800 mb-2">No requests found</h3>
+              <h3 className="text-lg font-serif font-bold text-gray-800 mb-2">{t('requests:noRequestsFound')}</h3>
               <p className="text-sm font-medium text-gray-500 max-w-sm">
-                We couldn't find any requests matching your filters.
+                {t('requests:noRequestsDesc')}
               </p>
             </div>
           )}
@@ -227,7 +229,7 @@ const CustomerRequestsList = () => {
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{req.id}</span>
                     <span className="w-1 h-1 rounded-full bg-gray-300"></span>
                     <span className="text-[11px] font-bold text-[#B8860B] uppercase tracking-wider">
-                      {req.category === REQUEST_CATEGORIES.PROPERTY ? 'Property Request' : 'PPC Service'}
+                      {req.category === REQUEST_CATEGORIES.PROPERTY ? t('requests:propertyRequest') : t('requests:ppcService')}
                     </span>
                   </div>
                   
@@ -253,8 +255,8 @@ const CustomerRequestsList = () => {
               
               <div className="flex items-center justify-between md:flex-col md:items-end gap-4 shrink-0 border-t md:border-t-0 border-gray-100 pt-4 md:pt-0">
                 <StatusBadge status={req.status} />
-                <button className="text-sm font-bold text-[#1a2b25] flex items-center gap-1 hover:text-[#B8860B] transition-colors group-hover:translate-x-1 duration-300">
-                  View Details <ChevronRight size={16} />
+                <button className="text-sm font-bold text-[#1a2b25] flex items-center gap-1 hover:text-[#B8860B] transition-colors group-hover:translate-x-1 duration-300 rtl:group-hover:-translate-x-1">
+                  {t('properties:viewDetails')} <ChevronRight size={16} className="rtl:rotate-180" />
                 </button>
               </div>
             </div>

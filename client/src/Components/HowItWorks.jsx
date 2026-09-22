@@ -7,46 +7,50 @@ import {
   FileCog,
   PackageCheck,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-const steps = [
+const getSteps = (t) => [
   {
     number: 1,
-    title: 'Choose Service',
+    title: t('public:chooseService'),
     icon: HardHat,
   },
   {
     number: 2,
-    title: 'Submit Details',
+    title: t('public:submitDetails'),
     icon: FileText,
   },
   {
     number: 3,
-    title: 'Assessment by Expert',
+    title: t('public:assessmentByExpert'),
     icon: BadgeCheck,
   },
   {
     number: 4,
-    title: 'Quotation & Approval',
+    title: t('public:quotationApproval'),
     icon: ClipboardCheck,
   },
   {
     number: 5,
-    title: 'Service Execution',
+    title: t('public:serviceExecution'),
     icon: FileCog,
   },
   {
     number: 6,
-    title: 'Completion & Report',
+    title: t('public:completionReport'),
     icon: PackageCheck,
   },
 ];
 
 const HowItWorks = () => {
+  const { t } = useTranslation(['public']);
+  const steps = getSteps(t);
+  
   return (
     <section className="max-w-7xl mx-auto px-6 md:px-12 mb-12">
       <div className="bg-[#FAFBF9] border border-gray-200/70 rounded-2xl py-5 md:py-6 px-4 md:px-6 shadow-xs">
         <h2 className="text-[#063B29] font-bold text-base md:text-lg tracking-tight uppercase mb-5 md:mb-6">
-          HOW IT WORKS
+          {t('public:howItWorks')}
         </h2>
 
         <div className="flex items-start justify-start md:justify-between w-full gap-2 md:gap-1 lg:gap-2 overflow-x-auto pb-4 md:pb-0 snap-x snap-mandatory scrollbar-hide">
@@ -74,7 +78,7 @@ const HowItWorks = () => {
               </div>
 
               {index < steps.length - 1 && (
-                <div className="flex items-center justify-center shrink-0 md:flex-1 w-[24px] md:w-auto mt-4 md:mt-6 lg:mt-7 min-w-[16px]">
+                <div className="flex items-center justify-center shrink-0 md:flex-1 w-[24px] md:w-auto mt-4 md:mt-6 lg:mt-7 min-w-[16px] rtl:rotate-180">
                   <svg
                     className="w-6 md:w-10 lg:w-12 text-gray-400 shrink-0"
                     viewBox="0 0 40 16"

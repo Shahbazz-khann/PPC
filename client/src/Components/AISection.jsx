@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const AISection = () => {
+  const { t } = useTranslation(['public']);
   return (
     <section className="max-w-7xl mx-auto px-6 md:px-12 mb-12">
       <div className="bg-[#053223] text-white rounded-2xl p-6 md:p-8 flex flex-col lg:flex-row items-center justify-between gap-6 border border-[#084230]">
@@ -31,13 +33,13 @@ const AISection = () => {
           {/* Text */}
           <div className="flex flex-col items-start">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-1.5 leading-snug">
-              AI-Powered Property Care Platform
+              {t('public:aiPlatform')}
             </h2>
             <p className="text-xs md:text-sm font-semibold text-gray-200 mb-1.5">
-              Smart Technology, Better Decisions, Maximum Value.
+              {t('public:aiPlatformDesc1')}
             </p>
             <p className="text-gray-300 text-[11px] md:text-xs leading-relaxed mb-0">
-              Our AI engine analyzes market trends, property conditions & maintenance history to help you make the best decisions.
+              {t('public:aiPlatformDesc2')}
             </p>
           </div>
         </div>
@@ -52,14 +54,14 @@ const AISection = () => {
               </svg>
             </div>
             <h3 className="text-lg md:text-xl font-bold text-white mb-2 leading-snug">
-              Please log in to explore all AI-powered features.
+              {t('public:aiLogin')}
             </h3>
             <p className="text-gray-300 text-xs md:text-sm leading-relaxed mb-6 lg:mb-8">
-              Sign in to access intelligent property insights, valuation tools, maintenance assistance, and other AI-powered capabilities.
+              {t('public:aiLoginDesc')}
             </p>
             <div className="mt-auto flex justify-end">
               <Link to="/login" className="bg-gradient-to-r from-[#C69214] to-[#D8A238] text-white font-bold text-[11px] tracking-wider uppercase px-5 py-2.5 rounded-lg shadow-md transition-transform hover:scale-105">
-                LEARN MORE
+                {t('public:learnMore')}
               </Link>
             </div>
           </div>

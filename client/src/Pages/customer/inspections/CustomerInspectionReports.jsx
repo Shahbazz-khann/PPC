@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Calendar, MapPin, User, FileSearch, ShieldCheck, Clock, FileText, Loader2 } from 'lucide-react';
 import { getCustomerInspectionReports, resolveMediaUrl } from '../../../Services/customer.services';
+import { useTranslation } from 'react-i18next';
 
 const InspectionCard = ({ report }) => {
-  const propertyTitle = [report.propertyType, report.societyName].filter(Boolean).join(' in ') || 'Unknown Property';
-  const propertyLocation = [report.societyName, report.cityName].filter(Boolean).join(', ') || 'No location';
+  const { t } = useTranslation(['inspectionReports']);
+  const propertyTitle = [report.propertyType, report.societyName].filter(Boolean).join(' in ') || t('inspectionReports:unknownProperty');
+  const propertyLocation = [report.societyName, report.cityName].filter(Boolean).join(', ') || t('inspectionReports:noLocation');
   const imageSrc = report.imageUrl ? resolveMediaUrl(report.imageUrl) : '/placeholder-image.jpg';
 
   return (
@@ -20,9 +22,9 @@ const InspectionCard = ({ report }) => {
           onError={(e) => { e.target.src = '/placeholder-image.jpg'; }}
         />
 
-        <div className="absolute top-4 left-4 flex flex-col gap-2">
+        <div className="absolute top-4 left-4 rtl:left-auto rtl:right-4 flex flex-col gap-2">
           <span className="px-3 py-1.5 bg-[#1E5631]/95 backdrop-blur-sm text-white text-[11px] font-bold uppercase tracking-wider rounded-lg shadow-sm flex items-center gap-1.5 w-max">
-            <ShieldCheck size={14} /> Inspected
+            <ShieldCheck size={14} /> {t('inspectionReports:inspected')}
           </span>
           <span className="px-3 py-1 bg-white/95 backdrop-blur-sm text-[#1a2b25] text-[11px] font-bold uppercase tracking-wider rounded-lg shadow-sm inline-block w-max">
             {report.inspectionId}
@@ -34,7 +36,7 @@ const InspectionCard = ({ report }) => {
       <div className="flex-1 flex flex-col xl:flex-row min-w-0">
 
         {/* CENTER: Property & Inspection Info */}
-        <div className="p-5 lg:p-6 flex-1 flex flex-col justify-center border-b xl:border-b-0 xl:border-r border-gray-100 min-w-0">
+        <div className="p-5 lg:p-6 flex-1 flex flex-col justify-center border-b xl:border-b-0 xl:border-e border-gray-100 min-w-0">
 
           <div className="mb-6">
             <h3 className="text-xl font-serif font-bold text-[#1a2b25] mb-2 leading-snug break-words">
@@ -62,29 +64,29 @@ const InspectionCard = ({ report }) => {
 
           <div className="flex flex-wrap gap-x-12 gap-y-6">
             <div>
-              <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Inspection Date</span>
+              <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{t('inspectionReports:inspectionDate')}</span>
               <span className="text-sm font-bold text-gray-800 flex items-center gap-2">
                 <Calendar size={14} className="text-[#B8860B]" /> {report.inspectionDate || 'N/A'}
               </span>
             </div>
             <div>
-              <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Inspection Time</span>
+              <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{t('inspectionReports:inspectionTime')}</span>
               <span className="text-sm font-bold text-gray-800 flex items-center gap-2">
                 <Clock size={14} className="text-[#B8860B]" /> {report.inspectionTime || 'N/A'}
               </span>
             </div>
 
             <div>
-              <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Inspected By</span>
+              <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{t('inspectionReports:inspectedBy')}</span>
               <span className="text-sm font-bold text-[#1a2b25] flex items-center gap-2">
                 <User size={14} className="text-[#1E5631]" /> 
                 {report.inspectedBy ? (
                   <>
                     {report.inspectedBy.name}
-                    <span className="text-xs text-gray-500 font-medium ml-1">({report.inspectedBy.designation})</span>
+                    <span className="text-xs text-gray-500 font-medium ml-1 rtl:mr-1 rtl:ml-0">({report.inspectedBy.designation})</span>
                   </>
                 ) : (
-                  <span className="text-gray-500 font-normal">Inspector info unavailable</span>
+                  <span className="text-gray-500 font-normal">{t('inspectionReports:inspectorInfoUnavailable')}</span>
                 )}
               </span>
             </div>
@@ -98,13 +100,13 @@ const InspectionCard = ({ report }) => {
             to={`/customer/inspection-reports/${report.inspectionId}`}
             className="w-full text-center py-3 rounded-xl bg-[#1a2b25] text-white text-sm font-bold shadow-md hover:bg-[#2c4232] transition-colors flex items-center justify-center gap-2"
           >
-            <FileText size={16} /> View Inspection Report
+            <FileText size={16} /> {t('inspectionReports:viewInspectionReport')}
           </Link>
           <Link
             to={`/customer/properties/${report.propertyId}`}
             className="w-full text-center py-3 rounded-xl border border-gray-200 text-[#1a2b25] bg-white text-sm font-bold shadow-sm hover:bg-gray-50 transition-colors"
           >
-            View Property
+            {t('inspectionReports:viewProperty')}
           </Link>
         </div>
       </div>
@@ -114,6 +116,7 @@ const InspectionCard = ({ report }) => {
 };
 
 const CustomerInspectionReports = () => {
+  const { t } = useTranslation(['inspectionReports']);
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -185,9 +188,9 @@ const CustomerInspectionReports = () => {
 
   // Helper for filter label
   const getFilterLabel = () => {
-    if (activeSummaryFilter === 'properties') return "Latest Report by Property";
-    if (activeSummaryFilter === 'latest') return "Most Recent Inspection";
-    return "All Inspection Reports";
+    if (activeSummaryFilter === 'properties') return t('inspectionReports:latestReportByProperty');
+    if (activeSummaryFilter === 'latest') return t('inspectionReports:mostRecentInspection');
+    return t('inspectionReports:allInspectionReports');
   };
 
   return (
@@ -195,9 +198,9 @@ const CustomerInspectionReports = () => {
       <div className=" px-4 sm:px-8 lg:px-12 xl:px-4 ">
 
         <div className="mb-4">
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#1a2b25] mb-1">Inspection Reports</h1>
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#1a2b25] mb-1">{t('inspectionReports:inspectionReports')}</h1>
           <p className="text-gray-600 font-medium max-w-2xl">
-            View property inspection reports prepared by PPC. Access detailed findings, remarks, and checklist results for your properties.
+            {t('inspectionReports:inspectionReportsDesc')}
           </p>
         </div>
 
@@ -217,7 +220,7 @@ const CustomerInspectionReports = () => {
             </div>
             <div>
               <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${activeSummaryFilter === 'all' ? 'text-[#1E5631]' : 'text-gray-400'}`}>
-                Total Reports
+                {t('inspectionReports:totalReports')}
               </p>
               <h3 className="text-2xl font-bold text-[#1a2b25]">{loading ? '-' : totalReports}</h3>
             </div>
@@ -236,7 +239,7 @@ const CustomerInspectionReports = () => {
             </div>
             <div>
               <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${activeSummaryFilter === 'properties' ? 'text-[#1E5631]' : 'text-gray-400'}`}>
-                Properties Inspected
+                {t('inspectionReports:propertiesInspected')}
               </p>
               <h3 className="text-2xl font-bold text-[#1a2b25]">{loading ? '-' : uniqueProperties}</h3>
             </div>
@@ -255,7 +258,7 @@ const CustomerInspectionReports = () => {
             </div>
             <div>
               <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${activeSummaryFilter === 'latest' ? 'text-[#1E5631]' : 'text-gray-400'}`}>
-                Last Inspection
+                {t('inspectionReports:lastInspection')}
               </p>
               <h3 className="text-xl font-bold text-[#1a2b25]">{loading ? '-' : lastInspectionDate}</h3>
             </div>
@@ -271,20 +274,20 @@ const CustomerInspectionReports = () => {
         {loading ? (
           <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-16 flex flex-col items-center justify-center">
              <Loader2 className="animate-spin text-[#1E5631] mb-4" size={32} />
-             <p className="text-gray-500 font-medium">Loading your inspection reports...</p>
+             <p className="text-gray-500 font-medium">{t('inspectionReports:loadingInspectionReports')}</p>
           </div>
         ) : error ? (
           <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-16 text-center flex flex-col items-center">
             <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-4">
               <ShieldCheck size={28} />
             </div>
-            <h3 className="text-xl font-serif font-bold text-gray-900 mb-2">Error Loading Reports</h3>
+            <h3 className="text-xl font-serif font-bold text-gray-900 mb-2">{t('inspectionReports:errorLoadingReports')}</h3>
             <p className="text-sm text-gray-500 max-w-md mb-6">{error}</p>
             <button 
               onClick={fetchReports}
               className="px-6 py-2.5 bg-[#1E5631] text-white text-sm font-bold rounded-lg shadow-sm hover:bg-[#2c4232] transition-colors"
             >
-              Retry
+              {t('inspectionReports:retry')}
             </button>
           </div>
         ) : displayedInspections.length > 0 ? (
@@ -298,9 +301,9 @@ const CustomerInspectionReports = () => {
             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mb-4">
               <FileSearch size={32} />
             </div>
-            <h3 className="text-xl font-serif font-bold text-gray-900 mb-2">No inspection reports are available yet.</h3>
+            <h3 className="text-xl font-serif font-bold text-gray-900 mb-2">{t('inspectionReports:noInspectionReportsAvailable')}</h3>
             <p className="text-sm font-medium text-gray-500 max-w-md">
-              Inspection reports prepared by PPC will appear here once an inspection is completed.
+              {t('inspectionReports:noInspectionReportsDesc')}
             </p>
           </div>
         )}

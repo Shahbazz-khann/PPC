@@ -1,45 +1,49 @@
 import { ShieldCheck, UserCheck, Lock, Sparkles, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-const featuresData = [
+const getFeaturesData = (t) => [
   {
     id: 1,
-    title: 'Verified Properties',
-    description: '100% verified & genuine listings.',
+    title: t('public:verifiedProperties'),
+    description: t('public:verifiedPropertiesDesc'),
     icon: ShieldCheck,
   },
   {
     id: 2,
-    title: 'Expert Support',
-    description: 'Professional guidance at every step.',
+    title: t('public:expertSupport'),
+    description: t('public:expertSupportDesc'),
     icon: UserCheck,
   },
   {
     id: 3,
-    title: 'Secure Transactions',
-    description: 'Safe, transparent & hassle-free.',
+    title: t('public:secureTransactions'),
+    description: t('public:secureTransactionsDesc'),
     icon: Lock,
   },
   {
     id: 4,
-    title: 'AI Property Assistant',
-    description: 'Smart suggestions just for you.',
+    title: t('public:aiPropertyAssistant'),
+    description: t('public:aiPropertyAssistantDesc'),
     icon: Sparkles,
   },
   {
     id: 5,
-    title: '24/7 Care & Maintenance',
-    description: 'We care for your property round the clock.',
+    title: t('public:careMaintenance'),
+    description: t('public:careMaintenanceDesc'),
     icon: Clock,
   },
 ];
 
 const Categories = () => {
+  const { t } = useTranslation(['public']);
+  const featuresData = getFeaturesData(t);
+  
   return (
     <section className="max-w-7xl mx-auto px-6 md:px-12 mb-10">
       {/* Section Title */}
       <div className="flex items-center justify-between mb-6 md:mb-8">
         <h2 className="text-[#063B29] font-bold text-lg md:text-xl tracking-tight uppercase">
-          SPECIAL FEATURES
+          {t('public:specialFeatures')}
         </h2>
       </div>
 

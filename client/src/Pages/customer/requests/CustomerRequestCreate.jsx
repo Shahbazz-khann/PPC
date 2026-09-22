@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ChevronRight, CheckCircle2, Home, Wrench, FileText, MapPin, AudioLines, UploadCloud, X,
   Sparkles, Droplets, Zap, Paintbrush, Hammer, Wind, Bug, Leaf, PenTool, DollarSign, AlertTriangle
@@ -15,6 +16,7 @@ const REQUEST_CATEGORIES = {
 
 const CustomerRequestCreate = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation(['requests', 'common']);
   const [currentStep, setCurrentStep] = useState(1);
   const [isFetching, setIsFetching] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,14 +82,14 @@ const CustomerRequestCreate = () => {
 
   const getDynamicSteps = () => {
     const steps = [
-      { id: 1, title: 'Category', icon: FileText }
+      { id: 1, title: t('requests:createCategory'), icon: FileText }
     ];
 
     if (formData.category) {
-      steps.push({ id: 2, title: formData.category === REQUEST_CATEGORIES.PROPERTY ? 'Purpose' : 'Service', icon: Wrench });
-      steps.push({ id: 3, title: 'Property', icon: MapPin });
-      steps.push({ id: 4, title: 'Details', icon: AudioLines });
-      steps.push({ id: 5, title: 'Review', icon: CheckCircle2 });
+      steps.push({ id: 2, title: formData.category === REQUEST_CATEGORIES.PROPERTY ? t('requests:createPurpose') : t('requests:createService'), icon: Wrench });
+      steps.push({ id: 3, title: t('requests:createProperty'), icon: MapPin });
+      steps.push({ id: 4, title: t('requests:createDetails'), icon: AudioLines });
+      steps.push({ id: 5, title: t('requests:createReview'), icon: CheckCircle2 });
     }
     return steps;
   };
@@ -290,7 +292,7 @@ const CustomerRequestCreate = () => {
       <div className="w-full bg-[#FAF8F3] min-h-screen flex items-center justify-center font-sans">
         <div className="flex flex-col items-center">
           <div className="w-8 h-8 border-4 border-[#B8860B] border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-sm font-bold text-gray-500">Loading Configuration...</p>
+          <p className="mt-4 text-sm font-bold text-gray-500">{t('requests:loadingConfiguration')}</p>
         </div>
       </div>
     );
@@ -300,11 +302,11 @@ const CustomerRequestCreate = () => {
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
       <div className="pt-6 px-4 sm:px-8 lg:px-12 xl:px-4">
         <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-8">
-          <Link to="/customer/dashboard" className="hover:text-gray-900 transition-colors">Dashboard</Link>
-          <ChevronRight size={14} className="text-gray-400" />
-          <Link to="/customer/requests" className="hover:text-gray-900 transition-colors">My Requests</Link>
-          <ChevronRight size={14} className="text-gray-400" />
-          <span className="text-[#1a2b25]">Create Request</span>
+          <Link to="/customer/dashboard" className="hover:text-gray-900 transition-colors">{t('common:dashboard')}</Link>
+          <ChevronRight size={14} className="text-gray-400 rtl:rotate-180" />
+          <Link to="/customer/requests" className="hover:text-gray-900 transition-colors">{t('requests:myRequests')}</Link>
+          <ChevronRight size={14} className="text-gray-400 rtl:rotate-180" />
+          <span className="text-[#1a2b25]">{t('requests:createRequest')}</span>
         </div>
       </div>
 
@@ -312,8 +314,8 @@ const CustomerRequestCreate = () => {
         <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 flex flex-col md:flex-row overflow-hidden">
 
           {/* Stepper Sidebar */}
-          <div className="w-full md:w-64 bg-gray-50/50 border-b md:border-b-0 md:border-r border-gray-100 p-6 sm:p-8 shrink-0">
-            <h2 className="text-lg font-serif font-bold text-[#1a2b25] mb-8">New Request</h2>
+          <div className="w-full md:w-64 bg-gray-50/50 border-b md:border-b-0 md:border-e border-gray-100 p-6 sm:p-8 shrink-0">
+            <h2 className="text-lg font-serif font-bold text-[#1a2b25] mb-8">{t('requests:newRequest')}</h2>
             <div className="flex flex-row md:flex-col gap-4 overflow-x-auto pb-4 md:pb-0 no-scrollbar">
               {steps.map((step) => {
                 const isActive = step.id === currentStep;
@@ -356,8 +358,8 @@ const CustomerRequestCreate = () => {
                       <Home size={32} />
                     </div>
                     <div>
-                      <h4 className="text-lg font-bold text-[#1a2b25] mb-2">Property Request</h4>
-                      <p className="text-sm font-medium text-gray-500">Create a request to buy, sell, rent, lease, or renovate a property.</p>
+                      <h4 className="text-lg font-bold text-[#1a2b25] mb-2">{t('requests:propertyRequest')}</h4>
+                      <p className="text-sm font-medium text-gray-500">{t('requests:propertyRequestDesc')}</p>
                     </div>
                   </button>
 
@@ -370,8 +372,8 @@ const CustomerRequestCreate = () => {
                       <Wrench size={32} />
                     </div>
                     <div>
-                      <h4 className="text-lg font-bold text-[#1a2b25] mb-2">PPC Service Request</h4>
-                      <p className="text-sm font-medium text-gray-500">Request property care, legal consultation, valuation, or architecture services.</p>
+                      <h4 className="text-lg font-bold text-[#1a2b25] mb-2">{t('requests:ppcServiceRequest')}</h4>
+                      <p className="text-sm font-medium text-gray-500">{t('requests:serviceRequestDesc')}</p>
                     </div>
                   </button>
                 </div>
@@ -382,17 +384,17 @@ const CustomerRequestCreate = () => {
                 <div className="animate-fadeIn">
                   {formData.category === REQUEST_CATEGORIES.PROPERTY ? (
                     <div className="space-y-4">
-                      <label className="block text-sm font-bold text-gray-800 mb-2">What is the purpose of this request?</label>
+                      <label className="block text-sm font-bold text-gray-800 mb-2">{t('requests:whatIsPurpose')}</label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {fetchError ? (
                           <div className="col-span-full py-6 flex flex-col items-center justify-center bg-red-50 border border-red-100 rounded-xl">
                             <AlertTriangle size={24} className="text-red-500 mb-2" />
                             <p className="text-sm font-bold text-red-600 mb-3">{fetchError}</p>
-                            <button onClick={fetchData} className="px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700">Retry</button>
+                            <button onClick={fetchData} className="px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700">{t('requests:retry')}</button>
                           </div>
                         ) : purposesList.length === 0 ? (
                           <div className="col-span-full py-8 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
-                            <p className="text-sm font-bold text-gray-500">No purposes found</p>
+                            <p className="text-sm font-bold text-gray-500">{t('requests:noPurposesFound')}</p>
                           </div>
                         ) : (
                           purposesList.map(purpose => (
@@ -420,17 +422,17 @@ const CustomerRequestCreate = () => {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <label className="block text-sm font-bold text-gray-800 mb-2">Which service do you need?</label>
+                      <label className="block text-sm font-bold text-gray-800 mb-2">{t('requests:whichService')}</label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {fetchError ? (
                           <div className="col-span-full py-6 flex flex-col items-center justify-center bg-red-50 border border-red-100 rounded-xl">
                             <AlertTriangle size={24} className="text-red-500 mb-2" />
                             <p className="text-sm font-bold text-red-600 mb-3">{fetchError}</p>
-                            <button onClick={fetchData} className="px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700">Retry</button>
+                            <button onClick={fetchData} className="px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700">{t('requests:retry')}</button>
                           </div>
                         ) : servicesList.length === 0 ? (
                           <div className="col-span-full py-8 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
-                            <p className="text-sm font-bold text-gray-500">No services found</p>
+                            <p className="text-sm font-bold text-gray-500">{t('requests:noServicesFound')}</p>
                           </div>
                         ) : (
                           servicesList.map(service => {
@@ -490,14 +492,14 @@ const CustomerRequestCreate = () => {
                       </div>
 
                       <div className="space-y-4">
-                        <label className="block text-sm font-bold text-gray-800">Select Property {isPropertyRequired() ? <span className="text-red-500">*</span> : <span className="text-gray-400 font-normal text-xs ml-1">(Optional)</span>}</label>
-                        <div className="grid grid-cols-1 gap-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        <label className="block text-sm font-bold text-gray-800">{t('requests:selectProperty')} {isPropertyRequired() ? <span className="text-red-500">*</span> : <span className="text-gray-400 font-normal text-xs ml-1 rtl:mr-1 rtl:ml-0">{t('requests:optional')}</span>}</label>
+                        <div className="grid grid-cols-1 gap-4 max-h-[300px] overflow-y-auto pr-2 rtl:pl-2 rtl:pr-0 custom-scrollbar">
                       <button
                         onClick={() => { setFormData(prev => ({ ...prev, propertyId: '' })); setErrors({}); }}
-                        className={`p-4 rounded-xl border-2 text-left transition-all ${formData.propertyId === '' ? 'border-[#1a2b25] bg-gray-50' : 'border-gray-200 hover:border-gray-300'
+                        className={`p-4 rounded-xl border-2 text-start transition-all ${formData.propertyId === '' ? 'border-[#1a2b25] bg-gray-50' : 'border-gray-200 hover:border-gray-300'
                           }`}
                       >
-                        <p className={`font-bold text-sm ${formData.propertyId === '' ? 'text-[#1a2b25]' : 'text-gray-600'}`}>No linked property</p>
+                        <p className={`font-bold text-sm ${formData.propertyId === '' ? 'text-[#1a2b25]' : 'text-gray-600'}`}>{t('requests:noLinkedProperty')}</p>
                       </button>
 
                       {propertiesList.map(prop => (
@@ -560,7 +562,7 @@ const CustomerRequestCreate = () => {
                 <div className="animate-fadeIn space-y-8">
                   <div className="space-y-2">
                     <label className="block text-sm font-bold text-gray-800">
-                      {isPurchaseOrLease() ? "Additional Requirements" : "Request Description"} <span className="text-red-500">*</span>
+                      {isPurchaseOrLease() ? t('requests:additionalRequirements') : t('requests:requestDescription')} <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       rows={5}
@@ -569,18 +571,18 @@ const CustomerRequestCreate = () => {
                         setFormData(prev => ({ ...prev, description: e.target.value }));
                         if (errors.description) setErrors(prev => ({ ...prev, description: null }));
                       }}
-                      placeholder={isPurchaseOrLease() ? "Tell PPC anything else that would help us find the right property." : "Please provide detailed information about your request..."}
+                      placeholder={isPurchaseOrLease() ? t('requests:tellPPC') : t('requests:pleaseProvideDetails')}
                       className={`w-full p-4 rounded-xl border ${errors.description ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none bg-gray-50/50 text-sm font-medium resize-none transition-all`}
                     />
                     {errors.description && <p className="text-sm text-red-500 font-semibold">{errors.description}</p>}
                   </div>
 
                   <div className="space-y-4">
-                    <label className="block text-sm font-bold text-gray-800">Audio Note <span className="text-gray-400 font-normal text-xs ml-1">(Optional)</span></label>
+                    <label className="block text-sm font-bold text-gray-800">{t('requests:audioNoteComingSoon')} <span className="text-gray-400 font-normal text-xs ml-1 rtl:mr-1 rtl:ml-0">{t('requests:optional')}</span></label>
                     <div className="w-full py-8 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center bg-gray-50 opacity-70 cursor-not-allowed">
                       <UploadCloud size={32} className="text-gray-400 mb-3" />
-                      <span className="text-sm font-bold text-gray-500 mb-1">Audio Note (Coming Soon)</span>
-                      <span className="text-xs font-semibold text-gray-400">This feature is temporarily disabled</span>
+                      <span className="text-sm font-bold text-gray-500 mb-1">{t('requests:audioNoteComingSoon')}</span>
+                      <span className="text-xs font-semibold text-gray-400">{t('requests:disabledFeature')}</span>
                     </div>
                   </div>
                 </div>
@@ -603,19 +605,19 @@ const CustomerRequestCreate = () => {
                   )}
                   <div className="bg-[#FAF8F3] p-6 rounded-2xl border border-[#e4d7be]">
                     <div className="flex items-start justify-between mb-6">
-                      <h4 className="text-lg font-serif font-bold text-[#1a2b25]">Request Summary</h4>
+                      <h4 className="text-lg font-serif font-bold text-[#1a2b25]">{t('requests:requestSummary')}</h4>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8 text-sm">
                       <div>
-                        <span className="text-gray-400 block mb-1 text-xs font-bold uppercase tracking-wider">Category</span>
+                        <span className="text-gray-400 block mb-1 text-xs font-bold uppercase tracking-wider">{t('requests:category')}</span>
                         <span className="font-semibold text-gray-800">
-                          {formData.category === REQUEST_CATEGORIES.PROPERTY ? 'Property Request' : 'PPC Service Request'}
+                          {formData.category === REQUEST_CATEGORIES.PROPERTY ? t('requests:propertyRequest') : t('requests:ppcServiceRequest')}
                         </span>
                       </div>
                       <div>
                         <span className="text-gray-400 block mb-1 text-xs font-bold uppercase tracking-wider">
-                          {formData.category === REQUEST_CATEGORIES.PROPERTY ? 'Purpose' : 'Service'}
+                          {formData.category === REQUEST_CATEGORIES.PROPERTY ? t('requests:purpose') : t('requests:service')}
                         </span>
                         <span className="font-bold text-[#B8860B]">
                           {formData.category === REQUEST_CATEGORIES.PROPERTY
@@ -626,7 +628,7 @@ const CustomerRequestCreate = () => {
                       
                       {!isPurchaseOrLease() ? (
                         <div className="md:col-span-2">
-                          <span className="text-gray-400 block mb-1 text-xs font-bold uppercase tracking-wider">Linked Property</span>
+                          <span className="text-gray-400 block mb-1 text-xs font-bold uppercase tracking-wider">{t('requests:linkedProperty')}</span>
                           <span className="font-semibold text-gray-800">{getSelectedPropertyName()}</span>
                         </div>
                       ) : (
@@ -706,14 +708,14 @@ const CustomerRequestCreate = () => {
                   onClick={handlePrev}
                   className="px-6 py-2.5 rounded-full text-sm font-bold text-gray-600 hover:bg-gray-100 transition-colors"
                 >
-                  Back
+                  {t('requests:back')}
                 </button>
               ) : (
                 <button
                   onClick={() => navigate('/customer/requests')}
                   className="px-6 py-2.5 rounded-full text-sm font-bold text-gray-600 hover:bg-gray-100 transition-colors"
                 >
-                  Cancel
+                  {t('requests:cancel')}
                 </button>
               )}
 
@@ -726,7 +728,7 @@ const CustomerRequestCreate = () => {
                     : 'bg-[#1a2b25] text-white shadow-md hover:bg-[#2c4232]'
                     }`}
                 >
-                  Continue <ChevronRight size={16} />
+                  {t('requests:continue')} <ChevronRight size={16} className="rtl:rotate-180" />
                 </button>
               ) : (
                 <button
@@ -739,7 +741,7 @@ const CustomerRequestCreate = () => {
                   ) : (
                     <CheckCircle2 size={16} />
                   )}
-                  {isSubmitting ? 'Submitting...' : 'Submit Request'}
+                  {isSubmitting ? t('requests:submitting') : t('requests:submitRequest')}
                 </button>
               )}
             </div>

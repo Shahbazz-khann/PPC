@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 import {
   Home,
   FileText,
@@ -74,6 +75,7 @@ const SummaryCard = ({ title, value, subtitle, icon: Icon, colorClass, iconBgCol
 );
 
 const CustomerDashboard = () => {
+  const { t, i18n } = useTranslation(['dashboard', 'common']);
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('All');
   
@@ -82,8 +84,6 @@ const CustomerDashboard = () => {
     user?.user_middle_name,
     user?.user_last_name,
   ].filter(Boolean).join(' ') || 'Customer';
-
-  const [language, setLanguage] = useState('en');
 
   const [summary, setSummary] = useState({
     forSale: 0,
@@ -174,32 +174,32 @@ const CustomerDashboard = () => {
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center text-sm font-semibold text-gray-500 gap-2">
               <Home size={18} />
-              <ChevronRight size={14} className="text-gray-400" />
-              <span className="text-gray-700">Dashboard</span>
+              <ChevronRight size={14} className="text-gray-400 rtl:rotate-180" />
+              <span className="text-gray-700">{t('common:dashboard')}</span>
             </div>
 
             <div className="flex items-center gap-4 sm:gap-6">
-              {/* Temporary Language Toggle */}
+              {/* Language Toggle */}
               <div className="hidden sm:flex bg-white border border-gray-200 rounded-full p-1 shadow-sm items-center">
                 <button 
-                  onClick={() => setLanguage('en')}
+                  onClick={() => { i18n.changeLanguage('en'); localStorage.setItem('ppc-language', 'en'); }}
                   className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all duration-200 ${
-                    language === 'en' 
+                    i18n.language === 'en' 
                       ? 'bg-[#1a2b25] text-white shadow-sm' 
                       : 'text-gray-500 hover:text-gray-800'
                   }`}
                 >
-                  English
+                  {t('common:english')}
                 </button>
                 <button 
-                  onClick={() => setLanguage('ur')}
+                  onClick={() => { i18n.changeLanguage('ur'); localStorage.setItem('ppc-language', 'ur'); }}
                   className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all duration-200 ${
-                    language === 'ur' 
+                    i18n.language === 'ur' 
                       ? 'bg-[#1a2b25] text-white shadow-sm' 
                       : 'text-gray-500 hover:text-gray-800'
                   }`}
                 >
-                  اردو
+                  {t('common:urdu')}
                 </button>
               </div>
 
@@ -214,21 +214,21 @@ const CustomerDashboard = () => {
           {/* Hero Content */}
           <div className="max-w-2xl mt-4">
             <h1 className="text-2xl sm:text-3xl xl:text-4xl font-serif font-bold text-[#1a2b25] mb-4 sm:mb-0.5 tracking-tight leading-tight">
-              Good afternoon, {customerName}.
+              {t('dashboard:greeting', { name: customerName })}
             </h1>
-            <p className="text-lg text-gray-600 font-medium leading-relaxed max-w-xl">
-              Here's what's happening across your properties this week — <br className="hidden sm:block" />
-              two listings are live, one service request is in progress.
-            </p>
+            <p 
+              className="text-lg text-gray-600 font-medium leading-relaxed max-w-xl" 
+              dangerouslySetInnerHTML={{ __html: t('dashboard:subtitle') }}
+            />
 
             <div className="mt-2 flex flex-wrap items-center gap-4">
               <Link to="/customer/properties/new" className="flex items-center gap-2 px-6 py-3 bg-[#1a2b25] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(26,43,37,0.2)] hover:bg-[#2c4232] hover:-translate-y-0.5 transition-all duration-300">
                 <Plus size={18} />
-                Add Property
+                {t('dashboard:addProperty')}
               </Link>
               <Link to="/customer/requests/new" className="flex items-center gap-2 px-6 py-3 bg-white text-[#1a2b25] border border-[#e4d7be] rounded-full font-bold text-sm shadow-sm hover:bg-[#faf7f2] hover:border-[#B8860B] hover:text-[#B8860B] hover:-translate-y-0.5 transition-all duration-300">
                 <Plus size={18} />
-                Create Request
+                {t('dashboard:createRequest')}
               </Link>
             </div>
           </div>
@@ -241,33 +241,33 @@ const CustomerDashboard = () => {
         {/* Summary Stats (Overlapping Hero) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative z-20 mt-4 sm:-mt-12 lg:-mt-20 mb-6">
           <SummaryCard
-            title="For Sale"
+            title={t('dashboard:forSale')}
             value={loading ? "-" : String(summary.forSale).padStart(2, '0')}
-            subtitle="Properties listed for sale"
+            subtitle={t('dashboard:propertiesForSale')}
             icon={Home}
             colorClass="bg-[#eaf1ec] text-[#36684a]"
             iconBgColor="bg-[#f0f6f3]"
           />
           <SummaryCard
-            title="For Rent"
+            title={t('dashboard:forRent')}
             value={loading ? "-" : String(summary.forRent).padStart(2, '0')}
-            subtitle="Properties listed for rent"
+            subtitle={t('dashboard:propertiesForRent')}
             icon={FileText}
             colorClass="bg-[#fcf3e6] text-[#b48742]"
             iconBgColor="bg-[#fdf7ee]"
           />
           <SummaryCard
-            title=" Service Requests"
+            title={t('dashboard:serviceRequests')}
             value={loading ? "-" : String(summary.serviceRequests).padStart(2, '0')}
-            subtitle="Service request in progress"
+            subtitle={t('dashboard:serviceRequestInProgress')}
             icon={Wrench}
             colorClass="bg-[#eef2f9] text-[#4d70a3]"
             iconBgColor="bg-[#f4f7fb]"
           />
           <SummaryCard
-            title="Total Properties"
+            title={t('dashboard:totalProperties')}
             value={loading ? "-" : String(summary.totalProperties).padStart(2, '0')}
-            subtitle="Across your portfolio"
+            subtitle={t('dashboard:acrossPortfolio')}
             icon={Home}
             colorClass="bg-[#faebe9] text-[#c46a62]"
             iconBgColor="bg-[#fdf3f2]"
@@ -280,9 +280,9 @@ const CustomerDashboard = () => {
           {/* LEFT: MY PROPERTIES */}
           <section className="space-y-5">
             <div className="flex items-center justify-between px-1 mb-2">
-              <h2 className="text-2xl font-serif font-bold text-[#1a2b25]">My Properties</h2>
+              <h2 className="text-2xl font-serif font-bold text-[#1a2b25]">{t('common:myProperties')}</h2>
               <Link to="/customer/properties" className="text-sm font-bold text-[#B8860B] hover:text-[#966d09] flex items-center transition-colors">
-                View all <ArrowRight size={16} className="ml-1" />
+                {t('common:viewAll')} <ArrowRight size={16} className="ms-1 rtl:rotate-180" />
               </Link>
             </div>
 
@@ -290,14 +290,14 @@ const CustomerDashboard = () => {
               {propertiesLoading ? (
                 <div className="py-12 flex flex-col items-center justify-center text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1a2b25] mb-4"></div>
-                  <p className="text-sm font-medium text-gray-500">Loading properties...</p>
+                  <p className="text-sm font-medium text-gray-500">{t('dashboard:loadingProperties')}</p>
                 </div>
               ) : myProperties.length === 0 ? (
                 <div className="py-12 flex flex-col items-center justify-center text-center bg-white rounded-[24px] border border-gray-100/60 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
                   <Home size={40} className="text-gray-200 mb-4" />
-                  <p className="text-sm font-medium text-gray-500">No properties found.</p>
+                  <p className="text-sm font-medium text-gray-500">{t('dashboard:noPropertiesFound')}</p>
                   <Link to="/customer/properties/new" className="mt-4 px-4 py-2 bg-[#FAF8F3] text-[#B8860B] rounded-full text-xs font-bold hover:bg-[#f3eedd] transition-colors">
-                    Add your first property
+                    {t('dashboard:addFirstProperty')}
                   </Link>
                 </div>
               ) : (
@@ -330,18 +330,18 @@ const CustomerDashboard = () => {
 
                       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-6">
                         <div className="flex items-center text-[13px] font-semibold text-gray-500">
-                          <MapPin size={15} className="mr-2 text-gray-400 shrink-0" />
+                          <MapPin size={15} className="me-2 text-gray-400 shrink-0" />
                           <span className="truncate">{property.society}, {property.city}</span>
                         </div>
                         <div className="flex items-center text-[13px] font-semibold text-gray-500">
-                          <Maximize size={15} className="mr-2 text-gray-400 shrink-0" />
+                          <Maximize size={15} className="me-2 text-gray-400 shrink-0" />
                           {property.property_size} {property.size_uom}
                         </div>
                       </div>
 
                       <div className="mt-auto flex justify-end">
                         <button className="px-5 py-2 rounded-full border border-[#e4d7be] text-[13px] font-bold text-[#1a2b25] hover:border-[#B8860B] hover:bg-[#faf7f2] transition-colors flex items-center gap-2">
-                          View details <ArrowRight size={14} />
+                          {t('dashboard:viewDetails')} <ArrowRight size={14} className="rtl:rotate-180" />
                         </button>
                       </div>
                     </div>
@@ -354,25 +354,29 @@ const CustomerDashboard = () => {
           {/* RIGHT: MY REQUESTS */}
           <section className="space-y-5">
             <div className="flex items-center justify-between px-1 mb-2">
-              <h2 className="text-2xl font-serif font-bold text-[#1a2b25]">My Requests</h2>
+              <h2 className="text-2xl font-serif font-bold text-[#1a2b25]">{t('common:myRequests')}</h2>
               <Link to="/customer/requests" className="text-sm font-bold text-[#B8860B] hover:text-[#966d09] flex items-center transition-colors">
-                View all <ArrowRight size={16} className="ml-1" />
+                {t('common:viewAll')} <ArrowRight size={16} className="ms-1 rtl:rotate-180" />
               </Link>
             </div>
 
             <div className="bg-white rounded-[24px] p-7 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-gray-100/60 flex flex-col min-h-[420px]">
               {/* Tabs */}
               <div className="flex flex-wrap items-center gap-3 mb-8">
-                {['All', 'Property Request', 'Service Requests'].map((tab) => (
+                {[
+                  { key: 'All', label: t('common:all') },
+                  { key: 'Property Request', label: t('dashboard:propertyRequest') },
+                  { key: 'Service Requests', label: t('dashboard:serviceRequests') }
+                ].map((tab) => (
                   <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-5 py-2 rounded-full text-[13px] font-bold transition-all ${activeTab === tab
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`px-5 py-2 rounded-full text-[13px] font-bold transition-all ${activeTab === tab.key
                         ? 'bg-[#2c4232] text-white shadow-sm'
                         : 'bg-[#f4f2ef] text-gray-600 hover:bg-[#ebe7e1]'
                       }`}
                   >
-                    {tab}
+                    {tab.label}
                   </button>
                 ))}
               </div>
@@ -382,7 +386,7 @@ const CustomerDashboard = () => {
                 {requestsLoading ? (
                   <div className="py-12 flex flex-col items-center justify-center text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1a2b25] mb-4"></div>
-                    <p className="text-sm font-medium text-gray-500">Loading requests...</p>
+                    <p className="text-sm font-medium text-gray-500">{t('dashboard:loadingRequests')}</p>
                   </div>
                 ) : requestsError ? (
                   <div className="py-12 flex flex-col items-center justify-center text-center">
@@ -391,7 +395,7 @@ const CustomerDashboard = () => {
                     </div>
                     <p className="text-sm font-medium text-red-500 mb-4">{requestsError}</p>
                     <button onClick={fetchRequests} className="px-4 py-2 bg-[#FAF8F3] text-gray-600 rounded-full text-xs font-bold hover:bg-[#f3eedd] transition-colors">
-                      Retry
+                      {t('common:retry')}
                     </button>
                   </div>
                 ) : filteredRequests.length === 0 ? (
@@ -399,18 +403,18 @@ const CustomerDashboard = () => {
                     <FileText size={40} className="text-gray-200 mb-4" />
                     <p className="text-sm font-medium text-gray-500">
                       {activeTab === 'Property Request' 
-                        ? 'No property requests found.' 
+                        ? t('dashboard:noPropertyRequestsFound') 
                         : activeTab === 'Service Requests' 
-                          ? 'No service requests found.' 
-                          : 'No requests found.'}
+                          ? t('dashboard:noServiceRequestsFound') 
+                          : t('dashboard:noRequestsFound')}
                     </p>
                   </div>
                 ) : (
                   filteredRequests.map((req, idx) => {
                     const isProperty = req.category === 'PROPERTY';
-                    const displayType = isProperty ? 'Property Request' : 'PPC Service Request';
+                    const displayType = isProperty ? t('dashboard:propertyRequest') : t('dashboard:ppcServiceRequest');
                     const displaySubType = isProperty ? req.purpose : req.service;
-                    const displayDate = req.createdAt ? new Date(req.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
+                    const displayDate = req.createdAt ? new Date(req.createdAt).toLocaleDateString(i18n.language === 'ur' ? 'ur-PK' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
                     const displayTitle = `${displayType} · ${displaySubType || ''}`;
 
                     return (
@@ -427,9 +431,9 @@ const CustomerDashboard = () => {
                               <div className="text-[13px] font-medium text-gray-600">{displayTitle}</div>
                             </div>
                           </div>
-                          <div className="flex items-center justify-between sm:justify-end gap-5 w-full sm:w-auto pl-[62px] sm:pl-0">
+                          <div className="flex items-center justify-between sm:justify-end gap-5 w-full sm:w-auto ps-[62px] sm:ps-0">
                             <StatusBadge status={req.status} />
-                            <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-600 transition-colors" />
+                            <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-600 transition-colors rtl:rotate-180" />
                           </div>
                         </Link>
                         {idx < filteredRequests.length - 1 && (
@@ -442,9 +446,9 @@ const CustomerDashboard = () => {
               </div>
 
               <div className="mt-8 flex justify-end items-center gap-4 text-[9px] font-bold text-gray-300 uppercase tracking-[0.25em]">
-                <span className="hover:text-gray-400 cursor-pointer transition-colors">People</span>
-                <span className="hover:text-gray-400 cursor-pointer transition-colors">Properties</span>
-                <span className="hover:text-gray-400 cursor-pointer transition-colors">Progress</span>
+                <span className="hover:text-gray-400 cursor-pointer transition-colors">{t('dashboard:people')}</span>
+                <span className="hover:text-gray-400 cursor-pointer transition-colors">{t('dashboard:properties')}</span>
+                <span className="hover:text-gray-400 cursor-pointer transition-colors">{t('dashboard:progress')}</span>
               </div>
             </div>
           </section>

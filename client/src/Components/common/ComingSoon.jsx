@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import Navbar from '../Navbar';
 import { Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const ComingSoon = () => {
+  const { t } = useTranslation(['public']);
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
       <Navbar />
@@ -11,16 +13,16 @@ const ComingSoon = () => {
           <Clock className="w-12 h-12 text-[#063B29]" />
         </div>
         <h1 className="text-3xl md:text-4xl font-bold text-[#063B29] mb-3">
-          Coming Soon
+          {t('public:comingSoon')}
         </h1>
         <p className="text-gray-600 max-w-md mb-8 text-sm md:text-base">
-          We are working hard to bring you something amazing. This page is currently under development.
+          {t('public:comingSoonDesc')}
         </p>
         <Link
           to="/"
           className="bg-[#063B29] text-white text-xs font-bold tracking-wider px-6 py-3 rounded-md uppercase hover:bg-[#084833] transition-colors"
         >
-          Back to Home
+          {t('public:backToHome')}
         </Link>
       </div>
     </div>

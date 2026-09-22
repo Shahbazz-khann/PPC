@@ -1,0 +1,22 @@
+{
+  "dashboard": "Dashboard",
+  "myProperties": "My Properties",
+  "myRequests": "My Requests",
+  "viewAll": "View all",
+  "all": "All",
+  "retry": "Retry",
+  "loading": "Loading...",
+  "save": "Save",
+  "cancel": "Cancel",
+  "english": "English",
+  "urdu": "اردو",
+  "propertyVisits": "Property Visits",
+  "inspectionReports": "Inspection Reports",
+  "verificationReports": "Verification Reports",
+  "inbox": "Inbox",
+  "paymentSummary": "Payment Summary",
+  "goToWebsite": "Go to PPC Website",
+  "myProfile": "My Profile",
+  "logout": "Logout",
+  "ppcMember": "PPC Member"
+}

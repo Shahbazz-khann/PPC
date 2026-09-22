@@ -13,8 +13,10 @@ import {
 
 import bgImage from '../assets/FaisalMosque.png';
 import logoImg from '../assets/Logo.png';
+import { useTranslation } from 'react-i18next';
 
 const ResetPassword = () => {
+  const { t } = useTranslation(['public']);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
@@ -76,19 +78,17 @@ const ResetPassword = () => {
         </div>
 
         {/* Lower-Left Main Text */}
-        <div className="relative z-10 my-8 sm:my-12 lg:my-auto max-w-xl">
+        <div className="relative z-10 my-8 sm:my-12 lg:my-auto max-w-xl rtl:text-right">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
-            Find, Buy, Rent,
+            {t('public:findBuyRent')}
           </h2>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#C59B27] tracking-tight mt-1 leading-tight">
-            Your Perfect Property
+            {t('public:yourPerfectProperty')}
           </h2>
 
           <p className="text-gray-200 text-sm sm:text-base leading-relaxed mt-4 max-w-lg font-normal drop-shadow-sm">
-            Pakistan Property Care is your trusted platform
-            <br />
-            to discover verified properties with ease.
+            {t('public:ppcTrustedPlatform')}
           </p>
         </div>
 
@@ -103,11 +103,11 @@ const ResetPassword = () => {
 
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-white leading-snug">
-                Trusted &amp; Secure
+                {t('public:trustedSecure')}
               </h4>
 
               <p className="text-[11px] text-gray-300">
-                Verified by our team
+                {t('public:verifiedByTeam')}
               </p>
             </div>
           </div>
@@ -120,11 +120,11 @@ const ResetPassword = () => {
 
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-white leading-snug">
-                Wide Range
+                {t('public:wideRange')}
               </h4>
 
               <p className="text-[11px] text-gray-300">
-                Residential &amp; Commercial
+                {t('public:residentialCommercial')}
               </p>
             </div>
           </div>
@@ -137,11 +137,11 @@ const ResetPassword = () => {
 
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-white leading-snug">
-                24/7 Support
+                {t('public:support247')}
               </h4>
 
               <p className="text-[11px] text-gray-300">
-                We are here to help
+                {t('public:hereToHelp')}
               </p>
             </div>
           </div>
@@ -157,11 +157,11 @@ const ResetPassword = () => {
           {/* Header */}
           <div className="text-center mb-6">
             <h3 className="text-2xl sm:text-3xl font-bold text-[#1E293B] tracking-tight">
-              Reset Password
+              {t('public:resetPasswordTitle')}
             </h3>
 
             <p className="text-xs sm:text-sm text-gray-500 mt-1.5 font-medium">
-              Create a new strong password for your account.
+              {t('public:createNewStrongPassword')}
             </p>
           </div>
 
@@ -170,15 +170,15 @@ const ResetPassword = () => {
               <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100">
                 <ShieldCheck className="w-8 h-8 text-red-400" />
               </div>
-              <h4 className="text-lg font-bold text-gray-800 mb-2 tracking-tight">Invalid Reset Link</h4>
+              <h4 className="text-lg font-bold text-gray-800 mb-2 tracking-tight">{t('public:invalidResetLink')}</h4>
               <p className="text-sm text-gray-500 mb-6 px-2">
-                This password reset link is invalid or missing the security token. Please request a new link.
+                {t('public:invalidResetLinkDesc')}
               </p>
               <Link
                 to="/forgot-password"
                 className="inline-flex py-2.5 px-6 bg-gradient-to-r from-[#B8860B] via-[#C59B27] to-[#B8860B] hover:from-[#a37609] hover:to-[#a37609] text-white font-bold text-sm rounded-xl shadow-md transition-all duration-200"
               >
-                Go to Forgot Password
+                {t('public:goToForgotPassword')}
               </Link>
             </div>
           ) : (
@@ -189,22 +189,22 @@ const ResetPassword = () => {
 
             {/* New Password */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                New Password
+              <label className="block text-xs font-bold text-gray-700 mb-1.5 rtl:text-right">
+                {t('public:newPassword')}
               </label>
 
               <div className="relative flex items-center">
-                <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none" />
 
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Create a new password"
-                  className="w-full pl-10 pr-10 py-2 sm:py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                  placeholder={t('public:createNewPassword')}
+                  className="w-full pl-10 pr-10 rtl:pl-10 rtl:pr-10 py-2 sm:py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                   autoComplete="new-password"
                   aria-invalid={errors.password ? 'true' : 'false'}
                   {...register('password', {
-                    required: 'Password is required.',
+                    required: t('public:passwordRequired'),
 
                     setValueAs: (value) =>
                       typeof value === 'string'
@@ -213,12 +213,12 @@ const ResetPassword = () => {
 
                     minLength: {
                       value: 8,
-                      message: 'Minimum 8 characters.',
+                      message: t('public:passwordMinLength'),
                     },
 
                     maxLength: {
                       value: 128,
-                      message: 'Maximum 128 characters.',
+                      message: t('public:passwordMaxLength'),
                     },
 
                     validate: (value) => {
@@ -228,7 +228,7 @@ const ResetPassword = () => {
                         !/\d/.test(value) ||
                         !/[^a-zA-Z\d]/.test(value)
                       ) {
-                        return 'Password must contain:\n• One uppercase letter\n• One lowercase letter\n• One number\n• One special character';
+                        return t('public:passwordRequirements');
                       }
                       return true;
                     },
@@ -239,11 +239,11 @@ const ResetPassword = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                  className="absolute right-3.5 rtl:right-auto rtl:left-3.5 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
                   aria-label={
                     showPassword
-                      ? 'Hide password'
-                      : 'Show password'
+                      ? t('public:hidePassword')
+                      : t('public:showPassword')
                   }
                 >
                   {showPassword ? (
@@ -263,24 +263,24 @@ const ResetPassword = () => {
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                Confirm Password
+              <label className="block text-xs font-bold text-gray-700 mb-1.5 rtl:text-right">
+                {t('public:confirmPassword')}
               </label>
 
               <div className="relative flex items-center">
-                <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
+                <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none" />
 
                 <input
                   id="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Confirm new password"
-                  className="w-full pl-10 pr-10 py-2 sm:py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
+                  placeholder={t('public:confirmNewPassword')}
+                  className="w-full pl-10 pr-10 rtl:pl-10 rtl:pr-10 py-2 sm:py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white focus:outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27] transition-all"
                   autoComplete="new-password"
                   aria-invalid={errors.confirmPassword ? 'true' : 'false'}
                   {...register('confirmPassword', {
-                    required: 'Please confirm your password.',
+                    required: t('public:confirmPasswordRequired'),
                     validate: (value) =>
-                      value === password || 'Passwords do not match.',
+                      value === password || t('public:passwordsDoNotMatch'),
                   })}
                 />
 
@@ -288,11 +288,11 @@ const ResetPassword = () => {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3.5 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                  className="absolute right-3.5 rtl:right-auto rtl:left-3.5 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
                   aria-label={
                     showConfirmPassword
-                      ? 'Hide password'
-                      : 'Show password'
+                      ? t('public:hidePassword')
+                      : t('public:showPassword')
                   }
                 >
                   {showConfirmPassword ? (
@@ -316,7 +316,7 @@ const ResetPassword = () => {
               disabled={isSubmitting}
               className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#B8860B] via-[#C59B27] to-[#B8860B] hover:from-[#a37609] hover:to-[#a37609] text-white font-bold text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center mt-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Resetting...' : 'Reset Password'}
+              {isSubmitting ? t('public:resetting') : t('public:resetPasswordTitle')}
             </button>
 
           </form>
@@ -325,13 +325,13 @@ const ResetPassword = () => {
           {/* Login Navigation */}
           <div className="flex items-center justify-center mt-6 pt-5 border-t border-gray-100">
             <span className="text-xs sm:text-sm text-gray-600 font-medium">
-              Remember your password?{' '}
+              {t('public:rememberPassword')}{' '}
 
               <Link
                 to="/login"
                 className="text-[#B8860B] hover:text-[#966d09] font-semibold transition-colors ml-1"
               >
-                Login
+                {t('public:login')}
               </Link>
             </span>
           </div>
