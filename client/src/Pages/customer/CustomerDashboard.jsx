@@ -163,9 +163,9 @@ const CustomerDashboard = () => {
       <div className="relative w-full bg-[#FAF8F3] pt-4 pb-20 sm:pb-28 overflow-hidden">
 
         {/* Background Image & Gradient */}
-        <div className="absolute top-0 right-0 w-full lg:w-[60%] h-full z-0">
-          <img src={HeroBg} alt="Hero background" className="w-full h-full object-cover object-right" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#FAF8F3] via-[#FAF8F3]/95 lg:via-[#FAF8F3]/80 to-transparent"></div>
+        <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-full lg:w-[60%] h-full z-0">
+          <img src={HeroBg} alt="Hero background" className="w-full h-full object-cover object-right rtl:object-left rtl:-scale-x-100" />
+          <div className="absolute inset-0 bg-gradient-to-r rtl:bg-gradient-to-l from-[#FAF8F3] via-[#FAF8F3]/95 lg:via-[#FAF8F3]/80 to-transparent"></div>
         </div>
 
         {/* Inner Container for alignment */}
