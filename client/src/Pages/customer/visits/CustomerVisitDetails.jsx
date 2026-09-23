@@ -133,7 +133,7 @@ const CustomerVisitDetails = () => {
       <div className="px-4 sm:px-8 lg:px-12 xl:px-4 max-w-[1400px] mx-auto space-y-6">
         
         {/* HERO */}
-        <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center p-6 sm:p-8 min-h-[140px]">
+        <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center p-5 sm:p-6 min-h-[120px]">
           <div className="relative z-20 flex items-start gap-6 w-full">
             <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 border ${
               isCompleted ? 'bg-[#eaf1ec] border-[#1E5631]/20 text-[#1E5631]' : 'bg-[#faf7f2] border-[#B8860B]/20 text-[#B8860B]'
@@ -175,12 +175,12 @@ const CustomerVisitDetails = () => {
             
             {/* 1. Schedule vs Actual */}
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center gap-2">
                 <Calendar size={20} className="text-[#B8860B]" />
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">{t('visits:visitSchedule')}</h3>
               </div>
               
-              <div className="p-8 grid grid-cols-1 sm:grid-cols-2 gap-8">
+              <div className="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Scheduled Time */}
                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 relative">
                   <div className="absolute top-4 right-4 rtl:left-4 rtl:right-auto w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 shadow-sm">
@@ -220,11 +220,11 @@ const CustomerVisitDetails = () => {
 
             {/* 2. Employee Remarks */}
             <div className="bg-[#fafcfb] rounded-[20px] shadow-sm border border-[#1E5631]/10 overflow-hidden">
-              <div className="p-6 border-b border-[#1E5631]/10 flex items-center gap-2">
+              <div className="p-4 sm:p-5 border-b border-[#1E5631]/10 flex items-center gap-2">
                 <ShieldCheck size={20} className="text-[#1E5631]" />
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">{t('visits:ppcEmployeeRemarks')}</h3>
               </div>
-              <div className="p-8">
+              <div className="p-4 sm:p-5">
                 {visit.employeeRemarks ? (
                   <p className="text-[15px] font-medium text-gray-700 leading-relaxed whitespace-pre-wrap">
                     {visit.employeeRemarks}
@@ -237,12 +237,12 @@ const CustomerVisitDetails = () => {
 
             {/* 3. My Visitor Remarks */}
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center gap-2">
                 <MessageSquare size={20} className="text-[#B8860B]" />
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">{t('visits:myVisitorRemarks')}</h3>
               </div>
               
-              <div className="p-8">
+              <div className="p-4 sm:p-5">
                 {!isCompleted ? (
                   <div className="bg-gray-50 rounded-xl p-6 text-center border border-gray-100">
                     <p className="text-sm font-semibold text-gray-500">
@@ -302,11 +302,11 @@ const CustomerVisitDetails = () => {
             
             {/* PPC Representative */}
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center gap-2">
                 <User size={18} className="text-[#B8860B]" />
                 <h3 className="text-[15px] font-serif font-bold text-[#1a2b25]">{t('visits:ppcRepresentative')}</h3>
               </div>
-              <div className="p-6 flex items-center gap-4">
+              <div className="p-4 sm:p-5 flex items-center gap-4">
                 {visit.conductedBy ? (
                   <>
                     <div className="w-12 h-12 rounded-full bg-[#eaf1ec] text-[#1E5631] font-bold text-lg flex items-center justify-center shrink-0 shadow-sm border border-white ring-2 ring-gray-50">
@@ -329,7 +329,7 @@ const CustomerVisitDetails = () => {
 
             {/* Related Property */}
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-              <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center gap-2">
                 <Home size={18} className="text-[#B8860B]" />
                 <h3 className="text-[15px] font-serif font-bold text-[#1a2b25]">{t('visits:relatedProperty')}</h3>
               </div>
@@ -345,7 +345,7 @@ const CustomerVisitDetails = () => {
                     />
                   </div>
                   
-                  <div className="p-6 flex-1 flex flex-col">
+                  <div className="p-4 sm:p-5 flex-1 flex flex-col">
                     <div className="grid grid-cols-2 gap-y-4 gap-x-2 mb-6 text-sm">
                       <div className="col-span-2">
                         <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{t('visits:propertyTitle')}</span>

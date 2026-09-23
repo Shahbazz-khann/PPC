@@ -63,7 +63,7 @@ const ProgressTimeline = ({ currentStatus }) => {
   if (currentStatus === 'Pending') currentIndex = 0;
 
   return (
-    <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 p-8 mb-6 overflow-x-auto no-scrollbar">
+    <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 p-4 mb-6 overflow-x-auto no-scrollbar">
       <div className="flex items-center justify-between min-w-[600px] relative">
         {/* Background Line */}
         <div className="absolute top-4 left-6 right-6 h-[2px] bg-gray-200 z-0"></div>
@@ -166,8 +166,8 @@ const CustomerRequestDetails = () => {
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
       
       {/* Breadcrumb */}
-      <div className="pt-6 px-4 sm:px-8 lg:px-12 xl:px-4">
-        <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-6">
+      <div className=" px-4 sm:px-8 lg:px-12 xl:px-4">
+        <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-2">
           <Link to="/customer/dashboard" className="hover:text-gray-900 transition-colors">{t('common:dashboard')}</Link>
           <ChevronRight size={14} className="text-gray-400 rtl:rotate-180" />
           <Link to="/customer/requests" className="hover:text-gray-900 transition-colors">{t('requests:myRequests')}</Link>
@@ -176,10 +176,10 @@ const CustomerRequestDetails = () => {
         </div>
       </div>
 
-      <div className="px-4 sm:px-8 lg:px-12 xl:px-4 max-w-[1400px] mx-auto">
+      <div className="px-4 sm:px-8 lg:px-12 xl:px-2 max-w-[1400px] mx-auto">
         
         {/* HERO CARD */}
-        <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 mb-6 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center p-6 sm:p-8 min-h-[160px]">
+        <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 mb-4 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center p-6  min-h-[160px]">
           
           {/* Decorative Right Background */}
           <div className="absolute right-0 top-0 bottom-0 w-[40%] md:w-[60%] pointer-events-none opacity-20 sm:opacity-90">
@@ -187,23 +187,23 @@ const CustomerRequestDetails = () => {
             <img src={PropVilla} alt="Premium Background" className="w-full h-full object-cover object-right" />
           </div>
 
-          <div className="relative z-20 flex items-start gap-6 w-full">
+          <div className="relative z-20 flex items-start gap-4 w-full">
             {/* Icon Box */}
             <div className="w-20 h-20 rounded-2xl bg-[#eaf1ec] border border-[#1E5631]/10 flex items-center justify-center shrink-0">
               {isPropertyReq ? <Home size={32} className="text-[#1E5631]" /> : <Wrench size={32} className="text-[#B8860B]" />}
             </div>
             
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-4 mb-2">
                 <span className="text-xs font-bold text-gray-500">{request.id}</span>
                 <StatusBadge status={request.status} />
               </div>
               
-              <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#1a2b25] mb-4">
+              <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#1a2b25] mb-2">
                 {titleText}
               </h1>
               
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-8 text-sm font-medium text-gray-600">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8 text-sm font-medium text-gray-600">
                 <div className="flex items-center gap-2">
                   <MapPin size={16} className="text-gray-400" />
                   <span className="font-semibold text-gray-800 underline decoration-gray-300 underline-offset-4">{propertyDisplay}</span>
@@ -245,14 +245,14 @@ const CustomerRequestDetails = () => {
         <ProgressTimeline currentStatus={request.status} />
 
         {/* MAIN GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           
           {/* LEFT COLUMN */}
           <div className="lg:col-span-2 space-y-6">
             
             {/* Request Description Card */}
-            <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 p-8">
-              <h3 className="text-lg font-serif font-bold text-[#1a2b25] mb-6 flex items-center gap-2">
+            <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 p-4">
+              <h3 className="text-lg font-serif font-bold text-[#1a2b25] mb-4 flex items-center gap-2">
                 <FileText size={20} className="text-[#B8860B]" /> {t('requests:requestDescription')}
               </h3>
               <p className="text-[15px] font-medium text-gray-700 leading-relaxed whitespace-pre-wrap">
@@ -261,12 +261,12 @@ const CustomerRequestDetails = () => {
             </div>
 
             {/* Request Information Card */}
-            <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 p-8">
-              <h3 className="text-lg font-serif font-bold text-[#1a2b25] mb-6 flex items-center gap-2">
+            <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 p-4">
+              <h3 className="text-lg font-serif font-bold text-[#1a2b25] mb-4 flex items-center gap-2">
                 <Info size={20} className="text-[#B8860B]" /> {t('requests:requestInformation')}
               </h3>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-12">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1 gap-x-12">
                 <div className="flex gap-4 border-b border-gray-50 pb-4">
                   <span className="w-32 text-xs font-bold text-gray-500 uppercase tracking-wider mt-1">{t('requests:category')}</span>
                   <span className="flex-1 text-sm font-semibold text-gray-800">
@@ -389,11 +389,11 @@ const CustomerRequestDetails = () => {
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="space-y-6">
+          <div className="space-y-2">
             
             {/* Related Property Card */}
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-              <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <div className="p-4 border-b border-gray-50 flex items-center gap-2">
                 <MapPin size={18} className="text-[#B8860B]" />
                 <h3 className="text-[15px] font-serif font-bold text-[#1a2b25]">{t('requests:relatedProperty')}</h3>
               </div>

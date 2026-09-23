@@ -80,8 +80,8 @@ const CustomerVerificationDetails = () => {
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
       
       {/* Breadcrumb */}
-      <div className="pt-6 px-4 sm:px-8 lg:px-12 xl:px-4">
-        <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-6">
+      <div className=" px-4 sm:px-8 lg:px-12 xl:px-4">
+        <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-4">
           <Link to="/customer/dashboard" className="hover:text-gray-900 transition-colors">{t('common:dashboard')}</Link>
           <ChevronRight size={14} className="text-gray-400 rtl:rotate-180" />
           <Link to="/customer/verification-reports" className="hover:text-gray-900 transition-colors">{t('verificationReports:verificationReports')}</Link>
@@ -90,10 +90,10 @@ const CustomerVerificationDetails = () => {
         </div>
       </div>
 
-      <div className="px-4 sm:px-8 lg:px-12 xl:px-4 max-w-[1400px] mx-auto space-y-6">
+      <div className="px-4 sm:px-8 lg:px-12 xl:px-4 max-w-[1400px] mx-auto space-y-4">
         
         {/* 1. VERIFICATION REPORT HEADER */}
-        <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center p-6 sm:p-8 min-h-[140px]">
+        <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center p-5 min-h-[120px]">
           <div className="relative z-20 flex items-start gap-6 w-full">
             <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 border bg-[#fafcfb] ${badge.text.replace('text-white', badge.bg.replace('bg-', 'text-'))} border-current/20`}>
               <ShieldCheck size={36} />
@@ -125,12 +125,12 @@ const CustomerVerificationDetails = () => {
             
             {/* 2. PROPERTY APPROVAL STATUS */}
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <div className="p-4 border-b border-gray-50 flex items-center gap-2">
                 <CheckCircle2 size={20} className="text-[#B8860B]" />
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">{t('verificationReports:propertyApprovalStatus')}</h3>
               </div>
-              <div className="p-8 flex items-start gap-6">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center shrink-0 ${badge.bg} ${badge.text} shadow-sm`}>
+              <div className="p-4 sm:p-5 flex items-start gap-4">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${badge.bg} ${badge.text} shadow-sm`}>
                   {React.cloneElement(badge.icon, { size: 28 })}
                 </div>
                 <div>
@@ -142,11 +142,11 @@ const CustomerVerificationDetails = () => {
 
             {/* 4. VERIFICATION INFORMATION */}
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center gap-2">
                 <FileText size={20} className="text-[#B8860B]" />
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">{t('verificationReports:verificationInformation')}</h3>
               </div>
-              <div className="p-6">
+              <div className="p-4 sm:p-4">
                 {verification?.verificationDate ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                     <div>
@@ -175,7 +175,7 @@ const CustomerVerificationDetails = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-6">
+                  <div className="text-center py-2">
                     <p className="text-[15px] font-medium text-gray-500 italic">{t('verificationReports:verificationHasNotStartedYet')}</p>
                   </div>
                 )}
@@ -184,11 +184,11 @@ const CustomerVerificationDetails = () => {
 
             {/* 5. VERIFICATION FINDINGS */}
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center gap-2">
                 <ShieldCheck size={20} className="text-[#1E5631]" />
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">{t('verificationReports:verificationFindings')}</h3>
               </div>
-              <div className="p-8">
+              <div className="p-4 sm:p-5">
                 {verification?.findings ? (
                   <p className="text-[15px] font-medium text-gray-700 leading-relaxed whitespace-pre-wrap">
                     {verification.findings}
@@ -201,11 +201,11 @@ const CustomerVerificationDetails = () => {
 
             {/* 6. VERIFICATION REMARKS */}
             <div className={`rounded-[20px] shadow-sm border overflow-hidden ${stage === 'Rejected' ? 'bg-[#fffafa] border-[#8c3535]/20' : 'bg-[#fafcfb] border-[#1E5631]/10'}`}>
-              <div className={`p-6 border-b flex items-center gap-2 ${stage === 'Rejected' ? 'border-[#8c3535]/10' : 'border-[#1E5631]/10'}`}>
+              <div className={`p-4 sm:p-5 border-b flex items-center gap-2 ${stage === 'Rejected' ? 'border-[#8c3535]/10' : 'border-[#1E5631]/10'}`}>
                 <HelpCircle size={20} className={stage === 'Rejected' ? 'text-[#8c3535]' : 'text-[#1E5631]'} />
                 <h3 className={`text-lg font-serif font-bold ${stage === 'Rejected' ? 'text-[#8c3535]' : 'text-[#1a2b25]'}`}>{t('verificationReports:verificationRemarks')}</h3>
               </div>
-              <div className="p-8">
+              <div className="p-4 sm:p-5">
                 {verification?.remarks ? (
                   <p className={`text-[15px] font-medium leading-relaxed whitespace-pre-wrap ${stage === 'Rejected' ? 'text-[#8c3535] font-semibold' : 'text-gray-700'}`}>
                     {verification.remarks}
@@ -224,11 +224,11 @@ const CustomerVerificationDetails = () => {
             {/* 7. VERIFIED BY */}
             {verification?.verifiedBy && (
               <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+                <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center gap-2">
                   <User size={18} className="text-[#B8860B]" />
                   <h3 className="text-[15px] font-serif font-bold text-[#1a2b25]">{t('verificationReports:reviewedVerifiedBy')}</h3>
                 </div>
-                <div className="p-6 flex items-center gap-4">
+                <div className="p-4 sm:p-5 flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-[#eaf1ec] text-[#1E5631] font-bold text-lg flex items-center justify-center shrink-0 shadow-sm border border-white ring-2 ring-gray-50">
                     {verification.verifiedBy.name.charAt(0)}
                   </div>
@@ -242,7 +242,7 @@ const CustomerVerificationDetails = () => {
 
             {/* 3. RELATED PROPERTY */}
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-              <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center gap-2">
                 <Building size={18} className="text-[#B8860B]" />
                 <h3 className="text-[15px] font-serif font-bold text-[#1a2b25]">{t('verificationReports:relatedProperty')}</h3>
               </div>
@@ -257,7 +257,7 @@ const CustomerVerificationDetails = () => {
                     )}
                   </div>
                   
-                  <div className="p-6 flex-1 flex flex-col">
+                  <div className="p-4 sm:p-5 flex-1 flex flex-col">
                     <div className="grid grid-cols-2 gap-y-4 gap-x-2 mb-6 text-sm">
                       <div className="col-span-2">
                         <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{t('verificationReports:propertyId')}</span>

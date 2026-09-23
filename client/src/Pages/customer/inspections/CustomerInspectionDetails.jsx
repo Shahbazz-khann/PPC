@@ -98,7 +98,7 @@ const CustomerInspectionDetails = () => {
       <div className="px-4 sm:px-8 lg:px-12 xl:px-4 max-w-[1400px] mx-auto space-y-6">
         
         {/* 1. INSPECTION REPORT HEADER */}
-        <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center p-6 sm:p-8 min-h-[140px]">
+        <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center p-5 sm:p-6 min-h-[120px]">
           <div className="relative z-20 flex items-start gap-6 w-full">
             <div className="w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 border bg-[#fafcfb] border-[#1E5631]/20 text-[#1E5631]">
               <FileText size={36} />
@@ -129,11 +129,11 @@ const CustomerInspectionDetails = () => {
             
             {/* 3. INSPECTION INFORMATION */}
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center gap-2">
                 <FileText size={20} className="text-[#B8860B]" />
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">{t('inspectionReports:inspectionInformation')}</h3>
               </div>
-              <div className="p-6 grid grid-cols-2 sm:grid-cols-3 gap-6">
+              <div className="p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-3 gap-6">
                 <div>
                   <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{t('inspectionReports:inspectionId')}</span>
                   <span className="text-sm font-bold text-gray-800">{report.inspectionId}</span>
@@ -165,11 +165,11 @@ const CustomerInspectionDetails = () => {
 
             {/* 4. INSPECTION FINDINGS */}
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center gap-2">
                 <ShieldCheck size={20} className="text-[#1E5631]" />
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">{t('inspectionReports:inspectionFindings')}</h3>
               </div>
-              <div className="p-8">
+              <div className="p-4 sm:p-5">
                 {report.findings ? (
                   <p className="text-[15px] font-medium text-gray-700 leading-relaxed whitespace-pre-wrap">
                     {report.findings}
@@ -182,11 +182,11 @@ const CustomerInspectionDetails = () => {
 
             {/* 5. INSPECTION REMARKS */}
             <div className="bg-[#fafcfb] rounded-[20px] shadow-sm border border-[#1E5631]/10 overflow-hidden">
-              <div className="p-6 border-b border-[#1E5631]/10 flex items-center gap-2">
+              <div className="p-4 sm:p-5 border-b border-[#1E5631]/10 flex items-center gap-2">
                 <HelpCircle size={20} className="text-[#1E5631]" />
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">{t('inspectionReports:inspectionRemarks')}</h3>
               </div>
-              <div className="p-8">
+              <div className="p-4 sm:p-5">
                 {report.remarks ? (
                   <p className="text-[15px] font-medium text-gray-700 leading-relaxed whitespace-pre-wrap">
                     {report.remarks}
@@ -199,11 +199,11 @@ const CustomerInspectionDetails = () => {
 
             {/* 6. INSPECTION CHECKLIST */}
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center gap-2">
                 <ClipboardList size={20} className="text-[#B8860B]" />
                 <h3 className="text-lg font-serif font-bold text-[#1a2b25]">{t('inspectionReports:inspectionChecklist')}</h3>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-4 sm:p-5 space-y-4">
                 {report.checklist && report.checklist.length > 0 ? (
                   report.checklist.map((item, idx) => {
                     const style = getStatusStyle(item.status);
@@ -241,11 +241,11 @@ const CustomerInspectionDetails = () => {
             
             {/* 7. INSPECTOR INFORMATION */}
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center gap-2">
                 <User size={18} className="text-[#B8860B]" />
                 <h3 className="text-[15px] font-serif font-bold text-[#1a2b25]">{t('inspectionReports:inspectedBy')}</h3>
               </div>
-              <div className="p-6 flex items-center gap-4">
+              <div className="p-4 sm:p-5 flex items-center gap-4">
                 {report.inspectedBy ? (
                   <>
                     <div className="w-12 h-12 rounded-full bg-[#eaf1ec] text-[#1E5631] font-bold text-lg flex items-center justify-center shrink-0 shadow-sm border border-white ring-2 ring-gray-50 uppercase">
@@ -264,7 +264,7 @@ const CustomerInspectionDetails = () => {
 
             {/* 2. RELATED PROPERTY */}
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-              <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <div className="p-4 sm:p-5 border-b border-gray-50 flex items-center gap-2">
                 <Home size={18} className="text-[#B8860B]" />
                 <h3 className="text-[15px] font-serif font-bold text-[#1a2b25]">Related Property</h3>
               </div>
@@ -280,7 +280,7 @@ const CustomerInspectionDetails = () => {
                     />
                   </div>
                   
-                  <div className="p-6 flex-1 flex flex-col">
+                  <div className="p-4 sm:p-5 flex-1 flex flex-col">
                     <div className="grid grid-cols-2 gap-y-4 gap-x-2 mb-6 text-sm">
                       <div className="col-span-2">
                         <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{t('inspectionReports:propertyTitle')}</span>

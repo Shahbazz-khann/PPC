@@ -51,7 +51,7 @@ const StatusBadge = ({ status }) => {
 };
 
 const SummaryCard = ({ title, value, subtitle, icon: Icon, colorClass, iconBgColor }) => (
-  <div className="bg-white p-6 rounded-[24px] shadow-sm border border-gray-100/50 flex flex-col justify-between relative overflow-hidden group cursor-pointer transition-all hover:shadow-md h-[180px]">
+  <div className="bg-white p-4 rounded-[24px] shadow-sm border border-gray-100/50 flex flex-col justify-between relative overflow-hidden group cursor-pointer transition-all hover:shadow-md h-[160px]">
     {/* Decorative shape top right */}
     <div className={`absolute -top-12 -right-12 w-40 h-40 rounded-full opacity-[0.15] transition-transform group-hover:scale-110 ${colorClass.split(' ')[0]}`}></div>
 
@@ -236,10 +236,10 @@ const CustomerDashboard = () => {
       </div>
 
       {/* --- MAIN CONTENT AREA --- */}
-      <div className="px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
+      <div className="px-4 sm:px-6 lg:px-6 max-w-[1600px] mx-auto">
 
         {/* Summary Stats (Overlapping Hero) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative z-20 mt-4 sm:-mt-12 lg:-mt-20 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative z-20 mt-4 sm:-mt-12 lg:-mt-20 mb-4">
           <SummaryCard
             title={t('dashboard:forSale')}
             value={loading ? "-" : String(summary.forSale).padStart(2, '0')}
