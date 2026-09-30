@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   CheckCircle2, ChevronRight, ChevronLeft, MapPin,
   Home, Maximize, List, Image as ImageIcon, Video,
@@ -7,13 +8,13 @@ import {
 import { getPropertyFormReference, getCities, getSocieties, getAreas } from '../../../../Services/customer.services';
 
 const STEPS = [
-  { id: 1, title: 'Classification', icon: Home },
-  { id: 2, title: 'Location', icon: MapPin },
-  { id: 3, title: 'Size & Area', icon: Maximize },
-  { id: 4, title: 'Particulars', icon: List },
-  { id: 5, title: 'Features and Amenities', icon: CheckSquare },
-  { id: 6, title: 'Pictures and Videos', icon: ImageIcon },
-  { id: 7, title: 'Review', icon: FileText }
+  { id: 1, titleKey: 'classification', icon: Home },
+  { id: 2, titleKey: 'location', icon: MapPin },
+  { id: 3, titleKey: 'sizeArea', icon: Maximize },
+  { id: 4, titleKey: 'particulars', icon: List },
+  { id: 5, titleKey: 'featuresAmenities', icon: CheckSquare },
+  { id: 6, titleKey: 'picturesVideos', icon: ImageIcon },
+  { id: 7, titleKey: 'review', icon: FileText }
 ];
 
 
@@ -248,6 +249,7 @@ const AutocompleteField = ({ label, name, value, displayValue, onChange, fetchOp
 };
 
 const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
+  const { t } = useTranslation('propertyForm');
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     propertyType: '',
@@ -372,15 +374,15 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
     let isValid = true;
 
     if (step === 1) {
-      if (!formData.propertyType) { newErrors.propertyType = 'Required'; isValid = false; }
-      if (!formData.propertyUse) { newErrors.propertyUse = 'Required'; isValid = false; }
+      if (!formData.propertyType) { newErrors.propertyType = '{t("messages.required")}'; isValid = false; }
+      if (!formData.propertyUse) { newErrors.propertyUse = '{t("messages.required")}'; isValid = false; }
     }
     if (step === 2) {
-      if (!formData.district) { newErrors.district = 'Required'; isValid = false; }
+      if (!formData.district) { newErrors.district = '{t("messages.required")}'; isValid = false; }
     }
     if (step === 3) {
       if (!formData.propertySize || formData.propertySize <= 0) { newErrors.propertySize = 'Must be greater than 0'; isValid = false; }
-      if (!formData.sizeUom) { newErrors.sizeUom = 'Required'; isValid = false; }
+      if (!formData.sizeUom) { newErrors.sizeUom = '{t("messages.required")}'; isValid = false; }
       if (formData.coveredAreaSqFt && formData.coveredAreaSqFt < 0) { newErrors.coveredAreaSqFt = 'Cannot be negative'; isValid = false; }
       if (formData.openAreaSqFt && formData.openAreaSqFt < 0) { newErrors.openAreaSqFt = 'Cannot be negative'; isValid = false; }
       ['propertySizeFront', 'propertySizeBack', 'propertySizeLeft', 'propertySizeRight'].forEach(field => {
@@ -408,13 +410,13 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
     let isValid = true;
 
     // step 1
-    if (!formData.propertyType) { newErrors.propertyType = 'Required'; isValid = false; }
-    if (!formData.propertyUse) { newErrors.propertyUse = 'Required'; isValid = false; }
+    if (!formData.propertyType) { newErrors.propertyType = '{t("messages.required")}'; isValid = false; }
+    if (!formData.propertyUse) { newErrors.propertyUse = '{t("messages.required")}'; isValid = false; }
     // step 2
-    if (!formData.district) { newErrors.district = 'Required'; isValid = false; }
+    if (!formData.district) { newErrors.district = '{t("messages.required")}'; isValid = false; }
     // step 3
     if (!formData.propertySize || formData.propertySize <= 0) { newErrors.propertySize = 'Must be greater than 0'; isValid = false; }
-    if (!formData.sizeUom) { newErrors.sizeUom = 'Required'; isValid = false; }
+    if (!formData.sizeUom) { newErrors.sizeUom = '{t("messages.required")}'; isValid = false; }
     if (formData.coveredAreaSqFt && formData.coveredAreaSqFt < 0) { newErrors.coveredAreaSqFt = 'Cannot be negative'; isValid = false; }
     if (formData.openAreaSqFt && formData.openAreaSqFt < 0) { newErrors.openAreaSqFt = 'Cannot be negative'; isValid = false; }
     ['propertySizeFront', 'propertySizeBack', 'propertySizeLeft', 'propertySizeRight'].forEach(field => {
@@ -639,23 +641,23 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
 
   const renderStep1 = (disabled) => (
     <div className={`grid grid-cols-1 sm:grid-cols-2 gap-6 ${!disabled ? 'animate-fadeIn' : ''}`}>
-      <SelectField label="Property Type" name="propertyType" value={formData.propertyType} onChange={handleChange} options={refData.propertyTypes.map(pt => ({ value: pt.property_type_id, label: pt.property_type_description }))} error={errors.propertyType} required disabled={disabled} />
-      <SelectField label="Property Use" name="propertyUse" value={formData.propertyUse} onChange={handleChange} options={refData.propertyUses.map(u => ({ value: u.property_use_id, label: u.property_use_description }))} error={errors.propertyUse} required disabled={disabled} />
+      <SelectField label={t("labels.propertyType")} name="propertyType" value={formData.propertyType} onChange={handleChange} options={refData.propertyTypes.map(pt => ({ value: pt.property_type_id, label: pt.property_type_description }))} error={errors.propertyType} required disabled={disabled} />
+      <SelectField label={t("labels.propertyUse")} name="propertyUse" value={formData.propertyUse} onChange={handleChange} options={refData.propertyUses.map(u => ({ value: u.property_use_id, label: u.property_use_description }))} error={errors.propertyUse} required disabled={disabled} />
     </div>
   );
 
   const renderStep2 = (disabled) => (
     <div className={`space-y-6 ${!disabled ? 'animate-fadeIn' : ''}`}>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-        <SelectField label="Country" name="country" value={formData.country} onChange={handleChange} options={refData.countries.map(c => ({ value: c.country_id, label: c.country_english }))} disabled={disabled} />
-        <SelectField label="Province" name="province" value={formData.province} onChange={handleChange} options={refData.provinces.filter(p => p.country_id == formData.country).map(p => ({ value: p.province_id, label: p.province_english }))} disabled={disabled || !formData.country} />
+        <SelectField label={t("labels.country")} name="country" value={formData.country} onChange={handleChange} options={refData.countries.map(c => ({ value: c.country_id, label: c.country_english }))} disabled={disabled} />
+        <SelectField label={t("labels.province")} name="province" value={formData.province} onChange={handleChange} options={refData.provinces.filter(p => p.country_id == formData.country).map(p => ({ value: p.province_id, label: p.province_english }))} disabled={disabled || !formData.country} />
 
-        <SelectField label="Division" name="division" value={formData.division} onChange={handleChange} options={refData.divisions.filter(d => d.province_id == formData.province).map(d => ({ value: d.division_id, label: d.division_english }))} disabled={disabled || !formData.province} />
-        <SelectField label="District" name="district" value={formData.district} onChange={handleChange} options={refData.districts.filter(d => d.division_id == formData.division).map(d => ({ value: d.district_id, label: d.district_english }))} error={errors.district} required disabled={disabled || !formData.division} />
+        <SelectField label={t("labels.division")} name="division" value={formData.division} onChange={handleChange} options={refData.divisions.filter(d => d.province_id == formData.province).map(d => ({ value: d.division_id, label: d.division_english }))} disabled={disabled || !formData.province} />
+        <SelectField label={t("labels.district")} name="district" value={formData.district} onChange={handleChange} options={refData.districts.filter(d => d.division_id == formData.division).map(d => ({ value: d.district_id, label: d.district_english }))} error={errors.district} required disabled={disabled || !formData.division} />
 
-        <SelectField label="Tehsil" name="tehsil" value={formData.tehsil} onChange={handleChange} options={refData.tehsils.filter(t => t.district_id == formData.district).map(t => ({ value: t.tehsil_id, label: t.tehsil_english }))} disabled={disabled || !formData.district} />
+        <SelectField label={t("labels.tehsil")} name="tehsil" value={formData.tehsil} onChange={handleChange} options={refData.tehsils.filter(t => t.district_id == formData.district).map(t => ({ value: t.tehsil_id, label: t.tehsil_english }))} disabled={disabled || !formData.district} />
         <AutocompleteField
-          label="City"
+          label={t("labels.city")}
           name="city"
           value={formData.city}
           displayValue={formData.cityLabel}
@@ -666,11 +668,11 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
             return (res?.data || []).map(c => ({ value: c.city_id, label: c.city_english }));
           }}
           disabled={disabled || !formData.tehsil}
-          placeholder="Search City..."
+          placeholder={t("placeholders.search", { label: t("labels.city") })}
         />
 
         <AutocompleteField
-          label="Society"
+          label={t("labels.society")}
           name="society"
           value={formData.society}
           displayValue={formData.societyLabel}
@@ -681,11 +683,11 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
             return (res?.data || []).map(s => ({ value: s.society_id, label: s.society_english }));
           }}
           disabled={disabled || !formData.city}
-          placeholder="Search Society..."
+          placeholder={t("placeholders.search", { label: t("labels.society") })}
         />
 
         <AutocompleteField
-          label="Area / Block"
+          label={t("labels.areaBlock")}
           name="area"
           value={formData.area}
           displayValue={formData.areaLabel}
@@ -696,10 +698,10 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
             return (res?.data || []).map(a => ({ value: a.area_id, label: a.area_english }));
           }}
           disabled={disabled || !formData.society}
-          placeholder="Search Area / Block..."
+          placeholder={t("placeholders.search", { label: t("labels.areaBlock") })}
         />
 
-        <SelectField label="Property Location Type" name="propertyLocation" value={formData.propertyLocation} onChange={handleChange} options={refData.propertyLocations.map(l => ({ value: l.property_location_id, label: l.property_location_description }))} disabled={disabled} />
+        <SelectField label={t("labels.propertyLocationType")} name="propertyLocation" value={formData.propertyLocation} onChange={handleChange} options={refData.propertyLocations.map(l => ({ value: l.property_location_id, label: l.property_location_description }))} disabled={disabled} />
       </div>
     </div>
   );
@@ -707,37 +709,37 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
   const renderStep3 = (disabled) => (
     <div className={`space-y-6 ${!disabled ? 'animate-fadeIn' : ''}`}>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <InputField label="Primary Size" name="propertySize" value={formData.propertySize} onChange={handleChange} error={errors.propertySize} type="number" isNumber required placeholder="e.g. 10" disabled={disabled} />
-        <SelectField label="Size UOM" name="sizeUom" value={formData.sizeUom} onChange={handleChange} error={errors.sizeUom} options={refData.uom.map(u => ({ value: u.uom_id, label: u.uom_english }))} required disabled={disabled} />
-        <SelectField label="Marla Size" name="marlaSize" value={formData.marlaSize} onChange={handleChange} options={refData.marlaSizes.map(ms => ({ value: ms.marla_id, label: `${parseFloat(ms.marla_size_sqft)} Sq Ft` }))} disabled={disabled} />
+        <InputField label={t("labels.primarySize")} name="propertySize" value={formData.propertySize} onChange={handleChange} error={errors.propertySize} type="number" isNumber required placeholder={t("placeholders.eg10")} disabled={disabled} />
+        <SelectField label={t("labels.sizeUom")} name="sizeUom" value={formData.sizeUom} onChange={handleChange} error={errors.sizeUom} options={refData.uom.map(u => ({ value: u.uom_id, label: u.uom_english }))} required disabled={disabled} />
+        <SelectField label={t("labels.marlaSize")} name="marlaSize" value={formData.marlaSize} onChange={handleChange} options={refData.marlaSizes.map(ms => ({ value: ms.marla_id, label: `${parseFloat(ms.marla_size_sqft)} Sq Ft` }))} disabled={disabled} />
       </div>
 
       <div className="border-t border-gray-100 pt-6">
-        <h4 className="text-sm font-bold text-gray-800 mb-4">Calculated Total Areas</h4>
+        <h4 className="text-sm font-bold text-gray-800 mb-4">{t("sections.calculatedTotalAreas")}</h4>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-          <InputField label="Area (Marla)" name="areaMarla" value={formData.areaMarla} onChange={handleChange} type="number" isNumber disabled={disabled} />
-          <InputField label="Area (Kanal)" name="areaKanal" value={formData.areaKanal} onChange={handleChange} type="number" isNumber disabled={disabled} />
-          <InputField label="Area (Acre)" name="areaAcre" value={formData.areaAcre} onChange={handleChange} type="number" isNumber disabled={disabled} />
-          <InputField label="Area (Sq Ft)" name="areaSqFt" value={formData.areaSqFt} onChange={handleChange} type="number" isNumber disabled={disabled} />
-          <InputField label="Area (Sq Yard)" name="areaSqYard" value={formData.areaSqYard} onChange={handleChange} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.areaMarla")} name="areaMarla" value={formData.areaMarla} onChange={handleChange} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.areaKanal")} name="areaKanal" value={formData.areaKanal} onChange={handleChange} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.areaAcre")} name="areaAcre" value={formData.areaAcre} onChange={handleChange} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.areaSqFt")} name="areaSqFt" value={formData.areaSqFt} onChange={handleChange} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.areaSqYard")} name="areaSqYard" value={formData.areaSqYard} onChange={handleChange} type="number" isNumber disabled={disabled} />
         </div>
       </div>
 
       <div className="border-t border-gray-100 pt-6">
-        <h4 className="text-sm font-bold text-gray-800 mb-4">Property Dimensions</h4>
+        <h4 className="text-sm font-bold text-gray-800 mb-4">{t("sections.propertyDimensions")}</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <InputField label="Property Size Front" name="propertySizeFront" value={formData.propertySizeFront} onChange={handleChange} error={errors.propertySizeFront} type="number" isNumber placeholder="e.g. 50" disabled={disabled} />
-          <InputField label="Property Size Back" name="propertySizeBack" value={formData.propertySizeBack} onChange={handleChange} error={errors.propertySizeBack} type="number" isNumber placeholder="e.g. 50" disabled={disabled} />
-          <InputField label="Property Size Left" name="propertySizeLeft" value={formData.propertySizeLeft} onChange={handleChange} error={errors.propertySizeLeft} type="number" isNumber placeholder="e.g. 90" disabled={disabled} />
-          <InputField label="Property Size Right" name="propertySizeRight" value={formData.propertySizeRight} onChange={handleChange} error={errors.propertySizeRight} type="number" isNumber placeholder="e.g. 90" disabled={disabled} />
+          <InputField label={t("labels.propertySizeFront")} name="propertySizeFront" value={formData.propertySizeFront} onChange={handleChange} error={errors.propertySizeFront} type="number" isNumber placeholder={t("placeholders.eg50")} disabled={disabled} />
+          <InputField label={t("labels.propertySizeBack")} name="propertySizeBack" value={formData.propertySizeBack} onChange={handleChange} error={errors.propertySizeBack} type="number" isNumber placeholder={t("placeholders.eg50")} disabled={disabled} />
+          <InputField label={t("labels.propertySizeLeft")} name="propertySizeLeft" value={formData.propertySizeLeft} onChange={handleChange} error={errors.propertySizeLeft} type="number" isNumber placeholder={t("placeholders.eg90")} disabled={disabled} />
+          <InputField label={t("labels.propertySizeRight")} name="propertySizeRight" value={formData.propertySizeRight} onChange={handleChange} error={errors.propertySizeRight} type="number" isNumber placeholder={t("placeholders.eg90")} disabled={disabled} />
         </div>
       </div>
 
       <div className="border-t border-gray-100 pt-6">
-        <h4 className="text-sm font-bold text-gray-800 mb-4">Construction Areas</h4>
+        <h4 className="text-sm font-bold text-gray-800 mb-4">{t("sections.constructionAreas")}</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <InputField label="Covered Area (Sq Ft)" name="coveredAreaSqFt" value={formData.coveredAreaSqFt} onChange={handleChange} error={errors.coveredAreaSqFt} type="number" isNumber disabled={disabled} />
-          <InputField label="Open Area (Sq Ft)" name="openAreaSqFt" value={formData.openAreaSqFt} onChange={handleChange} error={errors.openAreaSqFt} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.coveredAreaSqFt")} name="coveredAreaSqFt" value={formData.coveredAreaSqFt} onChange={handleChange} error={errors.coveredAreaSqFt} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.openAreaSqFt")} name="openAreaSqFt" value={formData.openAreaSqFt} onChange={handleChange} error={errors.openAreaSqFt} type="number" isNumber disabled={disabled} />
         </div>
       </div>
     </div>
@@ -746,37 +748,37 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
   const renderStep4 = (disabled) => (
     <div className={`space-y-8 ${!disabled ? 'animate-fadeIn' : ''}`}>
       <div>
-        <h4 className="text-sm font-bold text-[#B8860B] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Rooms & Sections</h4>
+        <h4 className="text-sm font-bold text-[#B8860B] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">{t("sections.roomsSections")}</h4>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-          <InputField label="Rooms" name="rooms" value={formData.rooms} onChange={handleChange} error={errors.rooms} type="number" isNumber disabled={disabled} />
-          <InputField label="Bathrooms" name="bathrooms" value={formData.bathrooms} onChange={handleChange} error={errors.bathrooms} type="number" isNumber disabled={disabled} />
-          <InputField label="Floors" name="floors" value={formData.floors} onChange={handleChange} error={errors.floors} type="number" isNumber disabled={disabled} />
-          <InputField label="Lounges" name="lounges" value={formData.lounges} onChange={handleChange} error={errors.lounges} type="number" isNumber disabled={disabled} />
-          <InputField label="Kitchens" name="kitchens" value={formData.kitchens} onChange={handleChange} error={errors.kitchens} type="number" isNumber disabled={disabled} />
-          <InputField label="Drawing Rooms" name="drawingRooms" value={formData.drawingRooms} onChange={handleChange} error={errors.drawingRooms} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.rooms")} name="rooms" value={formData.rooms} onChange={handleChange} error={errors.rooms} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.bathrooms")} name="bathrooms" value={formData.bathrooms} onChange={handleChange} error={errors.bathrooms} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.floors")} name="floors" value={formData.floors} onChange={handleChange} error={errors.floors} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.lounges")} name="lounges" value={formData.lounges} onChange={handleChange} error={errors.lounges} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.kitchens")} name="kitchens" value={formData.kitchens} onChange={handleChange} error={errors.kitchens} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.drawingRooms")} name="drawingRooms" value={formData.drawingRooms} onChange={handleChange} error={errors.drawingRooms} type="number" isNumber disabled={disabled} />
         </div>
       </div>
       <div>
-        <h4 className="text-sm font-bold text-[#B8860B] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Road / Access Dimensions (ft)</h4>
+        <h4 className="text-sm font-bold text-[#B8860B] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">{t("sections.roadAccessDimensions")}</h4>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-          <InputField label="Front Road" name="roadFrontFt" value={formData.roadFrontFt} onChange={handleChange} error={errors.roadFrontFt} type="number" isNumber disabled={disabled} />
-          <InputField label="Back Road" name="roadBackFt" value={formData.roadBackFt} onChange={handleChange} error={errors.roadBackFt} type="number" isNumber disabled={disabled} />
-          <InputField label="Left Road" name="roadLeftFt" value={formData.roadLeftFt} onChange={handleChange} error={errors.roadLeftFt} type="number" isNumber disabled={disabled} />
-          <InputField label="Right Road" name="roadRightFt" value={formData.roadRightFt} onChange={handleChange} error={errors.roadRightFt} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.roadFrontFt")} name="roadFrontFt" value={formData.roadFrontFt} onChange={handleChange} error={errors.roadFrontFt} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.roadBackFt")} name="roadBackFt" value={formData.roadBackFt} onChange={handleChange} error={errors.roadBackFt} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.roadLeftFt")} name="roadLeftFt" value={formData.roadLeftFt} onChange={handleChange} error={errors.roadLeftFt} type="number" isNumber disabled={disabled} />
+          <InputField label={t("labels.roadRightFt")} name="roadRightFt" value={formData.roadRightFt} onChange={handleChange} error={errors.roadRightFt} type="number" isNumber disabled={disabled} />
         </div>
       </div>
       <div>
-        <h4 className="text-sm font-bold text-[#B8860B] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Additional Information</h4>
+        <h4 className="text-sm font-bold text-[#B8860B] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">{t("sections.additionalInformation")}</h4>
         <div className="space-y-2">
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">
-            Property Description
+            {t("labels.propertyDescription")}
           </label>
           <textarea
             name="propertyDescription"
             value={formData.propertyDescription}
             onChange={handleChange}
             disabled={disabled}
-            placeholder="Enter any additional details about the property..."
+            placeholder={t("placeholders.propertyDescription")}
             rows={4}
             className={`w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B] outline-none transition-all text-sm font-semibold resize-none ${disabled ? 'text-gray-500 bg-gray-100 cursor-not-allowed opacity-70' : 'text-gray-800 bg-gray-50/50'}`}
           />
@@ -790,15 +792,15 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className={`flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-gray-50/50 ${disabled ? 'opacity-70' : ''}`}>
           <input type="checkbox" id="swimmingPool" name="swimmingPool" checked={formData.swimmingPool} onChange={handleChange} className={`w-5 h-5 accent-[#1a2b25] rounded ${disabled ? 'cursor-not-allowed' : ''}`} disabled={disabled} />
-          <label htmlFor="swimmingPool" className={`text-sm font-semibold text-gray-800 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>Swimming Pool</label>
+          <label htmlFor="swimmingPool" className={`text-sm font-semibold text-gray-800 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>{t("labels.swimmingPool")}</label>
         </div>
         <div className={`flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-gray-50/50 ${disabled ? 'opacity-70' : ''}`}>
           <input type="checkbox" id="mediaRoom" name="mediaRoom" checked={formData.mediaRoom} onChange={handleChange} className={`w-5 h-5 accent-[#1a2b25] rounded ${disabled ? 'cursor-not-allowed' : ''}`} disabled={disabled} />
-          <label htmlFor="mediaRoom" className={`text-sm font-semibold text-gray-800 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>Media Room</label>
+          <label htmlFor="mediaRoom" className={`text-sm font-semibold text-gray-800 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>{t("labels.mediaRoom")}</label>
         </div>
         <div className={`flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-gray-50/50 ${disabled ? 'opacity-70' : ''}`}>
           <input type="checkbox" id="solarInstalled" name="solarInstalled" checked={formData.solarInstalled} onChange={handleChange} className={`w-5 h-5 accent-[#1a2b25] rounded ${disabled ? 'cursor-not-allowed' : ''}`} disabled={disabled} />
-          <label htmlFor="solarInstalled" className={`text-sm font-semibold text-gray-800 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>Solar Installed</label>
+          <label htmlFor="solarInstalled" className={`text-sm font-semibold text-gray-800 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>{t("labels.solarInstalled")}</label>
         </div>
         {formData.solarInstalled && (
           <InputField label="Solar Capacity (e.g. 10kW)" name="solarCapacity" value={formData.solarCapacity} onChange={handleChange} disabled={disabled} />
@@ -806,8 +808,8 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-gray-50">
-        <InputField label="Electric Meters" name="electricMeters" value={formData.electricMeters} onChange={handleChange} type="number" isNumber disabled={disabled} />
-        <InputField label="Gas Meters" name="gasMeters" value={formData.gasMeters} onChange={handleChange} type="number" isNumber disabled={disabled} />
+        <InputField label={t("labels.electricMeters")} name="electricMeters" value={formData.electricMeters} onChange={handleChange} type="number" isNumber disabled={disabled} />
+        <InputField label={t("labels.gasMeters")} name="gasMeters" value={formData.gasMeters} onChange={handleChange} type="number" isNumber disabled={disabled} />
       </div>
 
       <div className="pt-4 border-t border-gray-50">
@@ -1037,7 +1039,7 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
       {/* Sidebar Stepper */}
       <div className="w-full md:w-64 bg-[#FAF8F3] border-b md:border-b-0 md:border-r border-gray-100 p-6 sm:p-8 shrink-0">
         <h2 className="text-lg font-serif font-bold text-[#1a2b25] mb-8">
-          {isEditMode ? 'Edit Property' : 'Add Property'}
+          {isEditMode ? t('buttons.editProperty') : t('buttons.addProperty')}
         </h2>
         <div className="flex flex-row md:flex-col gap-4 overflow-x-auto pb-4 md:pb-0 no-scrollbar">
           {STEPS.map((step) => {
@@ -1055,7 +1057,7 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
                   {isCompleted ? <CheckCircle2 size={16} /> : step.id}
                 </div>
                 <span className={`text-sm font-bold hidden sm:block ${isActive ? 'text-[#1a2b25]' : 'text-gray-500'}`}>
-                  {step.title}
+                  {t(`steps.${step.titleKey}`)}
                 </span>
               </div>
             );
@@ -1068,7 +1070,7 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
         <div className="p-6 sm:p-10 flex-1">
           <h3 className="text-2xl font-serif font-bold text-[#1a2b25] mb-8 flex items-center gap-3 border-b border-gray-100 pb-4">
             {React.createElement(STEPS[currentStep - 1].icon, { size: 24, className: "text-[#B8860B]" })}
-            {STEPS[currentStep - 1].title}
+            {t(`steps.${STEPS[currentStep - 1].titleKey}`)}
           </h3>
 
           <div className="space-y-6">
@@ -1116,8 +1118,8 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
                       </h4>
                       {editingSection === section.id ? (
                         <div className="flex items-center gap-2">
-                          <button type="button" onClick={handleCancelSection} className="text-xs font-bold text-gray-500 hover:text-gray-700 px-3 py-1.5 transition-colors">Cancel</button>
-                          <button type="button" onClick={() => handleSaveSection(section.id)} className="text-xs font-bold text-white bg-[#1a2b25] hover:bg-[#2c4232] px-4 py-1.5 rounded-full transition-colors">Save Changes</button>
+                          <button type="button" onClick={handleCancelSection} className="text-xs font-bold text-gray-500 hover:text-gray-700 px-3 py-1.5 transition-colors">{t("buttons.cancel")}</button>
+                          <button type="button" onClick={() => handleSaveSection(section.id)} className="text-xs font-bold text-white bg-[#1a2b25] hover:bg-[#2c4232] px-4 py-1.5 rounded-full transition-colors">{t("buttons.saveChanges")}</button>
                         </div>
                       ) : (
                         <button type="button" onClick={() => handleEditSection(section.id)} className={`text-sm font-bold text-[#B8860B] hover:underline px-4 py-1.5 bg-[#f4f2ea] rounded-full transition-colors ${editingSection !== null ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}>Edit</button>
@@ -1154,7 +1156,7 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
               onClick={() => onSubmit(formData)}
               className="px-8 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#d4af37] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(184,134,11,0.3)] hover:shadow-lg transition-all flex items-center gap-2"
             >
-              <CheckCircle2 size={16} /> {isEditMode ? 'Save Changes' : 'Register Property'}
+              <CheckCircle2 size={16} /> {isEditMode ? t('buttons.saveChanges') : t('buttons.registerProperty')}
             </button>
           )}
         </div>

@@ -104,7 +104,9 @@ const Signup = () => {
           <div className="w-full max-w-xl lg:ml-auto lg:mr-4 xl:mr-12 flex flex-col lg:justify-between h-full gap-6 sm:gap-8 lg:gap-0">
           {/* Top-Left PPC Branding */}
           <div className="relative z-10 flex items-center justify-center lg:justify-start pt-2 sm:pt-4 lg:pt-0 mb-2 lg:mb-0">
-            <img src={logoImg} alt="PPC Logo" className="w-40 sm:w-48 lg:w-48 h-auto drop-shadow-md" />
+            <Link to="/">
+              <img src={logoImg} alt="PPC Logo" className="w-40 sm:w-48 lg:w-48 h-auto drop-shadow-md cursor-pointer hover:opacity-90 transition-opacity" />
+            </Link>
           </div>
 
           {/* Lower-Left Main Text */}

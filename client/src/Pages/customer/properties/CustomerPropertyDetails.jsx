@@ -23,6 +23,7 @@ const CustomerPropertyDetails = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDemandType, setSelectedDemandType] = useState(null); // Full object: { demand_type_id, demand_type_english }
   const [demandAmountInput, setDemandAmountInput] = useState('');
+  const [maximumMarginInput, setMaximumMarginInput] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
@@ -97,6 +98,7 @@ const CustomerPropertyDetails = () => {
     }
     setSelectedDemandType(matchedType);
     setDemandAmountInput('');
+    setMaximumMarginInput('');
     setSubmitError(null);
     setIsModalOpen(true);
   };
@@ -107,13 +109,22 @@ const CustomerPropertyDetails = () => {
       setSubmitError('Please enter a valid amount greater than 0.');
       return;
     }
+    if (maximumMarginInput === '' || isNaN(maximumMarginInput) || Number(maximumMarginInput) < 0) {
+      setSubmitError('Please enter a valid non-negative Maximum Margin.');
+      return;
+    }
+    if (Number(maximumMarginInput) > Number(demandAmountInput)) {
+      setSubmitError('Maximum Margin cannot exceed the Demand Amount.');
+      return;
+    }
 
     setSubmitLoading(true);
     setSubmitError(null);
     try {
       await setCustomerPropertyDemand(propertyId, {
         demand_type_id: selectedDemandType.demand_type_id,
-        demand_amount: Number(demandAmountInput)
+        demand_amount: Number(demandAmountInput),
+        maximum_margin: Number(maximumMarginInput)
       });
       setIsModalOpen(false);
       // Refetch property details to get official backend values
@@ -562,6 +573,19 @@ const CustomerPropertyDetails = () => {
                     className="w-full p-4 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B] outline-none transition-colors text-lg font-bold text-[#1a2b25]"
                     placeholder={t('propertyDetails:egAmount')}
                     min="1"
+                    disabled={submitLoading}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#1a2b25] mb-2">{t('propertyDetails:maximumMargin')} <span className="text-red-500">*</span></label>
+                  <input
+                    type="number"
+                    value={maximumMarginInput}
+                    onChange={(e) => setMaximumMarginInput(e.target.value)}
+                    className="w-full p-4 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B] outline-none transition-colors text-lg font-bold text-[#1a2b25]"
+                    placeholder={t('propertyDetails:egAmount')}
+                    min="0"
                     disabled={submitLoading}
                     required
                   />

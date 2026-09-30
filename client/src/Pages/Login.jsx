@@ -56,9 +56,25 @@ const Login = () => {
 
         console.log('Login session saved successfully');
 
+        const parseJwt = (t) => {
+          try {
+            return JSON.parse(atob(t.split('.')[1]));
+          } catch (e) {
+            return null;
+          }
+        };
+
+        const decoded = parseJwt(response.token);
+        const roles = decoded?.roles || [];
+
         // Redirect based on user_type
         if (response.data?.user_type === 'Customer') {
           navigate('/customer/dashboard');
+        } else if (
+          response.data?.user_type === 'Employee' &&
+          roles.some(r => r.toLowerCase() === 'admin')
+        ) {
+          navigate('/admin/dashboard');
         } else {
           navigate('/');
         }
@@ -92,11 +108,13 @@ const Login = () => {
 
           {/* Top-Left PPC Branding */}
           <div className="relative z-10 flex items-center gap-3.5 pt-2 sm:pt-0">
-            <img
-              src={logoImg}
-              alt="PPC Logo"
-              className="w-32 sm:w-40 lg:w-48 h-auto drop-shadow-md"
-            />
+            <Link to="/">
+              <img
+                src={logoImg}
+                alt="PPC Logo"
+                className="w-32 sm:w-40 lg:w-48 h-auto drop-shadow-md cursor-pointer hover:opacity-90 transition-opacity"
+              />
+            </Link>
           </div>
 
           {/* Lower-Left Main Text */}

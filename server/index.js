@@ -15,6 +15,7 @@ const authRoutes = require('./routes/Auth/auth.routes');
 const customerRoutes = require('./routes/Customer');
 const referenceRoutes = require('./routes/Reference');
 const publicRoutes = require('./routes/Public/public.routes');
+const adminRoutes = require('./routes/Admin/admin.routes');
 
 // --------------------------------------------------
 // Environment
@@ -110,6 +111,7 @@ apiRouter.use('/auth', authRoutes);
 apiRouter.use('/customer', customerRoutes);
 apiRouter.use('/reference', referenceRoutes);
 apiRouter.use('/public', publicRoutes);
+apiRouter.use('/admin', adminRoutes);
 
 app.use(`/api/${API_VERSION}`, apiRouter);
 

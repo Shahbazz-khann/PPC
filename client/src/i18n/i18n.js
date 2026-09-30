@@ -13,6 +13,8 @@ import enVisits from '../locales/en/visits.json';
 import enInspectionReports from '../locales/en/inspectionReports.json';
 import enVerificationReports from '../locales/en/verificationReports.json';
 import enProfile from '../locales/en/profile.json';
+import enPropertyForm from '../locales/en/propertyForm.json';
+import enAdmin from '../locales/en/admin.json';
 
 // Urdu
 import urCommon from '../locales/ur/common.json';
@@ -25,6 +27,8 @@ import urVisits from '../locales/ur/visits.json';
 import urInspectionReports from '../locales/ur/inspectionReports.json';
 import urVerificationReports from '../locales/ur/verificationReports.json';
 import urProfile from '../locales/ur/profile.json';
+import urPropertyForm from '../locales/ur/propertyForm.json';
+import urAdmin from '../locales/ur/admin.json';
 
 const resources = {
   en: {
@@ -37,7 +41,9 @@ const resources = {
     visits: enVisits,
     inspectionReports: enInspectionReports,
     verificationReports: enVerificationReports,
-    profile: enProfile
+    profile: enProfile,
+    propertyForm: enPropertyForm,
+    admin: enAdmin
   },
   ur: {
     common: urCommon,
@@ -49,7 +55,9 @@ const resources = {
     visits: urVisits,
     inspectionReports: urInspectionReports,
     verificationReports: urVerificationReports,
-    profile: urProfile
+    profile: urProfile,
+    propertyForm: urPropertyForm,
+    admin: urAdmin
   }
 };
 
@@ -59,7 +67,7 @@ i18n
   .init({
     resources,
     fallbackLng: 'en',
-    ns: ['common', 'public', 'dashboard', 'properties', 'propertyDetails', 'requests', 'visits', 'inspectionReports', 'verificationReports', 'profile'],
+    ns: ['common', 'public', 'dashboard', 'properties', 'propertyDetails', 'requests', 'visits', 'inspectionReports', 'verificationReports', 'profile', 'propertyForm', 'admin'],
     defaultNS: 'common',
     detection: {
       order: ['localStorage', 'navigator'],

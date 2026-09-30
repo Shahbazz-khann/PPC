@@ -46,9 +46,11 @@ const FeaturedProperties = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {properties.map((property) => (
-            <div
+            <Link
               key={property.property_id}
-              className="bg-white border border-gray-200/80 rounded-xl p-3 flex flex-col justify-between shadow-sm"
+              to={`/properties/${property.property_id}`}
+              state={{ property }}
+              className="bg-white border border-gray-200/80 rounded-xl p-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow cursor-pointer"
             >
               <div>
                 {/* Image Container with Badge */}
@@ -89,7 +91,7 @@ const FeaturedProperties = () => {
                   </span>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

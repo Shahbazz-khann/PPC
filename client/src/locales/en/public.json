@@ -234,5 +234,22 @@
   "noPropertiesFound": "No properties found",
   "tryAdjustingSearchFilters": "Try adjusting your search filters to find what you're looking for.",
   "dotBed": " Bed • ",
-  "dotBath": " Bath • "
+  "dotBath": " Bath • ",
+  "propertyDetails": "Property Details",
+  "backToProperties": "Back to Properties",
+  "propertyOverview": "Property Overview",
+  "propertyTypeDetail": "Property Type",
+  "propertySize": "Property Size",
+  "bedrooms": "Bedrooms",
+  "bathrooms": "Bathrooms",
+  "location": "Location",
+  "propertyDescription": "Property Description",
+  "propertyOwner": "Property Owner",
+  "contactPpc": "Contact PPC",
+  "callPpc": "Call PPC",
+  "viewAllPhotos": "View All Photos",
+  "propertyUnavailable": "Property details are currently unavailable",
+  "ownerInfoAvailableHere": "Owner information will be available here.",
+  "interestedContact": "Interested in this property? Contact PPC for more information.",
+  "noDescription": "No description available."
 }

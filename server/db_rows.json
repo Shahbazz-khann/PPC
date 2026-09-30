@@ -1,0 +1,203 @@
+{
+  "usersSchema": [
+    {
+      "column_name": "user_id",
+      "data_type": "bigint",
+      "character_maximum_length": null,
+      "is_nullable": "NO",
+      "column_default": "nextval('users_user_id_seq'::regclass)"
+    },
+    {
+      "column_name": "user_type_id",
+      "data_type": "bigint",
+      "character_maximum_length": null,
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "employee_id",
+      "data_type": "bigint",
+      "character_maximum_length": null,
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "user_first_name",
+      "data_type": "character varying",
+      "character_maximum_length": 100,
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "user_middle_name",
+      "data_type": "character varying",
+      "character_maximum_length": 100,
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "user_last_name",
+      "data_type": "character varying",
+      "character_maximum_length": 100,
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "country",
+      "data_type": "character varying",
+      "character_maximum_length": 100,
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "email",
+      "data_type": "character varying",
+      "character_maximum_length": 255,
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "mobile",
+      "data_type": "character varying",
+      "character_maximum_length": 30,
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "date_of_registration",
+      "data_type": "timestamp with time zone",
+      "character_maximum_length": null,
+      "is_nullable": "NO",
+      "column_default": "CURRENT_TIMESTAMP"
+    },
+    {
+      "column_name": "mobile_allowed",
+      "data_type": "boolean",
+      "character_maximum_length": null,
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "column_name": "web_allowed",
+      "data_type": "boolean",
+      "character_maximum_length": null,
+      "is_nullable": "NO",
+      "column_default": "true"
+    },
+    {
+      "column_name": "creation_date_time",
+      "data_type": "timestamp with time zone",
+      "character_maximum_length": null,
+      "is_nullable": "NO",
+      "column_default": "CURRENT_TIMESTAMP"
+    },
+    {
+      "column_name": "update_date_time",
+      "data_type": "timestamp with time zone",
+      "character_maximum_length": null,
+      "is_nullable": "NO",
+      "column_default": "CURRENT_TIMESTAMP"
+    },
+    {
+      "column_name": "created_by_user",
+      "data_type": "bigint",
+      "character_maximum_length": null,
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "is_active",
+      "data_type": "boolean",
+      "character_maximum_length": null,
+      "is_nullable": "NO",
+      "column_default": "true"
+    },
+    {
+      "column_name": "gps_coordinates",
+      "data_type": "character varying",
+      "character_maximum_length": 100,
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "url_used",
+      "data_type": "text",
+      "character_maximum_length": null,
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "password_hash",
+      "data_type": "character varying",
+      "character_maximum_length": 255,
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "reset_password_token",
+      "data_type": "text",
+      "character_maximum_length": null,
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "reset_password_expires",
+      "data_type": "timestamp without time zone",
+      "character_maximum_length": null,
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "profile_image_url",
+      "data_type": "text",
+      "character_maximum_length": null,
+      "is_nullable": "YES",
+      "column_default": null
+    }
+  ],
+  "employeeAccounts": [
+    {
+      "user_id": "2",
+      "user_type_id": "2",
+      "employee_id": "1",
+      "user_first_name": "Test",
+      "user_middle_name": null,
+      "user_last_name": "Admin",
+      "country": "Pakistan",
+      "email": "testadmin@ppc.com",
+      "mobile": "+923009999001",
+      "date_of_registration": "2026-09-09T07:37:26.282Z",
+      "mobile_allowed": false,
+      "web_allowed": true,
+      "creation_date_time": "2026-09-09T07:37:26.282Z",
+      "update_date_time": "2026-09-09T07:37:26.282Z",
+      "created_by_user": null,
+      "is_active": true,
+      "gps_coordinates": null,
+      "url_used": null,
+      "password_hash": "$2b$10$WjrHVLYJOdFsSG8eSKq2zeInUVcc8j9sl0hZoZRqfktq2Jx3haE/W",
+      "reset_password_token": null,
+      "reset_password_expires": null,
+      "profile_image_url": null,
+      "user_type_english": "Employee",
+      "user_type_urdu": "ملازم",
+      "user_type_abb": "EMP"
+    }
+  ],
+  "userRoleMapping": [
+    {
+      "user_role_id": "1",
+      "user_id": "2",
+      "role_id": "3",
+      "from_date": "2026-09-08T19:00:00.000Z",
+      "to_date": null,
+      "remarks": null,
+      "creation_date_time": "2026-09-09T07:37:26.282Z",
+      "update_date_time": "2026-09-09T07:37:26.282Z",
+      "created_by_user": null,
+      "is_active": true,
+      "gps_coordinates": null,
+      "url_used": null
+    }
+  ]
+}

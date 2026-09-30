@@ -13,16 +13,29 @@ const CustomerAccountMenu = ({ theme = 'light' }) => {
   const dropdownRef = useRef(null);
   
   // Use user data or fallback
-  const displayName = [
-    user?.user_first_name,
-    user?.user_middle_name,
-    user?.user_last_name,
-  ].filter(Boolean).join(' ') || 'Customer';
+  let firstName = user?.user_first_name;
+  let middleName = user?.user_middle_name;
+  let lastName = user?.user_last_name;
+  let email = user?.email || 'user@example.com';
+  let roles = user?.roles || [];
+  let userType = user?.user_type || user?.user_type_english;
+
+  const token = localStorage.getItem('isLoggedIn') === 'true' ? sessionStorage.getItem('PROPERTY_CARE_SESSION') : null;
+  if (token && (!roles || roles.length === 0)) {
+    try {
+      const parsedSession = JSON.parse(token);
+      const decoded = JSON.parse(atob(parsedSession.token.split('.')[1]));
+      roles = decoded.roles || [];
+      if (!userType) userType = decoded.user_type;
+      if (!firstName) firstName = decoded.user_first_name;
+      if (!lastName) lastName = decoded.user_last_name;
+    } catch (e) {}
+  }
   
-  const email = user?.email || 'customer@example.com';
-  
-  // Create initials
-  const initials = user?.user_first_name?.trim()?.charAt(0)?.toUpperCase() || 'U';
+  const displayName = [firstName, middleName, lastName].filter(Boolean).join(' ') || 'User';
+  const isAdmin = roles.some(r => r.toLowerCase() === 'admin');
+  const roleLabel = isAdmin ? 'Admin' : t('common:ppcMember');
+  const initials = firstName?.trim()?.charAt(0)?.toUpperCase() || 'U';
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -66,7 +79,7 @@ const CustomerAccountMenu = ({ theme = 'light' }) => {
       >
         <div className="text-end hidden sm:block">
           <p className="text-sm font-bold text-[#1a2b25] leading-tight">{displayName}</p>
-          <p className="text-[11px] font-semibold text-[#B8860B]">{t('common:ppcMember')}</p>
+          <p className="text-[11px] font-semibold text-[#B8860B]">{roleLabel}</p>
         </div>
         <div className="w-10 h-10 rounded-full bg-[#a9b0a6] text-[#2c3e34] flex items-center justify-center font-serif font-bold text-sm tracking-wide shadow-sm border border-gray-100/50">
           {initials}
@@ -85,7 +98,7 @@ const CustomerAccountMenu = ({ theme = 'light' }) => {
           <p className="text-sm font-bold text-[#1a2b25] truncate">{displayName}</p>
           <p className="text-xs font-medium text-gray-500 truncate mt-0.5">{email}</p>
           <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-[#B8860B]/10 text-[#B8860B] uppercase tracking-wider">
-            {t('common:ppcMember')}
+            {roleLabel}
           </div>
         </div>
 

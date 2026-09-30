@@ -234,5 +234,22 @@
   "noPropertiesFound": "کوئی پراپرٹیز نہیں ملیں",
   "tryAdjustingSearchFilters": "جو آپ تلاش کر رہے ہیں اسے تلاش کرنے کے لیے اپنے تلاش کے فلٹرز کو ایڈجسٹ کرنے کی کوشش کریں۔",
   "dotBed": " بیڈ • ",
-  "dotBath": " باتھ • "
+  "dotBath": " باتھ • ",
+  "propertyDetails": "پراپرٹی کی تفصیلات",
+  "backToProperties": "پراپرٹیز پر واپس جائیں",
+  "propertyOverview": "پراپرٹی کا جائزہ",
+  "propertyTypeDetail": "پراپرٹی کی قسم",
+  "propertySize": "پراپرٹی کا رقبہ",
+  "bedrooms": "بیڈ رومز",
+  "bathrooms": "باتھ رومز",
+  "location": "مقام",
+  "propertyDescription": "پراپرٹی کی تفصیل",
+  "propertyOwner": "پراپرٹی کا مالک",
+  "contactPpc": "PPC سے رابطہ کریں",
+  "callPpc": "PPC کو کال کریں",
+  "viewAllPhotos": "تمام تصاویر دیکھیں",
+  "propertyUnavailable": "پراپرٹی کی تفصیلات فی الحال دستیاب نہیں ہیں",
+  "ownerInfoAvailableHere": "مالک کی معلومات یہاں دستیاب ہوں گی۔",
+  "interestedContact": "اس پراپرٹی میں دلچسپی ہے؟ مزید معلومات کے لیے پی پی سی سے رابطہ کریں۔",
+  "noDescription": "کوئی تفصیل دستیاب نہیں ہے۔"
 }

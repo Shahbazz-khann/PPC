@@ -1,0 +1,13 @@
+{
+  "loginTestResult": "Success",
+  "authenticatedUserType": "Employee",
+  "authenticatedRoles": [
+    "Admin"
+  ],
+  "authMeResultSummary": {
+    "user_first_name": "Super",
+    "user_last_name": "Admin",
+    "email": "2412473@szabist-isb.pk",
+    "user_type_english": "Employee"
+  }
+}

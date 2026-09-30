@@ -1083,7 +1083,7 @@ const getPropertyDetailByIdAndUserId = async (propertyId, userId) => {
 /**
  * Add or Update Property Demand (Pricing)
  */
-const addPropertyDemand = async (propertyId, customerId, userId, demandTypeId, demandAmount) => {
+const addPropertyDemand = async (propertyId, customerId, userId, demandTypeId, demandAmount, maximumMargin) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
@@ -1170,6 +1170,7 @@ const addPropertyDemand = async (propertyId, customerId, userId, demandTypeId, d
                 effective_date,
                 demand_currency_id,
                 demand_amount,
+                maximum_margin,
                 discount_amount,
                 discount_percent,
                 final_amount,
@@ -1179,13 +1180,14 @@ const addPropertyDemand = async (propertyId, customerId, userId, demandTypeId, d
                 update_date_time,
                 is_active
             ) VALUES (
-                $1, $2, CURRENT_DATE, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW(), true
+                $1, $2, CURRENT_DATE, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW(), true
             ) RETURNING demand_id, effective_date`,
             [
                 propertyId,
                 customerId,
                 currencyId,
                 insertDemandAmount,
+                maximumMargin,
                 insertDiscountAmount,
                 insertDiscountPercent,
                 insertFinalAmount,

@@ -75,5 +75,6 @@
   "yes": "ہاں",
   "no": "نہیں",
   "unknownCapacity": "نامعلوم صلاحیت",
-  "egAmount": "مثال: 50000000"
+  "egAmount": "مثال: 50000000",
+  "maximumMargin": "زیادہ سے زیادہ مارجن (PKR)"
 }

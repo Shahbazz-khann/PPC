@@ -1,0 +1,15 @@
+{
+  "preCreationUniquenessCheck": "Passed: No conflicts found.",
+  "resolvedEmployeeUserType": "2",
+  "resolvedAdminRole": "3",
+  "employeeRowCreationResult": "Success",
+  "generatedEmployeeId": "2",
+  "userRowCreationResult": "Success",
+  "generatedUserId": "14",
+  "finalStoredMobileFormat": "+92 844 8730",
+  "userRoleCreationResult": "Success",
+  "generatedUserRoleId": "2",
+  "exactlyAdminRoleAssigned": "Confirmed",
+  "transactionCommitted": "Confirmed",
+  "passwordBcryptVerificationResult": true
+}

@@ -1,0 +1,237 @@
+{
+  "user": {
+    "user_id": "2",
+    "user_type_id": "2",
+    "employee_id": "1",
+    "user_first_name": "Test",
+    "user_middle_name": null,
+    "user_last_name": "Admin",
+    "country": "Pakistan",
+    "email": "testadmin@ppc.com",
+    "mobile": "+923009999001",
+    "mobile_allowed": false,
+    "web_allowed": true,
+    "is_active": true
+  },
+  "employee": {
+    "employee_id": "1",
+    "first_name": "Test",
+    "middle_name": null,
+    "last_name": "Admin",
+    "designation_id": null,
+    "country_of_posting": null,
+    "place_of_posting": null,
+    "is_active": true
+  },
+  "userRole": [
+    {
+      "user_role_id": "1",
+      "user_id": "2",
+      "role_id": "3",
+      "is_active": true
+    }
+  ],
+  "userFkReferences": [
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_customers_user",
+      "table_name": "customers",
+      "column_name": "user_id",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "users",
+      "foreign_column_name": "user_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION",
+      "countReferencing2": 0
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_user_role_user",
+      "table_name": "user_role",
+      "column_name": "user_id",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "users",
+      "foreign_column_name": "user_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION",
+      "countReferencing2": 1
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_property_demand_created_by_user",
+      "table_name": "property_demand",
+      "column_name": "created_by_user",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "users",
+      "foreign_column_name": "user_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION",
+      "countReferencing2": 0
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_property_approvals_created_by_user",
+      "table_name": "property_approvals",
+      "column_name": "created_by_user",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "users",
+      "foreign_column_name": "user_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION",
+      "countReferencing2": 0
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_property_status_created_by_user",
+      "table_name": "property_status",
+      "column_name": "created_by_user",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "users",
+      "foreign_column_name": "user_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION",
+      "countReferencing2": 0
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_cust_req_status_history_user",
+      "table_name": "customer_request_status_history",
+      "column_name": "created_by_user",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "users",
+      "foreign_column_name": "user_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION",
+      "countReferencing2": 0
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_crpr_created_by",
+      "table_name": "customer_request_property_requirements",
+      "column_name": "created_by_user",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "users",
+      "foreign_column_name": "user_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION",
+      "countReferencing2": 0
+    }
+  ],
+  "empFkReferences": [
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_inspected_details_employee",
+      "table_name": "property_inspected_details",
+      "column_name": "inspected_by_employee_id",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "employees",
+      "foreign_column_name": "employee_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION",
+      "countReferencing1": 0
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_inspection_schedule_employee",
+      "table_name": "property_inspection_schedule",
+      "column_name": "inspection_employee_id",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "employees",
+      "foreign_column_name": "employee_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION",
+      "countReferencing1": 0
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_property_inspection_checklist_verification_employee",
+      "table_name": "property_inspection_checklist",
+      "column_name": "verification_employee_id",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "employees",
+      "foreign_column_name": "employee_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION",
+      "countReferencing1": 0
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_property_inspection_checklist_verifier_employee",
+      "table_name": "property_inspection_checklist",
+      "column_name": "verifier_employee_id",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "employees",
+      "foreign_column_name": "employee_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION",
+      "countReferencing1": 0
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_property_verifications_employee",
+      "table_name": "property_verifications",
+      "column_name": "verification_employee_id",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "employees",
+      "foreign_column_name": "employee_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION",
+      "countReferencing1": 0
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_property_visits_employee",
+      "table_name": "property_visits",
+      "column_name": "visit_conducted_employee_id",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "employees",
+      "foreign_column_name": "employee_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION",
+      "countReferencing1": 0
+    },
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_users_employee",
+      "table_name": "users",
+      "column_name": "employee_id",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "employees",
+      "foreign_column_name": "employee_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION",
+      "countReferencing1": 1
+    }
+  ],
+  "userRoleFkReferences": [],
+  "relationsUsersEmployees": [
+    {
+      "table_schema": "public",
+      "constraint_name": "fk_users_employee",
+      "table_name": "users",
+      "column_name": "employee_id",
+      "foreign_table_schema": "public",
+      "foreign_table_name": "employees",
+      "foreign_column_name": "employee_id",
+      "update_rule": "NO ACTION",
+      "delete_rule": "NO ACTION"
+    }
+  ],
+  "uniques": [
+    {
+      "table_name": "users",
+      "constraint_name": "uq_users_employee",
+      "column_name": "employee_id"
+    },
+    {
+      "table_name": "users",
+      "constraint_name": "users_email_key",
+      "column_name": "email"
+    },
+    {
+      "table_name": "users",
+      "constraint_name": "users_mobile_key",
+      "column_name": "mobile"
+    }
+  ]
+}

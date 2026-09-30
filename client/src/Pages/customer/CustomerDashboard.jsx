@@ -340,9 +340,9 @@ const CustomerDashboard = () => {
                       </div>
 
                       <div className="mt-auto flex justify-end">
-                        <button className="px-5 py-2 rounded-full border border-[#e4d7be] text-[13px] font-bold text-[#1a2b25] hover:border-[#B8860B] hover:bg-[#faf7f2] transition-colors flex items-center gap-2">
+                        <Link to={`/customer/properties/${property.property_id}`} className="px-5 py-2 rounded-full border border-[#e4d7be] text-[13px] font-bold text-[#1a2b25] hover:border-[#B8860B] hover:bg-[#faf7f2] transition-colors flex items-center gap-2">
                           {t('dashboard:viewDetails')} <ArrowRight size={14} className="rtl:rotate-180" />
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   </div>

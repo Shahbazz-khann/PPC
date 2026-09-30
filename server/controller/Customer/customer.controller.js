@@ -453,14 +453,37 @@ const setPropertyDemand = async (req, res, next) => {
         const propertyId = req.params.propertyId;
         const customerId = req.verifiedCustomerId; // From verifyPropertyOwnership middleware
         const userId = req.user.user_id;
-        const { demand_type_id, demand_amount } = req.body;
+        const { demand_type_id, demand_amount, maximum_margin } = req.body;
+
+        if (maximum_margin === undefined || maximum_margin === null || maximum_margin === '') {
+            return res.status(400).json({
+                success: false,
+                message: 'Maximum margin is required.'
+            });
+        }
+
+        const parsedMargin = Number(maximum_margin);
+        if (isNaN(parsedMargin) || parsedMargin < 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Maximum margin must be a valid non-negative amount.'
+            });
+        }
+
+        if (parsedMargin > Number(demand_amount)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Maximum margin cannot exceed the demand amount.'
+            });
+        }
 
         const demand = await customerModel.addPropertyDemand(
             propertyId,
             customerId,
             userId,
             demand_type_id,
-            demand_amount
+            demand_amount,
+            parsedMargin
         );
 
         return res.status(200).json({
