@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReferenceTablePage from '../../../../Components/common/ReferenceTablePage';
-import { getAdminProvinces, getAdminCountries, createAdminProvince, updateAdminProvince } from '../../../../Services/admin.services';
+import { getAdminProvinces, getAdminCountries, createAdminProvince, updateAdminProvince, deleteAdminProvince } from '../../../../Services/admin.services';
 import { Edit2, Trash2, X } from 'lucide-react';
 
 const AdminProvinces = () => {
@@ -38,6 +39,13 @@ const AdminProvinces = () => {
   const [editErrors, setEditErrors] = useState({});
   const [editApiError, setEditApiError] = useState(null);
   const [editSubmitting, setEditSubmitting] = useState(false);
+
+  // --- Delete Modal State ---
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedProvinceForDelete, setSelectedProvinceForDelete] = useState(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+  const [deleteDependencies, setDeleteDependencies] = useState([]);
 
   // --- Filter State ---
   const [search, setSearch] = useState('');
@@ -314,6 +322,62 @@ const AdminProvinces = () => {
     }
   };
 
+  // --- Delete Modal Helpers ---
+  const openDeleteModal = (row) => {
+    setSelectedProvinceForDelete(row);
+    setDeleteError(null);
+    setDeleteDependencies([]);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    if (deleteSubmitting) return;
+    setIsDeleteModalOpen(false);
+    setSelectedProvinceForDelete(null);
+  };
+
+  const friendlyDependencyMap = {
+    divisions: t('admin:depDivisions', 'Divisions')
+  };
+
+  const handleDeleteSubmit = async () => {
+    if (!selectedProvinceForDelete?.province_id) return;
+    
+    setDeleteError(null);
+    setDeleteDependencies([]);
+    setDeleteSubmitting(true);
+    
+    try {
+      const res = await deleteAdminProvince(selectedProvinceForDelete.province_id);
+      
+      if (res?.success) {
+        closeDeleteModal();
+        setPageSuccess(t('admin:deleteProvinceSuccess', 'Province deleted successfully.'));
+        await fetchProvinces(); // Uses current search, status, and countryId from state natively
+        
+        setTimeout(() => setPageSuccess(''), 5000);
+      }
+    } catch (err) {
+      if (err.status === 404) {
+        closeDeleteModal();
+        setPageSuccess(t('admin:provinceNotFoundDelete', 'Province not found. The list has been refreshed.'));
+        await fetchProvinces();
+        setTimeout(() => setPageSuccess(''), 5000);
+      } else if (err.status === 409) {
+        setDeleteError(err.message || t('admin:provinceInUse', 'Province cannot be deleted because it is currently in use.'));
+        if (err.data?.dependencies) {
+          setDeleteDependencies(err.data.dependencies);
+        }
+      } else if (err.status === 400) {
+        setDeleteError(t('admin:invalidId', 'Invalid ID.'));
+      } else {
+        setDeleteError(err.message || t('admin:deleteProvinceUnknownError', 'Unable to delete province. Please try again.'));
+      }
+    } finally {
+      setDeleteSubmitting(false);
+    }
+  };
+
   // The final required columns for the table
   const columns = [
     t('admin:colId', 'ID'),
@@ -326,25 +390,25 @@ const AdminProvinces = () => {
 
   const renderRow = (row, index) => (
     <tr key={row.province_id} className="hover:bg-gray-50/50 transition-colors">
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 w-16">
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 w-16">
         {(index + 1).toString().padStart(2, '0')}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
         #{row.province_id}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+      <td className="px-4 py-3 text-sm text-gray-700 min-w-[100px]">
         {row.country_english}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+      <td className="px-4 py-3 text-sm text-gray-700 min-w-[120px]">
         {row.province_english}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-urdu">
+      <td className="px-4 py-3 text-sm text-gray-700 font-urdu min-w-[120px]">
         {row.province_urdu || '-'}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+      <td className="px-4 py-3 text-sm text-gray-700 min-w-[100px]">
         {row.province_abb || '-'}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm">
+      <td className="px-4 py-3 whitespace-nowrap text-sm">
         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
           row.is_active 
             ? 'bg-green-100 text-green-800 border border-green-200' 
@@ -354,7 +418,7 @@ const AdminProvinces = () => {
           {row.is_active ? t('admin:statusActive', 'Active') : t('admin:statusInactive', 'Inactive')}
         </span>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium w-24">
+      <td className="px-4 py-3 whitespace-nowrap text-end text-sm font-medium w-24">
         <div className="flex items-center justify-end gap-2">
           <button 
             onClick={() => openEditModal(row)}
@@ -363,9 +427,9 @@ const AdminProvinces = () => {
             <Edit2 className="w-4 h-4" />
           </button>
           <button 
-            disabled
+            onClick={() => openDeleteModal(row)}
             title={t('admin:deleteProvince', 'Delete province')}
-            className="p-1.5 text-red-400 bg-white border border-gray-200 rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            className="p-1.5 text-red-500 hover:text-red-700 bg-white border border-gray-200 rounded-lg shadow-sm transition-colors">
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
@@ -378,7 +442,7 @@ const AdminProvinces = () => {
       value={countryId}
       onChange={(e) => setCountryId(e.target.value)}
       disabled={countriesLoading}
-      className="block w-full sm:w-48 pl-3 pr-8 py-2 border border-gray-200 rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#C59B27] focus:border-[#C59B27] sm:text-sm transition-colors"
+      className="block w-full sm:w-48 shrink-0 pl-3 pr-8 py-2 border border-gray-200 rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#C59B27] focus:border-[#C59B27] sm:text-sm transition-colors"
     >
       <option value="">
         {countriesError 
@@ -795,6 +859,91 @@ const AdminProvinces = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Province Modal */}
+      {isDeleteModalOpen && selectedProvinceForDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1a2b25]/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">{t('admin:deleteProvinceTitle', 'Delete Province')}</h3>
+              </div>
+              <button 
+                onClick={closeDeleteModal}
+                disabled={deleteSubmitting}
+                className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4 flex-1 overflow-y-auto">
+              {/* Error Feedback */}
+              {deleteError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">
+                  {deleteError}
+                  {deleteDependencies.length > 0 && (
+                    <div className="mt-2 text-sm text-red-700">
+                      <p className="font-semibold mb-1">{t('admin:usedBy', 'Used by:')}</p>
+                      <ul className="list-disc list-inside space-y-0.5 ml-1 rtl:mr-1 rtl:ml-0">
+                        {deleteDependencies.map((dep, idx) => (
+                          <li key={idx}>
+                            {friendlyDependencyMap[dep.table] || dep.table}: {dep.count}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              <div className="text-gray-700 text-sm">
+                <p>
+                  {t('admin:deleteProvinceConfirmMsg', 'Are you sure you want to delete this province?')}
+                </p>
+                <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                  <p className="font-medium text-gray-900">{selectedProvinceForDelete.province_english}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {selectedProvinceForDelete.country_english} &bull; ID: #{selectedProvinceForDelete.province_id}
+                  </p>
+                </div>
+                <p className="mt-3 text-red-600 font-medium text-xs">
+                  {t('admin:deleteProvinceWarning', 'This action permanently deletes the province if it is not currently in use.')}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-end gap-3 rounded-b-2xl">
+              <button
+                type="button"
+                onClick={closeDeleteModal}
+                disabled={deleteSubmitting}
+                className="px-5 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                {t('admin:cancel', 'Cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteSubmit}
+                disabled={deleteSubmitting || deleteDependencies.length > 0}
+                className="inline-flex items-center justify-center px-6 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {deleteSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2 rtl:ml-2 rtl:mr-0"></div>
+                    {t('admin:deleting', 'Deleting...')}
+                  </>
+                ) : (
+                  t('admin:deleteProvinceBtn', 'Delete Province')
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

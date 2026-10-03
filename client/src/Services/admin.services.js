@@ -48,3 +48,39 @@ export const createAdminProvince = async (payload) => {
 export const updateAdminProvince = async (provinceId, payload) => {
   return await api.put(`/admin/reference/location/provinces/${provinceId}`, payload);
 };
+
+/**
+ * Deletes a province.
+ */
+export const deleteAdminProvince = async (provinceId) => {
+  return await api.delete(`/admin/reference/location/provinces/${provinceId}`);
+};
+
+/**
+ * Retrieves a list of divisions.
+ */
+export const getAdminDivisions = async (params = {}) => {
+  return await api.get('/admin/reference/location/divisions', params);
+};
+
+/**
+ * Creates a new division in the admin reference location.
+ */
+export const createAdminDivision = async (payload) => {
+  return await api.post('/admin/reference/location/divisions', payload);
+};
+
+/**
+ * Updates an existing division in the admin reference location.
+ */
+export const updateAdminDivision = async (divisionId, payload) => {
+  return await api.put(`/admin/reference/location/divisions/${divisionId}`, payload);
+};
+
+/**
+ * Deletes a division.
+ */
+export const deleteAdminDivision = async (divisionId) => {
+  return await api.delete(`/admin/reference/location/divisions/${divisionId}`);
+};
+

@@ -197,11 +197,55 @@ const updateAdminProvince = async (provinceId, { country_id, province_english, p
     return result.rows[0];
 };
 
+/**
+ * Checks if a province has dependent records in other tables.
+ * 
+ * @param {string|number} provinceId 
+ * @returns {Promise<Object>}
+ */
+const getProvinceDependencies = async (provinceId) => {
+    // Check divisions
+    const divRes = await pool.query(`SELECT COUNT(*) FROM divisions WHERE province_id = $1`, [provinceId]);
+    const divCount = parseInt(divRes.rows[0].count, 10);
+
+    const dependencies = [];
+    if (divCount > 0) dependencies.push({ table: 'divisions', count: divCount });
+
+    return {
+        hasDependencies: dependencies.length > 0,
+        dependencies
+    };
+};
+
+/**
+ * Deletes a province from the database.
+ * 
+ * @param {string|number} provinceId 
+ * @returns {Promise<Object|null>} The deleted row or null
+ */
+const deleteAdminProvince = async (provinceId) => {
+    const query = `
+        DELETE FROM provinces
+        WHERE province_id = $1
+        RETURNING
+            province_id,
+            country_id,
+            province_english,
+            province_urdu,
+            province_abb,
+            is_active
+    `;
+    const result = await pool.query(query, [provinceId]);
+    return result.rows.length ? result.rows[0] : null;
+};
+
 module.exports = {
     getAdminProvinces,
     findProvinceByEnglishInsensitiveInCountry,
     createAdminProvince,
     getAdminProvinceById,
     findProvinceByEnglishInsensitiveInCountryExcludingId,
-    updateAdminProvince
+    updateAdminProvince,
+    getProvinceDependencies,
+    deleteAdminProvince
 };

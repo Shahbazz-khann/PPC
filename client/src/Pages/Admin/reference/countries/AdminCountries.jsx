@@ -339,22 +339,22 @@ const AdminCountries = () => {
 
   const renderRow = (row, index) => (
     <tr key={row.country_id} className="hover:bg-gray-50/50 transition-colors group">
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 w-16">
         {index + 1}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-        {row.country_id}
+      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+        #{row.country_id}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+      <td className="px-4 py-3 text-sm text-gray-900 min-w-[120px]">
         {row.country_english}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-urdu">
+      <td className="px-4 py-3 text-sm text-gray-900 font-urdu min-w-[120px]">
         {row.country_urdu || '-'}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      <td className="px-4 py-3 text-sm text-gray-500 min-w-[100px]">
         {row.country_abb || '-'}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm">
+      <td className="px-4 py-3 whitespace-nowrap text-sm">
         <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${
           row.is_active === true
             ? 'bg-green-50 text-green-700 border-green-200' 
@@ -366,7 +366,7 @@ const AdminCountries = () => {
           {row.is_active === true ? t('admin:active', 'Active') : t('admin:inactive', 'Inactive')}
         </span>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+      <td className="px-4 py-3 whitespace-nowrap text-end text-sm font-medium w-24">
         <div className="flex justify-end gap-2">
           <button 
             onClick={() => openEditModal(row)}

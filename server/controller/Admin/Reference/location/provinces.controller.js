@@ -4,7 +4,9 @@ const {
     findProvinceByEnglishInsensitiveInCountry,
     getAdminProvinceById,
     findProvinceByEnglishInsensitiveInCountryExcludingId,
-    updateAdminProvince
+    updateAdminProvince,
+    getProvinceDependencies,
+    deleteAdminProvince
 } = require('../../../../models/Admin/Reference/location/provinces.model');
 const {
     getAdminCountryById
@@ -171,8 +173,76 @@ const updateProvince = async (req, res, next) => {
     }
 };
 
+/**
+ * Delete a province.
+ * 
+ * @param {Object} req 
+ * @param {Object} res 
+ */
+const deleteProvince = async (req, res) => {
+    try {
+        const provinceId = req.params.id;
+
+        // 1. Existence check
+        const existingProvince = await getAdminProvinceById(provinceId);
+        if (!existingProvince) {
+            return res.status(404).json({
+                success: false,
+                message: "Province not found"
+            });
+        }
+
+        // 2. Dependency check
+        const depCheck = await getProvinceDependencies(provinceId);
+        if (depCheck.hasDependencies) {
+            return res.status(409).json({
+                success: false,
+                message: "Province cannot be deleted because it is currently in use.",
+                data: {
+                    dependencies: depCheck.dependencies
+                }
+            });
+        }
+
+        // 3. Physical Delete
+        const deletedProvince = await deleteAdminProvince(provinceId);
+        
+        // Safety net if delete returns null unexpectedly
+        if (!deletedProvince) {
+            return res.status(404).json({
+                success: false,
+                message: "Province not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Province deleted successfully",
+            data: deletedProvince
+        });
+    } catch (error) {
+        // Race condition: if somehow a dependent record was added exactly between check and delete
+        if (error.code === '23503') {
+            return res.status(409).json({
+                success: false,
+                message: "Province cannot be deleted because it is currently in use.",
+                data: {
+                    dependencies: [] // Best effort without querying again, or omit
+                }
+            });
+        }
+
+        console.error('Error in deleteProvince:', error);
+        return res.status(500).json({
+            success: false,
+            message: "An unexpected error occurred while deleting the province"
+        });
+    }
+};
+
 module.exports = {
     getProvinces,
     createProvince,
-    updateProvince
+    updateProvince,
+    deleteProvince
 };
