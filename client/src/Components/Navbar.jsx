@@ -33,10 +33,6 @@ const Navbar = () => {
           <span>{t('public:properties')}</span>
           <ChevronDown className="w-3.5 h-3.5 ml-1 rtl:mr-1 rtl:ml-0 stroke-[2.5]" />
         </Link>
-        <Link to="/resources" className="flex items-center cursor-pointer text-black hover:text-[#063B29] transition-colors whitespace-nowrap">
-          <span>{t('public:resources')}</span>
-          <ChevronDown className="w-3.5 h-3.5 ml-1 rtl:mr-1 rtl:ml-0 stroke-[2.5]" />
-        </Link>
         <Link to="/contact" className="cursor-pointer text-black hover:text-[#063B29] transition-colors whitespace-nowrap">{t('public:contactUs')}</Link>
       </div>
 
@@ -74,10 +70,6 @@ const Navbar = () => {
             </Link>
             <Link to="/properties" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between hover:text-[#063B29] transition-colors">
               <span>{t('public:properties')}</span>
-              <ChevronDown className="w-4 h-4 stroke-[2]" />
-            </Link>
-            <Link to="/resources" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between hover:text-[#063B29] transition-colors">
-              <span>{t('public:resources')}</span>
               <ChevronDown className="w-4 h-4 stroke-[2]" />
             </Link>
             <Link to="/contact" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#063B29] transition-colors block">{t('public:contactUs')}</Link>

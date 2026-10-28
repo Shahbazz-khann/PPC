@@ -10,7 +10,7 @@ const AdminCountries = () => {
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
 
@@ -105,7 +105,7 @@ const AdminCountries = () => {
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     setCreateApiError(null);
-    
+
     // Frontend Validation
     const errors = {};
     const engTrim = createForm.country_english.trim();
@@ -140,7 +140,7 @@ const AdminCountries = () => {
     try {
       setCreateSubmitting(true);
       const res = await createAdminCountry(payload);
-      
+
       if (res?.success) {
         setCreateSuccess(true);
         setTimeout(() => {
@@ -150,7 +150,7 @@ const AdminCountries = () => {
       }
     } catch (err) {
       const msg = err.message || t('admin:createUnknownError', 'Unable to create country. Please try again.');
-      
+
       // Associate known 409 messages with fields
       if (msg.toLowerCase().includes('english')) {
         setCreateErrors({ country_english: msg });
@@ -188,7 +188,7 @@ const AdminCountries = () => {
   const handleEditChange = (e) => {
     const { name, value, type } = e.target;
     const parsedValue = type === 'radio' ? value === 'true' : value;
-    
+
     setEditForm(prev => ({ ...prev, [name]: parsedValue }));
     if (editErrors[name]) {
       setEditErrors(prev => ({ ...prev, [name]: null }));
@@ -200,7 +200,7 @@ const AdminCountries = () => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     setEditApiError(null);
-    
+
     if (!selectedCountry?.country_id) return;
 
     // Frontend Validation
@@ -242,7 +242,7 @@ const AdminCountries = () => {
     try {
       setEditSubmitting(true);
       const res = await updateAdminCountry(selectedCountry.country_id, payload);
-      
+
       if (res?.success) {
         setEditSuccess(true);
         setTimeout(() => {
@@ -252,7 +252,7 @@ const AdminCountries = () => {
       }
     } catch (err) {
       const msg = err.message || t('admin:updateUnknownError', 'Unable to update country. Please try again.');
-      
+
       if (err.status === 404) {
         setEditApiError(t('admin:countryNotFound', 'Country not found'));
       } else if (msg.toLowerCase().includes('english')) {
@@ -290,14 +290,14 @@ const AdminCountries = () => {
 
   const handleDeleteSubmit = async () => {
     if (!selectedDeleteCountry?.country_id) return;
-    
+
     setDeleteError(null);
     setDeleteDependencies([]);
     setDeleteSubmitting(true);
-    
+
     try {
       const res = await deleteAdminCountry(selectedDeleteCountry.country_id);
-      
+
       if (res?.success) {
         setDeleteSuccess(true);
         // Do not artificially wait, just close and refetch. (But UI might flicker without a short pause for the success message to show).
@@ -339,42 +339,40 @@ const AdminCountries = () => {
 
   const renderRow = (row, index) => (
     <tr key={row.country_id} className="hover:bg-gray-50/50 transition-colors group">
-      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 w-16">
+      <td className="px-4 py-3 whitespace-nowrap text-sm w-16 text-gray-900 font-semibold">
         {index + 1}
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+      <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
         #{row.country_id}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-900 min-w-[120px]">
+      <td className="px-4 py-3 text-sm text-gray-900 min-w-[120px] font-semibold">
         {row.country_english}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-900 font-urdu min-w-[120px]">
+      <td className="px-4 py-3 text-sm text-gray-900 font-urdu min-w-[120px] font-semibold">
         {row.country_urdu || '-'}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-500 min-w-[100px]">
+      <td className="px-4 py-3 text-sm min-w-[100px] text-gray-900 font-semibold">
         {row.country_abb || '-'}
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-sm">
-        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${
-          row.is_active === true
-            ? 'bg-green-50 text-green-700 border-green-200' 
-            : 'bg-red-50 text-red-700 border-red-200'
-        }`}>
-          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 rtl:ml-1.5 rtl:mr-0 ${
-            row.is_active === true ? 'bg-green-500' : 'bg-red-500'
-          }`}></span>
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 font-semibold">
+        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${row.is_active === true
+          ? 'bg-green-50 text-green-700 border-green-200'
+          : 'bg-red-50 text-red-700 border-red-200'
+          }`}>
+          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 rtl:ml-1.5 rtl:mr-0 ${row.is_active === true ? 'bg-green-500' : 'bg-red-500'
+            }`}></span>
           {row.is_active === true ? t('admin:active', 'Active') : t('admin:inactive', 'Inactive')}
         </span>
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-end text-sm font-medium w-24">
+      <td className="px-4 py-3 whitespace-nowrap text-end text-sm font-semibold w-24 text-gray-900">
         <div className="flex justify-end gap-2">
-          <button 
+          <button
             onClick={() => openEditModal(row)}
             title={t('admin:edit', 'Edit')}
             className="p-1.5 text-gray-500 hover:text-[#C59B27] bg-white border border-gray-200 rounded-lg shadow-sm transition-colors">
             <Edit2 className="w-4 h-4" />
           </button>
-          <button 
+          <button
             onClick={() => openDeleteModal(row)}
             title={t('admin:deleteCountryBtn', 'Delete Country')}
             className="p-1.5 text-red-500 hover:text-red-700 bg-white border border-gray-200 rounded-lg shadow-sm transition-colors">
@@ -402,8 +400,8 @@ const AdminCountries = () => {
         onRetry={() => fetchCountries()}
         onAdd={openAddModal}
         emptyMessage={
-          search || status !== 'all' 
-            ? t('admin:noCountriesSearch', 'No countries match your search.') 
+          search || status !== 'all'
+            ? t('admin:noCountriesSearch', 'No countries match your search.')
             : t('admin:noCountriesFound', 'No countries found.')
         }
         renderRow={renderRow}
@@ -420,7 +418,7 @@ const AdminCountries = () => {
                 <h3 className="text-lg font-bold text-gray-900">{t('admin:addCountryTitle', 'Add Country')}</h3>
                 <p className="text-xs text-gray-500 mt-1">{t('admin:addCountryDesc', 'Add a new country to the location reference data.')}</p>
               </div>
-              <button 
+              <button
                 onClick={closeAddModal}
                 disabled={createSubmitting}
                 className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
@@ -438,7 +436,7 @@ const AdminCountries = () => {
                     {createApiError}
                   </div>
                 )}
-                
+
                 {/* Global Success Feedback */}
                 {createSuccess && (
                   <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700 font-medium">
@@ -457,11 +455,10 @@ const AdminCountries = () => {
                     value={createForm.country_english}
                     onChange={handleCreateChange}
                     disabled={createSubmitting || createSuccess}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      createErrors.country_english 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${createErrors.country_english
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="e.g. United Kingdom"
                   />
                   {createErrors.country_english && (
@@ -481,11 +478,10 @@ const AdminCountries = () => {
                     onChange={handleCreateChange}
                     disabled={createSubmitting || createSuccess}
                     dir="auto"
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors font-urdu ${
-                      createErrors.country_urdu
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors font-urdu ${createErrors.country_urdu
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="برطانیہ"
                   />
                   {createErrors.country_urdu && (
@@ -504,11 +500,10 @@ const AdminCountries = () => {
                     value={createForm.country_abb}
                     onChange={handleCreateChange}
                     disabled={createSubmitting || createSuccess}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      createErrors.country_abb
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${createErrors.country_abb
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="e.g. UK"
                   />
                   {createErrors.country_abb && (
@@ -557,7 +552,7 @@ const AdminCountries = () => {
                 <h3 className="text-lg font-bold text-gray-900">{t('admin:editCountryTitle', 'Edit Country')}</h3>
                 <p className="text-xs text-gray-500 mt-1">{t('admin:editCountryDesc', 'Update country reference data.')}</p>
               </div>
-              <button 
+              <button
                 onClick={closeEditModal}
                 disabled={editSubmitting}
                 className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
@@ -575,7 +570,7 @@ const AdminCountries = () => {
                     {editApiError}
                   </div>
                 )}
-                
+
                 {/* Global Success Feedback */}
                 {editSuccess && (
                   <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700 font-medium">
@@ -594,11 +589,10 @@ const AdminCountries = () => {
                     value={editForm.country_english}
                     onChange={handleEditChange}
                     disabled={editSubmitting || editSuccess}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      editErrors.country_english 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${editErrors.country_english
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="e.g. United Kingdom"
                   />
                   {editErrors.country_english && (
@@ -618,11 +612,10 @@ const AdminCountries = () => {
                     onChange={handleEditChange}
                     disabled={editSubmitting || editSuccess}
                     dir="auto"
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors font-urdu ${
-                      editErrors.country_urdu
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors font-urdu ${editErrors.country_urdu
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="برطانیہ"
                   />
                   {editErrors.country_urdu && (
@@ -641,11 +634,10 @@ const AdminCountries = () => {
                     value={editForm.country_abb}
                     onChange={handleEditChange}
                     disabled={editSubmitting || editSuccess}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      editErrors.country_abb
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${editErrors.country_abb
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="e.g. UK"
                   />
                   {editErrors.country_abb && (
@@ -730,7 +722,7 @@ const AdminCountries = () => {
               <div>
                 <h3 className="text-lg font-bold text-gray-900">{t('admin:deleteCountryTitle', 'Delete Country')}</h3>
               </div>
-              <button 
+              <button
                 onClick={closeDeleteModal}
                 disabled={deleteSubmitting}
                 className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
@@ -759,7 +751,7 @@ const AdminCountries = () => {
                   )}
                 </div>
               )}
-              
+
               <div className="text-gray-700 text-sm">
                 <p>
                   {t('admin:deleteConfirmMsg', 'Are you sure you want to delete this country?')}
@@ -808,3 +800,4 @@ const AdminCountries = () => {
 };
 
 export default AdminCountries;
+

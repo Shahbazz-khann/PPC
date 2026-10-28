@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Home,
   Headphones,
+  ArrowLeft,
 } from 'lucide-react';
 
 import bgImage from '../assets/FaisalMosque.png';
@@ -153,6 +154,16 @@ const ResetPassword = () => {
       <div className="relative lg:w-[42%] flex items-center justify-center p-4 sm:p-6 lg:p-10 z-10">
 
         <div className="w-full max-w-[460px] bg-white rounded-3xl shadow-2xl p-6 sm:p-8 text-gray-800 my-auto">
+          {/* Back to Home Link */}
+          <div className="mb-3 text-left rtl:text-right">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-500 hover:text-[#063B29] transition-colors group cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1 rtl:rotate-180 rtl:group-hover:translate-x-1" />
+              <span>{t('public:backToHome')}</span>
+            </Link>
+          </div>
 
           {/* Header */}
           <div className="text-center mb-6">
@@ -329,6 +340,7 @@ const ResetPassword = () => {
 
               <Link
                 to="/login"
+                replace
                 className="text-[#B8860B] hover:text-[#966d09] font-semibold transition-colors ml-1"
               >
                 {t('public:login')}

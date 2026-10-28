@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { User, Mail, Globe, Phone, Lock, Eye, EyeOff, ShieldCheck, Home, Headphones, Key, CheckCircle2, Circle } from 'lucide-react';
+import { User, Mail, Globe, Phone, Lock, Eye, EyeOff, ShieldCheck, Home, Headphones, Key, CheckCircle2, Circle, ArrowLeft } from 'lucide-react';
 import bgImage from '../assets/faisalmosqueSignup.png';
 import logoImg from '../assets/IMAGEEEEEEEEEEEEEEEEEEEE.png';
 import { signupUser, verifyEmail } from '../Services/auth.services';
@@ -165,6 +165,17 @@ const Signup = () => {
         {/* RIGHT SECTION - White Rounded Authentication Card */}
         <div className="relative lg:w-1/2 w-full flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12 z-10 pb-12 sm:pb-16 lg:min-h-screen">
           <div className="w-full max-w-[520px] bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 lg:p-10 text-gray-800 my-auto mx-auto lg:mx-0 lg:mr-auto lg:ml-4 xl:ml-12 border border-gray-100">
+            {/* Back to Home Link */}
+            <div className="mb-3 text-left rtl:text-right">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-500 hover:text-[#063B29] transition-colors group cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1 rtl:rotate-180 rtl:group-hover:translate-x-1" />
+                <span>{t('public:backToHome')}</span>
+              </Link>
+            </div>
+
             {/* Header */}
             <div className="mb-4 sm:mb-6 text-left rtl:text-right">
               <h3 className="text-xl sm:text-3xl font-bold text-[#1E293B] tracking-tight">
@@ -514,6 +525,7 @@ const Signup = () => {
                 {t('public:alreadyHaveAccount')}{' '}
                 <Link
                   to="/login"
+                  replace
                   className="inline-block p-1 text-[#B8860B] hover:text-[#966d09] font-semibold transition-colors"
                 >
                   {t('public:login')}

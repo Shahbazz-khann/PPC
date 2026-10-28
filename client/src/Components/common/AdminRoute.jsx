@@ -13,9 +13,9 @@ const parseJwt = (token) => {
 const AdminRoute = () => {
   const location = useLocation();
   const { user } = useAuth();
-  
+
   const isAuth = isAuthenticated();
-  
+
   if (!isAuth) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
@@ -38,7 +38,7 @@ const AdminRoute = () => {
   if (!isEmployee || !isAdmin) {
     // Return unauthorized access to home or customer dashboard if customer
     if (userType?.toLowerCase() === 'customer') {
-       return <Navigate to="/customer/dashboard" replace />;
+      return <Navigate to="/customer/dashboard" replace />;
     }
     return <Navigate to="/" replace />;
   }

@@ -1,9 +1,10 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Layout & Guards
 import ProtectedRoute from '../Components/common/ProtectedRoutes';
 import AdminRoute from '../Components/common/AdminRoute';
+import CustomerRoute from '../Components/common/CustomerRoute';
 import GuestRoute from '../Components/common/GuestRoute';
 import Logout from '../Components/common/Logout';
 import DashboardLayout from '../Layout/DashboardLayout';
@@ -61,13 +62,12 @@ import AdminDashboard from '../Pages/Admin/AdminDashboard';
 import AdminCustomers from '../Pages/Admin/customers/AdminCustomers';
 import AdminCustomerDetails from '../Pages/Admin/customers/AdminCustomerDetails';
 import AdminProperties from '../Pages/Admin/properties/AdminProperties';
+import AdminPropertyAdd from '../Pages/Admin/properties/AdminPropertyAdd';
 import AdminRequests from '../Pages/Admin/requests/AdminRequests';
 import AdminPropertyVisits from '../Pages/Admin/visits/AdminPropertyVisits';
 import AdminInspectionReports from '../Pages/Admin/inspections/AdminInspectionReports';
-import AdminVerificationReports from '../Pages/Admin/verifications/AdminVerificationReports';
 
 // Admin Pending
-import AdminPropertyRegistry from '../Pages/Admin/registry/AdminPropertyRegistry';
 import AdminPaymentSummary from '../Pages/Admin/payments/AdminPaymentSummary';
 
 // Administration
@@ -123,7 +123,7 @@ const Approutes = () => {
       <Route path="/properties/:propertyId" element={<PublicPropertyDetails />} />
       <Route path="/resources" element={<Resources />} />
       <Route path="/contact" element={<Contact />} />
-      
+
       {/* Guest-only routes */}
       <Route element={<GuestRoute />}>
         <Route path="/login" element={<Login />} />
@@ -134,38 +134,40 @@ const Approutes = () => {
 
       {/* Protected Routes (Requires Authentication) */}
       <Route element={<ProtectedRoute />}>
-        {/* Customer Dashboard Routes */}
-        <Route path="/customer" element={<DashboardLayout />}>
-          <Route path="dashboard" element={<CustomerDashboard />} />
-          <Route path="profile" element={<CustomerProfile />} />
-          
-          {/* Properties Module */}
-          <Route path="properties" element={<CustomerPropertiesList />} />
-          <Route path="properties/new" element={<CustomerPropertyAdd />} />
-          <Route path="properties/:propertyId" element={<CustomerPropertyDetails />} />
-          <Route path="properties/:propertyId/edit" element={<CustomerPropertyEdit />} />
-          
-          {/* Requests Module */}
-          <Route path="requests" element={<CustomerRequestsList />} />
-          <Route path="requests/new" element={<CustomerRequestCreate />} />
-          <Route path="requests/:requestId" element={<CustomerRequestDetails />} />
+        {/* Customer Dashboard Routes (Restricted to Customers only) */}
+        <Route element={<CustomerRoute />}>
+          <Route path="/customer" element={<DashboardLayout />}>
+            <Route path="dashboard" element={<CustomerDashboard />} />
+            <Route path="profile" element={<CustomerProfile />} />
 
-          {/* Visits Module */}
-          <Route path="visits" element={<CustomerPropertyVisits />} />
-          <Route path="visits/:visitId" element={<CustomerVisitDetails />} />
-          {/* Inspections Module */}
-          <Route path="inspection-reports" element={<CustomerInspectionReports />} />
-          <Route path="inspection-reports/:inspectionId" element={<CustomerInspectionDetails />} />
-          {/* Verifications Module */}
-          <Route path="verification-reports" element={<CustomerVerificationReports />} />
-          <Route path="verification-reports/:propertyId" element={<CustomerVerificationDetails />} />
-          
-          {/* Inbox / Messaging Module */}
-          <Route path="inbox" element={<CustomerInbox />} />
-          <Route path="inbox/new" element={<CustomerMessageCreate />} />
-          <Route path="inbox/:messageId" element={<CustomerMessageDetails />} />
-          
-          <Route path="payments" element={<PlaceholderPage title="Payment Summary" />} />
+            {/* Properties Module */}
+            <Route path="properties" element={<CustomerPropertiesList />} />
+            <Route path="properties/new" element={<CustomerPropertyAdd />} />
+            <Route path="properties/:propertyId" element={<CustomerPropertyDetails />} />
+            <Route path="properties/:propertyId/edit" element={<CustomerPropertyEdit />} />
+
+            {/* Requests Module */}
+            <Route path="requests" element={<CustomerRequestsList />} />
+            <Route path="requests/new" element={<CustomerRequestCreate />} />
+            <Route path="requests/:requestId" element={<CustomerRequestDetails />} />
+
+            {/* Visits Module */}
+            <Route path="visits" element={<CustomerPropertyVisits />} />
+            <Route path="visits/:visitId" element={<CustomerVisitDetails />} />
+            {/* Inspections Module */}
+            <Route path="inspection-reports" element={<CustomerInspectionReports />} />
+            <Route path="inspection-reports/:inspectionId" element={<CustomerInspectionDetails />} />
+            {/* Verifications Module */}
+            <Route path="verification-reports" element={<CustomerVerificationReports />} />
+            <Route path="verification-reports/:propertyId" element={<CustomerVerificationDetails />} />
+
+            {/* Inbox / Messaging Module */}
+            <Route path="inbox" element={<CustomerInbox />} />
+            <Route path="inbox/new" element={<CustomerMessageCreate />} />
+            <Route path="inbox/:messageId" element={<CustomerMessageDetails />} />
+
+            <Route path="payments" element={<PlaceholderPage title="Payment Summary" />} />
+          </Route>
         </Route>
 
         {/* Admin Routes */}
@@ -179,7 +181,7 @@ const Approutes = () => {
             <Route path="employees" element={<AdminEmployees />} />
             <Route path="service-providers" element={<AdminServiceProviders />} />
             <Route path="system-configuration" element={<AdminSystemConfig />} />
-            <Route path="api-logs" element={<AdminApiLogs />} />
+            <Route path="api-logs" element={<Navigate to="/admin/dashboard" replace />} />
 
             {/* Reference Tables - Location */}
             <Route path="reference/countries" element={<AdminCountries />} />
@@ -219,13 +221,15 @@ const Approutes = () => {
             <Route path="customers" element={<AdminCustomers />} />
             <Route path="customers/:customerId" element={<AdminCustomerDetails />} />
             <Route path="properties" element={<AdminProperties />} />
+            <Route path="properties/new" element={<AdminPropertyAdd />} />
             <Route path="requests" element={<AdminRequests />} />
             <Route path="property-visits" element={<AdminPropertyVisits />} />
+            <Route path="visits" element={<AdminPropertyVisits />} />
             <Route path="inspection-reports" element={<AdminInspectionReports />} />
-            <Route path="verification-reports" element={<AdminVerificationReports />} />
+            <Route path="verification-reports" element={<Navigate to="/admin/properties" replace />} />
 
             {/* Pending */}
-            <Route path="property-registry" element={<AdminPropertyRegistry />} />
+            <Route path="property-registry" element={<Navigate to="/admin/properties" replace />} />
             <Route path="payment-summary" element={<AdminPaymentSummary />} />
           </Route>
         </Route>

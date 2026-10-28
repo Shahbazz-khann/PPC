@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bell, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import CustomerAccountMenu from './CustomerAccountMenu';
+import NotificationDropdown from './NotificationDropdown';
 
 const Topbar = () => {
   const { t, i18n } = useTranslation(['common']);
@@ -44,11 +45,8 @@ const Topbar = () => {
           <ExternalLink size={14} className="text-gray-400 group-hover:text-[#B8860B] transition-colors rtl:-scale-x-100" />
         </Link>
         
-        {/* Notification */}
-        <button className="relative p-2.5 text-gray-500 hover:text-[#1a2b25] bg-white rounded-full shadow-sm border border-gray-100 transition-all hover:shadow-md">
-          <Bell size={18} />
-          <span className="absolute top-2 end-2.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-        </button>
+        {/* Notification Dropdown */}
+        <NotificationDropdown />
         
         {/* Divider */}
         <div className="h-8 w-px bg-gray-200 hidden sm:block"></div>

@@ -26,6 +26,12 @@ router.get(
 );
 
 router.get(
+    '/me/permissions',
+    authenticate,
+    authController.getMyPermissions
+);
+
+router.get(
     '/me',
     authenticate,
     authController.getMe

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReferenceTablePage from '../../../../Components/common/ReferenceTablePage';
+import Dropdown from '../../../../Components/common/Dropdown';
 import { getAdminDivisions, getAdminCountries, getAdminProvinces, createAdminDivision, updateAdminDivision, deleteAdminDivision } from '../../../../Services/admin.services';
 import { Edit2, Trash2, X } from 'lucide-react';
 
@@ -130,7 +131,7 @@ const AdminDivisions = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const params = {};
       if (searchQuery.trim()) params.search = searchQuery.trim();
       if (statusQuery) params.status = statusQuery;
@@ -140,18 +141,18 @@ const AdminDivisions = () => {
       params.limit = limitQuery;
 
       const res = await getAdminDivisions(params);
-      
+
       if (res?.success) {
         setDivisions(res.data || []);
         if (res.meta) {
           setTotal(res.meta.total);
           setTotalPages(res.meta.totalPages);
-          
+
           // Pagination edge case: if we are on a page that no longer exists after delete, go to last valid page
           const currentPageNum = Number(pageQuery);
           const metaPageNum = Number(res.meta.page) || 1;
           const metaTotalPagesNum = Number(res.meta.totalPages) || 1;
-          
+
           const validPage = Math.min(currentPageNum, Math.max(1, metaTotalPagesNum));
           if (validPage !== currentPageNum) {
             setPage(validPage);
@@ -159,9 +160,9 @@ const AdminDivisions = () => {
           } else if (metaPageNum !== page) {
             setPage(metaPageNum);
           }
-          
+
           if (Number(res.meta.limit) !== limit) {
-             setLimit(Number(res.meta.limit) || 10);
+            setLimit(Number(res.meta.limit) || 10);
           }
         }
       } else {
@@ -244,7 +245,7 @@ const AdminDivisions = () => {
 
   const handleCreateChange = (e) => {
     const { name, value } = e.target;
-    
+
     setCreateForm(prev => {
       const updated = { ...prev, [name]: value };
       if (name === 'country_id') {
@@ -260,7 +261,7 @@ const AdminDivisions = () => {
     } else {
       if (createErrors[name]) setCreateErrors(prev => ({ ...prev, [name]: null }));
     }
-    
+
     setCreateApiError(null);
   };
 
@@ -268,7 +269,7 @@ const AdminDivisions = () => {
     e.preventDefault();
     setCreateApiError(null);
     setPageSuccess('');
-    
+
     // Frontend Validation
     const errors = {};
     if (!createForm.country_id) {
@@ -277,7 +278,7 @@ const AdminDivisions = () => {
     if (!createForm.province_id) {
       errors.province_id = t('admin:valProvReq', 'Province is required.');
     }
-    
+
     const engTrim = createForm.division_english.trim();
     if (!engTrim) {
       errors.division_english = t('admin:valEngReq', 'Division Name (English) is required.');
@@ -311,7 +312,7 @@ const AdminDivisions = () => {
     try {
       setCreateSubmitting(true);
       const res = await createAdminDivision(payload);
-      
+
       if (res?.success) {
         setPageSuccess(t('admin:createDivisionSuccess', 'Division created successfully.'));
         closeAddModal();
@@ -323,7 +324,7 @@ const AdminDivisions = () => {
       }
     } catch (err) {
       const msg = err.message || t('admin:createUnknownError', 'Unable to create division. Please try again.');
-      
+
       if (err.status === 404) {
         setCreateErrors({ province_id: t('admin:provinceNotFound', 'Province not found. Please select another province.') });
         setCreateForm(prev => ({ ...prev, province_id: '' }));
@@ -375,10 +376,10 @@ const AdminDivisions = () => {
     setEditErrors({});
     setEditApiError(null);
     setPageSuccess('');
-    
+
     // Fetch provinces for this country
     fetchProvincesForEdit(String(row.country_id));
-    
+
     setIsEditModalOpen(true);
   };
 
@@ -394,7 +395,7 @@ const AdminDivisions = () => {
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
-    
+
     let parsedValue = value;
     if (name === 'is_active') {
       parsedValue = value === 'true';
@@ -415,7 +416,7 @@ const AdminDivisions = () => {
     } else {
       if (editErrors[name]) setEditErrors(prev => ({ ...prev, [name]: null }));
     }
-    
+
     setEditApiError(null);
   };
 
@@ -423,7 +424,7 @@ const AdminDivisions = () => {
     e.preventDefault();
     setEditApiError(null);
     setPageSuccess('');
-    
+
     // Frontend Validation
     const errors = {};
     if (!editForm.country_id) {
@@ -432,7 +433,7 @@ const AdminDivisions = () => {
     if (!editForm.province_id) {
       errors.province_id = t('admin:valProvReq', 'Province is required.');
     }
-    
+
     const engTrim = editForm.division_english.trim();
     if (!engTrim) {
       errors.division_english = t('admin:valEngReq', 'Division Name (English) is required.');
@@ -471,7 +472,7 @@ const AdminDivisions = () => {
     try {
       setEditSubmitting(true);
       const res = await updateAdminDivision(editDivisionId, payload);
-      
+
       if (res?.success) {
         setPageSuccess(t('admin:updateDivisionSuccess', 'Division updated successfully.'));
         closeEditModal();
@@ -479,7 +480,7 @@ const AdminDivisions = () => {
       }
     } catch (err) {
       const msg = err.message || t('admin:updateUnknownError', 'Unable to update division. Please try again.');
-      
+
       if (err.status === 404 && msg.toLowerCase().includes('division')) {
         setEditApiError(t('admin:divisionNotFound', 'Division not found. The list has been refreshed.'));
         setTimeout(() => {
@@ -521,15 +522,15 @@ const AdminDivisions = () => {
 
   const handleDeleteSubmit = async () => {
     if (!deleteTarget || !deleteTarget.division_id) return;
-    
+
     setDeleteError(null);
     setDeleteDependencies([]);
     setPageSuccess('');
-    
+
     try {
       setDeleteSubmitting(true);
       const res = await deleteAdminDivision(deleteTarget.division_id);
-      
+
       if (res?.success) {
         closeDeleteModal();
         setPageSuccess(t('admin:deleteDivisionSuccess', 'Division deleted successfully.'));
@@ -537,7 +538,7 @@ const AdminDivisions = () => {
       }
     } catch (err) {
       const msg = err.message || t('admin:deleteUnknownError', 'Unable to delete division. Please try again.');
-      
+
       if (err.status === 404) {
         setDeleteError(t('admin:divisionNotFound', 'Division not found. The list has been refreshed.'));
         setTimeout(() => {
@@ -569,46 +570,45 @@ const AdminDivisions = () => {
 
   const renderRow = (row, index) => (
     <tr key={row.division_id} className="hover:bg-gray-50/50 transition-colors">
-      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 w-16">
+      <td className="px-4 py-3 whitespace-nowrap text-sm w-16 text-gray-900 font-semibold">
         {(((page - 1) * limit) + index + 1).toString().padStart(2, '0')}
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+      <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
         #{row.division_id}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-700 min-w-[100px]">
+      <td className="px-4 py-3 text-sm text-gray-700 min-w-[100px] text-gray-900 font-semibold">
         {row.country_english}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-700 min-w-[120px]">
+      <td className="px-4 py-3 text-sm text-gray-700 min-w-[120px] text-gray-900 font-semibold">
         {row.province_english}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-700 min-w-[150px]">
+      <td className="px-4 py-3 text-sm text-gray-700 min-w-[150px] text-gray-900 font-semibold">
         {row.division_english}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-700 font-urdu min-w-[120px]">
+      <td className="px-4 py-3 text-sm text-gray-700 font-urdu min-w-[120px] text-gray-900 font-semibold">
         {row.division_urdu || '-'}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-700 min-w-[100px]">
+      <td className="px-4 py-3 text-sm text-gray-700 min-w-[100px] text-gray-900 font-semibold">
         {row.division_abb || '-'}
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-sm">
-        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-          row.is_active 
-            ? 'bg-green-100 text-green-800 border border-green-200' 
-            : 'bg-red-100 text-red-800 border border-red-200'
-        }`}>
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 font-semibold">
+        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${row.is_active
+          ? 'bg-green-100 text-green-800 border border-green-200'
+          : 'bg-red-100 text-red-800 border border-red-200'
+          }`}>
           <span className={`w-1.5 h-1.5 rounded-full mr-1.5 rtl:ml-1.5 rtl:mr-0 ${row.is_active ? 'bg-green-600' : 'bg-red-600'}`}></span>
           {row.is_active ? t('admin:statusActive', 'Active') : t('admin:statusInactive', 'Inactive')}
         </span>
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-end text-sm font-medium w-24">
+      <td className="px-4 py-3 whitespace-nowrap text-end text-sm font-semibold w-24 text-gray-900">
         <div className="flex items-center justify-end gap-2">
-          <button 
+          <button
             onClick={() => openEditModal(row)}
             title={t('admin:edit', 'Edit')}
             className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg shadow-sm transition-colors">
             <Edit2 className="w-4 h-4" />
           </button>
-          <button 
+          <button
             onClick={() => openDeleteModal(row)}
             title={t('admin:delete', 'Delete')}
             className="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg shadow-sm transition-colors">
@@ -621,47 +621,60 @@ const AdminDivisions = () => {
 
   const extraFilters = (
     <>
-      <select
-        value={countryId}
-        onChange={handleCountryChange}
-        disabled={countriesLoading}
-        className="block w-full sm:w-48 shrink-0 pl-3 pr-8 py-2 border border-gray-200 rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#C59B27] focus:border-[#C59B27] sm:text-sm transition-colors"
-      >
-        <option value="">
-          {countriesError 
-            ? t('admin:errorLoadingCountries', 'Unable to load countries') 
-            : (countriesLoading 
-                ? t('admin:loadingCountries', 'Loading countries...') 
+      <div className="w-full sm:w-48 shrink-0">
+        <Dropdown
+          value={countryId}
+          onChange={(val) => handleCountryChange({ target: { value: val } })}
+          disabled={countriesLoading}
+          placeholder={
+            countriesError
+              ? t('admin:errorLoadingCountries', 'Unable to load countries')
+              : countriesLoading
+              ? t('admin:loadingCountries', 'Loading countries...')
+              : t('admin:allCountries', 'All Countries')
+          }
+          options={[
+            {
+              value: '',
+              label: countriesError
+                ? t('admin:errorLoadingCountries', 'Unable to load countries')
+                : countriesLoading
+                ? t('admin:loadingCountries', 'Loading countries...')
                 : t('admin:allCountries', 'All Countries')
-              )
+            },
+            ...countries.map((c) => ({ value: c.country_id, label: c.country_english }))
+          ]}
+        />
+      </div>
+
+      <div className="w-full sm:w-48 shrink-0">
+        <Dropdown
+          value={provinceId}
+          onChange={(val) => {
+            setProvinceId(val);
+            setPage(1);
+          }}
+          disabled={provincesLoading || countriesLoading}
+          placeholder={
+            provincesError
+              ? t('admin:errorLoadingProvinces', 'Unable to load provinces')
+              : provincesLoading
+              ? t('admin:loadingProvinces', 'Loading provinces...')
+              : t('admin:allProvinces', 'All Provinces')
           }
-        </option>
-        {countries.map(c => (
-          <option key={c.country_id} value={c.country_id}>{c.country_english}</option>
-        ))}
-      </select>
-      <select
-        value={provinceId}
-        onChange={(e) => {
-          setProvinceId(e.target.value);
-          setPage(1);
-        }}
-        disabled={provincesLoading || countriesLoading}
-        className="block w-full sm:w-48 shrink-0 pl-3 pr-8 py-2 border border-gray-200 rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#C59B27] focus:border-[#C59B27] sm:text-sm transition-colors"
-      >
-        <option value="">
-          {provincesError 
-            ? t('admin:errorLoadingProvinces', 'Unable to load provinces') 
-            : (provincesLoading 
-                ? t('admin:loadingProvinces', 'Loading provinces...') 
+          options={[
+            {
+              value: '',
+              label: provincesError
+                ? t('admin:errorLoadingProvinces', 'Unable to load provinces')
+                : provincesLoading
+                ? t('admin:loadingProvinces', 'Loading provinces...')
                 : t('admin:allProvinces', 'All Provinces')
-              )
-          }
-        </option>
-        {provinces.map(p => (
-          <option key={p.province_id} value={p.province_id}>{p.province_english}</option>
-        ))}
-      </select>
+            },
+            ...provinces.map((p) => ({ value: p.province_id, label: p.province_english }))
+          ]}
+        />
+      </div>
     </>
   );
 
@@ -677,48 +690,48 @@ const AdminDivisions = () => {
         description={t('admin:AdminDivisionsDesc', 'Manage Divisions reference data.')}
         columns={columns}
         rows={divisions}
-      
-      search={search}
-      onSearchChange={(v) => {
-        setSearch(v);
-        setPage(1);
-      }}
-      
-      status={status}
-      showStatusFilter={true}
-      onStatusChange={(v) => {
-        setStatus(v);
-        setPage(1);
-      }}
-      
-      extraFilters={extraFilters}
 
-      loading={loading}
-      error={error}
-      onReset={handleReset}
-      onRetry={() => fetchDivisions(search, status, countryId, provinceId, page, limit)}
-      
-      onAdd={openAddModal}
-      
-      pagination={{
-        page,
-        limit,
-        total,
-        totalPages,
-        onPageChange: (newPage) => setPage(newPage),
-        onLimitChange: (newLimit) => {
-          setLimit(newLimit);
+        search={search}
+        onSearchChange={(v) => {
+          setSearch(v);
           setPage(1);
-        }
-      }}
+        }}
 
-      emptyMessage={
-        (search || status !== 'all' || countryId || provinceId) 
-          ? t('admin:noDivisionsMatch', 'No divisions match the selected filters.')
-          : t('admin:noDivisionsFound', 'No divisions found.')
-      }
-      renderRow={renderRow}
-    />
+        status={status}
+        showStatusFilter={true}
+        onStatusChange={(v) => {
+          setStatus(v);
+          setPage(1);
+        }}
+
+        extraFilters={extraFilters}
+
+        loading={loading}
+        error={error}
+        onReset={handleReset}
+        onRetry={() => fetchDivisions(search, status, countryId, provinceId, page, limit)}
+
+        onAdd={openAddModal}
+
+        pagination={{
+          page,
+          limit,
+          total,
+          totalPages,
+          onPageChange: (newPage) => setPage(newPage),
+          onLimitChange: (newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }
+        }}
+
+        emptyMessage={
+          (search || status !== 'all' || countryId || provinceId)
+            ? t('admin:noDivisionsMatch', 'No divisions match the selected filters.')
+            : t('admin:noDivisionsFound', 'No divisions found.')
+        }
+        renderRow={renderRow}
+      />
       {/* Add Division Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1a2b25]/60 backdrop-blur-sm">
@@ -729,7 +742,7 @@ const AdminDivisions = () => {
                 <h3 className="text-lg font-bold text-gray-900">{t('admin:addDivisionTitle', 'Add Division')}</h3>
                 <p className="text-xs text-gray-500 mt-1">{t('admin:addDivisionDesc', 'Add a new division to the location reference data.')}</p>
               </div>
-              <button 
+              <button
                 onClick={closeAddModal}
                 disabled={createSubmitting}
                 className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
@@ -747,7 +760,7 @@ const AdminDivisions = () => {
                     {createApiError}
                   </div>
                 )}
-                
+
                 {/* Country Selection */}
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -758,19 +771,18 @@ const AdminDivisions = () => {
                     value={createForm.country_id}
                     onChange={handleCreateChange}
                     disabled={createSubmitting || countriesLoading || !!countriesError}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      createErrors.country_id 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${createErrors.country_id
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                   >
                     <option value="">
-                      {countriesError 
-                        ? t('admin:errorLoadingCountries', 'Unable to load countries') 
-                        : (countriesLoading 
-                            ? t('admin:loadingCountries', 'Loading countries...') 
-                            : t('admin:selectCountry', 'Select Country')
-                          )
+                      {countriesError
+                        ? t('admin:errorLoadingCountries', 'Unable to load countries')
+                        : (countriesLoading
+                          ? t('admin:loadingCountries', 'Loading countries...')
+                          : t('admin:selectCountry', 'Select Country')
+                        )
                       }
                     </option>
                     {countries.map(c => (
@@ -794,22 +806,21 @@ const AdminDivisions = () => {
                     value={createForm.province_id}
                     onChange={handleCreateChange}
                     disabled={createSubmitting || !createForm.country_id || createProvincesLoading || !!createProvincesError}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      createErrors.province_id 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${createErrors.province_id
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                   >
                     <option value="">
-                      {!createForm.country_id 
+                      {!createForm.country_id
                         ? t('admin:selectProvince', 'Select Province')
-                        : (createProvincesError 
-                            ? t('admin:errorLoadingProvinces', 'Unable to load provinces') 
-                            : (createProvincesLoading 
-                                ? t('admin:loadingProvinces', 'Loading provinces...') 
-                                : t('admin:selectProvince', 'Select Province')
-                              )
+                        : (createProvincesError
+                          ? t('admin:errorLoadingProvinces', 'Unable to load provinces')
+                          : (createProvincesLoading
+                            ? t('admin:loadingProvinces', 'Loading provinces...')
+                            : t('admin:selectProvince', 'Select Province')
                           )
+                        )
                       }
                     </option>
                     {createProvinces.map(p => (
@@ -834,11 +845,10 @@ const AdminDivisions = () => {
                     value={createForm.division_english}
                     onChange={handleCreateChange}
                     disabled={createSubmitting}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      createErrors.division_english 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${createErrors.division_english
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="e.g. Lahore Division"
                   />
                   {createErrors.division_english && (
@@ -858,11 +868,10 @@ const AdminDivisions = () => {
                     onChange={handleCreateChange}
                     disabled={createSubmitting}
                     dir="auto"
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors font-urdu ${
-                      createErrors.division_urdu
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors font-urdu ${createErrors.division_urdu
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="لاہور ڈویژن"
                   />
                   {createErrors.division_urdu && (
@@ -881,11 +890,10 @@ const AdminDivisions = () => {
                     value={createForm.division_abb}
                     onChange={handleCreateChange}
                     disabled={createSubmitting}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      createErrors.division_abb
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${createErrors.division_abb
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="e.g. LHR"
                   />
                   {createErrors.division_abb && (
@@ -933,7 +941,7 @@ const AdminDivisions = () => {
                 <h3 className="text-lg font-bold text-gray-900">{t('admin:editDivisionTitle', 'Edit Division')}</h3>
                 <p className="text-xs text-gray-500 mt-1">{t('admin:editDivisionDesc', 'Update division details and status.')}</p>
               </div>
-              <button 
+              <button
                 onClick={closeEditModal}
                 disabled={editSubmitting}
                 className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
@@ -951,7 +959,7 @@ const AdminDivisions = () => {
                     {editApiError}
                   </div>
                 )}
-                
+
                 {/* Country Selection */}
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -962,19 +970,18 @@ const AdminDivisions = () => {
                     value={editForm.country_id}
                     onChange={handleEditChange}
                     disabled={editSubmitting || countriesLoading || !!countriesError}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      editErrors.country_id 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${editErrors.country_id
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                   >
                     <option value="">
-                      {countriesError 
-                        ? t('admin:errorLoadingCountries', 'Unable to load countries') 
-                        : (countriesLoading 
-                            ? t('admin:loadingCountries', 'Loading countries...') 
-                            : t('admin:selectCountry', 'Select Country')
-                          )
+                      {countriesError
+                        ? t('admin:errorLoadingCountries', 'Unable to load countries')
+                        : (countriesLoading
+                          ? t('admin:loadingCountries', 'Loading countries...')
+                          : t('admin:selectCountry', 'Select Country')
+                        )
                       }
                     </option>
                     {countries.map(c => (
@@ -998,22 +1005,21 @@ const AdminDivisions = () => {
                     value={editForm.province_id}
                     onChange={handleEditChange}
                     disabled={editSubmitting || !editForm.country_id || editProvincesLoading || !!editProvincesError}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      editErrors.province_id 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${editErrors.province_id
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                   >
                     <option value="">
-                      {!editForm.country_id 
+                      {!editForm.country_id
                         ? t('admin:selectProvince', 'Select Province')
-                        : (editProvincesError 
-                            ? t('admin:errorLoadingProvinces', 'Unable to load provinces') 
-                            : (editProvincesLoading 
-                                ? t('admin:loadingProvinces', 'Loading provinces...') 
-                                : t('admin:selectProvince', 'Select Province')
-                              )
+                        : (editProvincesError
+                          ? t('admin:errorLoadingProvinces', 'Unable to load provinces')
+                          : (editProvincesLoading
+                            ? t('admin:loadingProvinces', 'Loading provinces...')
+                            : t('admin:selectProvince', 'Select Province')
                           )
+                        )
                       }
                     </option>
                     {editProvinces.map(p => (
@@ -1038,11 +1044,10 @@ const AdminDivisions = () => {
                     value={editForm.division_english}
                     onChange={handleEditChange}
                     disabled={editSubmitting}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      editErrors.division_english 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${editErrors.division_english
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="e.g. Lahore Division"
                   />
                   {editErrors.division_english && (
@@ -1062,11 +1067,10 @@ const AdminDivisions = () => {
                     onChange={handleEditChange}
                     disabled={editSubmitting}
                     dir="auto"
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors font-urdu ${
-                      editErrors.division_urdu
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors font-urdu ${editErrors.division_urdu
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="لاہور ڈویژن"
                   />
                   {editErrors.division_urdu && (
@@ -1085,11 +1089,10 @@ const AdminDivisions = () => {
                     value={editForm.division_abb}
                     onChange={handleEditChange}
                     disabled={editSubmitting}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      editErrors.division_abb
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${editErrors.division_abb
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="e.g. LHR"
                   />
                   {editErrors.division_abb && (
@@ -1107,11 +1110,10 @@ const AdminDivisions = () => {
                     value={editForm.is_active ? 'true' : 'false'}
                     onChange={handleEditChange}
                     disabled={editSubmitting}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      editErrors.is_active
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${editErrors.is_active
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                   >
                     <option value="true">{t('admin:statusActive', 'Active')}</option>
                     <option value="false">{t('admin:statusInactive', 'Inactive')}</option>
@@ -1158,7 +1160,7 @@ const AdminDivisions = () => {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <h3 className="text-lg font-bold text-gray-900">{t('admin:deleteDivisionTitle', 'Delete Division')}</h3>
-              <button 
+              <button
                 onClick={closeDeleteModal}
                 disabled={deleteSubmitting}
                 className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
@@ -1166,14 +1168,14 @@ const AdminDivisions = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="p-6">
               {deleteError ? (
                 <div className="p-4 bg-red-50 rounded-xl">
-                  <p className="text-sm font-medium text-red-800">
+                  <p className="text-sm font-semibold text-red-800">
                     {deleteError}
                   </p>
-                  
+
                   {deleteDependencies && deleteDependencies.length > 0 && (
                     <div className="mt-3 text-sm text-red-700">
                       <p className="font-bold mb-1">{t('admin:dependencies', 'Dependencies')}:</p>
@@ -1196,11 +1198,11 @@ const AdminDivisions = () => {
                   <p className="text-sm text-gray-600">
                     {t('admin:deleteDivisionConfirm', 'Are you sure you want to delete this division?')}
                   </p>
-                  
+
                   <div className="p-4 bg-gray-50 rounded-xl space-y-2 border border-gray-100">
                     <div>
                       <span className="text-xs text-gray-500 font-bold uppercase tracking-wider block mb-0.5">{t('admin:colDivisionNameEn', 'Division Name (English)')}</span>
-                      <span className="text-sm font-medium text-gray-900">{deleteTarget.division_english}</span>
+                      <span className="text-sm font-semibold text-gray-900">{deleteTarget.division_english}</span>
                     </div>
                     <div>
                       <span className="text-xs text-gray-500 font-bold uppercase tracking-wider block mb-0.5">{t('admin:colProvince', 'Province')}</span>
@@ -1212,7 +1214,7 @@ const AdminDivisions = () => {
                     </div>
                   </div>
 
-                  <p className="text-sm font-medium text-red-600">
+                  <p className="text-sm font-semibold text-red-600">
                     {t('admin:deleteUndone', 'This action cannot be undone.')}
                   </p>
                 </div>
@@ -1228,7 +1230,7 @@ const AdminDivisions = () => {
               >
                 {t('admin:cancel', 'Cancel')}
               </button>
-              
+
               {!deleteDependencies?.length && !deleteError && (
                 <button
                   type="button"
@@ -1255,3 +1257,4 @@ const AdminDivisions = () => {
 };
 
 export default AdminDivisions;
+

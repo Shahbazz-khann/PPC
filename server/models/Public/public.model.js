@@ -32,10 +32,17 @@ const getPublicProperties = async (filters = {}, limit = 50) => {
             u.uom_english AS size_uom,
             p.property_rooms AS rooms,
             p.property_bath_rooms AS bathrooms,
+            p.property_description,
             COALESCE(pd.final_amount, pd.demand_amount) AS current_price,
             cur.currency_code,
             pp.picture_url AS image_url,
-            p.creation_date_time
+            (
+                SELECT COALESCE(array_agg(pp2.picture_url ORDER BY pp2.display_order ASC), ARRAY[]::text[])
+                FROM property_pictures pp2
+                WHERE pp2.property_id = p.property_id AND pp2.is_active = true
+            ) AS images,
+            p.creation_date_time,
+            COALESCE(cu.mobile, '+92 336 6006060') AS contact_phone
         FROM properties p
         ${PUBLIC_ELIGIBILITY_JOINS}
         LEFT JOIN currencies cur ON pd.demand_currency_id = cur.currency_id
@@ -45,12 +52,19 @@ const getPublicProperties = async (filters = {}, limit = 50) => {
         LEFT JOIN areas a ON p.area_id = a.area_id
         LEFT JOIN societies s ON a.society_id = s.society_id
         LEFT JOIN cities c ON s.city_id = c.city_id
+        LEFT JOIN customers cu ON p.customer_id = cu.customer_id
         LEFT JOIN property_pictures pp ON p.property_id = pp.property_id AND pp.is_active = true AND pp.display_order = 1
         WHERE ${PUBLIC_ELIGIBILITY_WHERE}
     `;
 
     const params = [];
     let paramIndex = 1;
+
+    // Direct Property ID Filter
+    if (filters.propertyId) {
+        query += ` AND p.property_id = $${paramIndex++}`;
+        params.push(filters.propertyId);
+    }
 
     // Basic Filters
     if (filters.intent) {
@@ -163,34 +177,28 @@ const getPublicPropertyFilters = async (city = null, society = null) => {
         ORDER BY c.city_english ASC
     `;
 
-    // 2. Fetch distinct valid property types (Global)
+    // 2. Fetch all active property types (Global)
     const typesQuery = `
-        SELECT DISTINCT pt.property_type_description
-        FROM properties p
-        ${PUBLIC_ELIGIBILITY_JOINS}
-        JOIN property_types pt ON p.property_type_id = pt.property_type_id
-        WHERE ${baseWhere} AND pt.property_type_description IS NOT NULL
-        ORDER BY pt.property_type_description ASC
+        SELECT property_type_description
+        FROM property_types
+        WHERE is_active = true
+        ORDER BY property_type_id ASC
     `;
 
-    // 3. Fetch distinct valid property uses (Global)
+    // 3. Fetch all active property uses (Global)
     const usesQuery = `
-        SELECT DISTINCT pu.property_use_description
-        FROM properties p
-        ${PUBLIC_ELIGIBILITY_JOINS}
-        JOIN property_use pu ON p.property_use_id = pu.property_use_id
-        WHERE ${baseWhere} AND pu.property_use_description IS NOT NULL
-        ORDER BY pu.property_use_description ASC
+        SELECT property_use_description
+        FROM property_use
+        WHERE is_active = true
+        ORDER BY property_use_id ASC
     `;
 
-    // 4. Fetch distinct size UOMs (Global)
+    // 4. Fetch all active size UOMs (Global)
     const uomsQuery = `
-        SELECT DISTINCT u.uom_english
-        FROM properties p
-        ${PUBLIC_ELIGIBILITY_JOINS}
-        JOIN uom u ON p.property_size_uom = u.uom_id
-        WHERE ${baseWhere} AND u.uom_english IS NOT NULL
-        ORDER BY u.uom_english ASC
+        SELECT uom_english
+        FROM uom
+        WHERE is_active = true
+        ORDER BY uom_id ASC
     `;
 
     // 5. Fetch societies (Contextual based on City)

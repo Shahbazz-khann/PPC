@@ -3,21 +3,21 @@ const router = express.Router();
 
 const { getDivisions, createDivision, updateDivision, deleteDivision } = require('../../../../controller/Admin/Reference/location/divisions.controller');
 const { validateGetDivisions, validateCreateDivision, validateDivisionIdParam, validateUpdateDivision } = require('../../../../validators/Admin/Reference/location/divisions.validator');
-const { authenticate, authorize } = require('../../../../middlewares/authMiddleware');
+const { authenticate, authorizePageAccess } = require('../../../../middlewares/authMiddleware');
+const { ADMIN_PAGE_KEYS } = require('../../../../config/adminPageRegistry');
 
 router.get(
     '/',
     authenticate,
-    authorize('admin'),
+    authorizePageAccess(ADMIN_PAGE_KEYS.PAGE_REF_DIVISIONS),
     validateGetDivisions,
     getDivisions
-
 );
 
 router.post(
     '/',
     authenticate,
-    authorize('admin'),
+    authorizePageAccess(ADMIN_PAGE_KEYS.PAGE_REF_DIVISIONS),
     validateCreateDivision,
     createDivision
 );
@@ -25,7 +25,7 @@ router.post(
 router.put(
     '/:id',
     authenticate,
-    authorize('admin'),
+    authorizePageAccess(ADMIN_PAGE_KEYS.PAGE_REF_DIVISIONS),
     validateDivisionIdParam,
     validateUpdateDivision,
     updateDivision
@@ -34,7 +34,7 @@ router.put(
 router.delete(
     '/:id',
     authenticate,
-    authorize('admin'),
+    authorizePageAccess(ADMIN_PAGE_KEYS.PAGE_REF_DIVISIONS),
     validateDivisionIdParam,
     deleteDivision
 );

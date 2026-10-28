@@ -1,5 +1,6 @@
 const logger = require('../../utils/logger');
 const requestsModel = require('../../models/Customer/requests.model');
+const { notifyAdmins } = require('../../services/notification.service');
 
 /**
  * Get all active requests for the authenticated customer
@@ -55,6 +56,15 @@ const createRequest = async (req, res, next) => {
         const requestData = req.body;
 
         const requestId = await requestsModel.createCustomerRequest(userId, requestData);
+
+        // Notify Admins of new customer request
+        notifyAdmins({
+            actorId: userId,
+            title: 'New Service Request',
+            message: `Customer submitted service inquiry/request #${requestId}.`,
+            type: 'request',
+            linkUrl: '/admin/requests',
+        });
 
         return res.status(201).json({
             success: true,

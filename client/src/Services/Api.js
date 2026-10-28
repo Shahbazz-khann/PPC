@@ -304,7 +304,17 @@ export const BACKEND_ORIGIN = BASE_URL ? new URL(BASE_URL).origin : 'http://loca
  */
 export const resolveMediaUrl = (url) => {
   if (!url) return url;
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (typeof url !== 'string') return url;
+  if (
+    url.startsWith('http://') ||
+    url.startsWith('https://') ||
+    url.startsWith('data:') ||
+    url.startsWith('blob:') ||
+    url.startsWith('/src/') ||
+    url.startsWith('/@fs/')
+  ) {
+    return url;
+  }
   return `${BACKEND_ORIGIN}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
@@ -354,13 +364,24 @@ export const sendApiRequest = async ({
       ...config,
     });
 
-    const responseData = await response.json();
+    let responseData = null;
+    try {
+      responseData = await response.json();
+    } catch {
+      responseData = null;
+    }
 
     // Handle API errors
     if (!response.ok) {
-      throw new Error(
-        responseData.message || responseData.error || "Something went wrong"
-      );
+      const errorMsg =
+        (responseData && typeof responseData === 'object' && (responseData.message || responseData.error)) ||
+        "Something went wrong";
+      const error = new Error(errorMsg);
+      error.status = response.status;
+      error.statusCode = response.status;
+      error.data = responseData;
+      error.response = { data: responseData, status: response.status };
+      throw error;
     }
 
     return responseData;

@@ -20,11 +20,19 @@ export const getProperties = async (params = {}) => {
 };
 
 /**
- * Fetch single property details by property ID
+ * Fetch single property details by property ID (Admin/Protected)
  * @param {number|string} propertyId
  */
 export const getPropertyById = async (propertyId) => {
   return await api.get(`/properties/${propertyId}`);
+}; 
+
+/**
+ * Fetch single public property details by property ID (Public)
+ * @param {number|string} propertyId
+ */
+export const getPublicPropertyById = async (propertyId) => {
+  return await api.get(`/public/properties/${propertyId}`);
 }; 
 
 /**

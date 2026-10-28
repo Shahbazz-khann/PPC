@@ -8,13 +8,13 @@ import {
   ArrowRight,
   MapPin,
   Maximize,
-  Bell,
   ChevronRight,
   MoreHorizontal,
   Plus,
   AlertTriangle
 } from 'lucide-react';
 import CustomerAccountMenu from '../../Components/common/CustomerAccountMenu';
+import NotificationDropdown from '../../Components/common/NotificationDropdown';
 import { getCustomerDashboardSummary, getCustomerDashboardProperties, getCustomerRequests } from '../../Services/customer.services';
 import { resolveMediaUrl } from '../../Services/Api';
 import { useAuth } from '../../Context/AuthContext';
@@ -203,10 +203,7 @@ const CustomerDashboard = () => {
                 </button>
               </div>
 
-              <button className="relative p-2.5 text-gray-600 hover:text-gray-900 bg-white rounded-full shadow-sm border border-gray-100">
-                <Bell size={18} />
-                <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-              </button>
+              <NotificationDropdown />
               <CustomerAccountMenu />
             </div>
           </div>

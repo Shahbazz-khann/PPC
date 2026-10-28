@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReferenceTablePage from '../../../../Components/common/ReferenceTablePage';
+import Dropdown from '../../../../Components/common/Dropdown';
 import { getAdminProvinces, getAdminCountries, createAdminProvince, updateAdminProvince, deleteAdminProvince } from '../../../../Services/admin.services';
 import { Edit2, Trash2, X } from 'lucide-react';
 
@@ -81,14 +82,14 @@ const AdminProvinces = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const params = {};
       if (searchQuery) params.search = searchQuery;
       if (statusQuery) params.status = statusQuery;
       if (countryQuery) params.countryId = countryQuery;
 
       const res = await getAdminProvinces(params);
-      
+
       if (res?.success) {
         setProvinces(res.data || []);
       } else {
@@ -147,13 +148,13 @@ const AdminProvinces = () => {
     e.preventDefault();
     setCreateApiError(null);
     setPageSuccess('');
-    
+
     // Frontend Validation
     const errors = {};
     if (!createForm.country_id) {
       errors.country_id = t('admin:valCountryReq', 'Country is required.');
     }
-    
+
     const engTrim = createForm.province_english.trim();
     if (!engTrim) {
       errors.province_english = t('admin:valEngReq', 'Province Name (English) is required.');
@@ -187,7 +188,7 @@ const AdminProvinces = () => {
     try {
       setCreateSubmitting(true);
       const res = await createAdminProvince(payload);
-      
+
       if (res?.success) {
         setPageSuccess(t('admin:createProvinceSuccess', 'Province created successfully.'));
         closeAddModal();
@@ -195,12 +196,12 @@ const AdminProvinces = () => {
         setCreateErrors({});
         setCreateApiError(null);
         await fetchProvinces(); // Use current state (search, status, countryId) seamlessly
-        
+
         setTimeout(() => setPageSuccess(''), 5000);
       }
     } catch (err) {
       const msg = err.message || t('admin:createUnknownError', 'Unable to create province. Please try again.');
-      
+
       if (err.status === 404) {
         setCreateErrors({ country_id: t('admin:countryNotFound', 'Country not found. Please select another country.') });
       } else if (err.status === 409 || msg.toLowerCase().includes('english') || msg.toLowerCase().includes('exists')) {
@@ -240,7 +241,7 @@ const AdminProvinces = () => {
     if (type === 'radio' && (value === 'true' || value === 'false')) {
       finalValue = value === 'true';
     }
-    
+
     setEditForm(prev => ({ ...prev, [name]: finalValue }));
     if (editErrors[name]) {
       setEditErrors(prev => ({ ...prev, [name]: null }));
@@ -252,13 +253,13 @@ const AdminProvinces = () => {
     e.preventDefault();
     setEditApiError(null);
     setPageSuccess('');
-    
+
     // Frontend Validation
     const errors = {};
     if (!editForm.country_id) {
       errors.country_id = t('admin:valCountryReq', 'Country is required.');
     }
-    
+
     const engTrim = editForm.province_english.trim();
     if (!engTrim) {
       errors.province_english = t('admin:valEngReq', 'Province Name (English) is required.');
@@ -293,17 +294,17 @@ const AdminProvinces = () => {
     try {
       setEditSubmitting(true);
       const res = await updateAdminProvince(selectedProvince.province_id, payload);
-      
+
       if (res?.success) {
         setPageSuccess(t('admin:updateProvinceSuccess', 'Province updated successfully.'));
         closeEditModal();
         await fetchProvinces(); // Use current state (search, status, countryId) seamlessly
-        
+
         setTimeout(() => setPageSuccess(''), 5000);
       }
     } catch (err) {
       const msg = err.message || t('admin:updateUnknownError', 'Unable to update province. Please try again.');
-      
+
       if (err.status === 404) {
         if (msg.toLowerCase().includes('country')) {
           setEditErrors({ country_id: t('admin:countryNotFound', 'Country not found. Please select another country.') });
@@ -342,19 +343,19 @@ const AdminProvinces = () => {
 
   const handleDeleteSubmit = async () => {
     if (!selectedProvinceForDelete?.province_id) return;
-    
+
     setDeleteError(null);
     setDeleteDependencies([]);
     setDeleteSubmitting(true);
-    
+
     try {
       const res = await deleteAdminProvince(selectedProvinceForDelete.province_id);
-      
+
       if (res?.success) {
         closeDeleteModal();
         setPageSuccess(t('admin:deleteProvinceSuccess', 'Province deleted successfully.'));
         await fetchProvinces(); // Uses current search, status, and countryId from state natively
-        
+
         setTimeout(() => setPageSuccess(''), 5000);
       }
     } catch (err) {
@@ -390,43 +391,42 @@ const AdminProvinces = () => {
 
   const renderRow = (row, index) => (
     <tr key={row.province_id} className="hover:bg-gray-50/50 transition-colors">
-      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 w-16">
+      <td className="px-4 py-3 whitespace-nowrap text-sm w-16 text-gray-900 font-semibold">
         {(index + 1).toString().padStart(2, '0')}
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+      <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
         #{row.province_id}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-700 min-w-[100px]">
+      <td className="px-4 py-3 text-sm text-gray-700 min-w-[100px] text-gray-900 font-semibold">
         {row.country_english}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-700 min-w-[120px]">
+      <td className="px-4 py-3 text-sm text-gray-700 min-w-[120px] text-gray-900 font-semibold">
         {row.province_english}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-700 font-urdu min-w-[120px]">
+      <td className="px-4 py-3 text-sm text-gray-700 font-urdu min-w-[120px] text-gray-900 font-semibold">
         {row.province_urdu || '-'}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-700 min-w-[100px]">
+      <td className="px-4 py-3 text-sm text-gray-700 min-w-[100px] text-gray-900 font-semibold">
         {row.province_abb || '-'}
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-sm">
-        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-          row.is_active 
-            ? 'bg-green-100 text-green-800 border border-green-200' 
-            : 'bg-red-100 text-red-800 border border-red-200'
-        }`}>
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 font-semibold">
+        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${row.is_active
+          ? 'bg-green-100 text-green-800 border border-green-200'
+          : 'bg-red-100 text-red-800 border border-red-200'
+          }`}>
           <span className={`w-1.5 h-1.5 rounded-full mr-1.5 rtl:ml-1.5 rtl:mr-0 ${row.is_active ? 'bg-green-600' : 'bg-red-600'}`}></span>
           {row.is_active ? t('admin:statusActive', 'Active') : t('admin:statusInactive', 'Inactive')}
         </span>
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-end text-sm font-medium w-24">
+      <td className="px-4 py-3 whitespace-nowrap text-end text-sm font-semibold w-24 text-gray-900">
         <div className="flex items-center justify-end gap-2">
-          <button 
+          <button
             onClick={() => openEditModal(row)}
             title={t('admin:editProvince', 'Edit province')}
             className="p-1.5 text-blue-600 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-blue-50 transition-colors">
             <Edit2 className="w-4 h-4" />
           </button>
-          <button 
+          <button
             onClick={() => openDeleteModal(row)}
             title={t('admin:deleteProvince', 'Delete province')}
             className="p-1.5 text-red-500 hover:text-red-700 bg-white border border-gray-200 rounded-lg shadow-sm transition-colors">
@@ -438,25 +438,31 @@ const AdminProvinces = () => {
   );
 
   const countryFilterSelect = (
-    <select
-      value={countryId}
-      onChange={(e) => setCountryId(e.target.value)}
-      disabled={countriesLoading}
-      className="block w-full sm:w-48 shrink-0 pl-3 pr-8 py-2 border border-gray-200 rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#C59B27] focus:border-[#C59B27] sm:text-sm transition-colors"
-    >
-      <option value="">
-        {countriesError 
-          ? t('admin:errorLoadingCountries', 'Unable to load countries') 
-          : (countriesLoading 
-              ? t('admin:loadingCountries', 'Loading countries...') 
-              : t('admin:allCountries', 'All Countries')
-            )
+    <div className="w-full sm:w-48 shrink-0">
+      <Dropdown
+        value={countryId}
+        onChange={(val) => setCountryId(val)}
+        disabled={countriesLoading}
+        placeholder={
+          countriesError
+            ? t('admin:errorLoadingCountries', 'Unable to load countries')
+            : countriesLoading
+            ? t('admin:loadingCountries', 'Loading countries...')
+            : t('admin:allCountries', 'All Countries')
         }
-      </option>
-      {countries.map(c => (
-        <option key={c.country_id} value={c.country_id}>{c.country_english}</option>
-      ))}
-    </select>
+        options={[
+          {
+            value: '',
+            label: countriesError
+              ? t('admin:errorLoadingCountries', 'Unable to load countries')
+              : countriesLoading
+              ? t('admin:loadingCountries', 'Loading countries...')
+              : t('admin:allCountries', 'All Countries')
+          },
+          ...countries.map((c) => ({ value: c.country_id, label: c.country_english }))
+        ]}
+      />
+    </div>
   );
 
   return (
@@ -471,25 +477,25 @@ const AdminProvinces = () => {
         description={t('admin:AdminProvincesDesc', 'Manage Provinces reference data.')}
         columns={columns}
         rows={provinces}
-        
+
         search={search}
         onSearchChange={setSearch}
-        
+
         status={status}
         showStatusFilter={true}
         onStatusChange={setStatus}
-        
+
         extraFilters={countryFilterSelect}
 
         loading={loading}
         error={error}
         onReset={handleReset}
         onRetry={() => fetchProvinces(search, status, countryId)}
-        
+
         onAdd={openAddModal}
-        
+
         emptyMessage={
-          (search || status !== 'all' || countryId) 
+          (search || status !== 'all' || countryId)
             ? t('admin:noProvincesMatch', 'No provinces match the selected filters.')
             : t('admin:noProvincesFound', 'No provinces found.')
         }
@@ -506,7 +512,7 @@ const AdminProvinces = () => {
                 <h3 className="text-lg font-bold text-gray-900">{t('admin:addProvinceTitle', 'Add Province')}</h3>
                 <p className="text-xs text-gray-500 mt-1">{t('admin:addProvinceDesc', 'Add a new province to the location reference data.')}</p>
               </div>
-              <button 
+              <button
                 onClick={closeAddModal}
                 disabled={createSubmitting}
                 className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
@@ -524,7 +530,7 @@ const AdminProvinces = () => {
                     {createApiError}
                   </div>
                 )}
-                
+
                 {/* Country Selection */}
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -535,19 +541,18 @@ const AdminProvinces = () => {
                     value={createForm.country_id}
                     onChange={handleCreateChange}
                     disabled={createSubmitting || countriesLoading || !!countriesError}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      createErrors.country_id 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${createErrors.country_id
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                   >
                     <option value="">
-                      {countriesError 
-                        ? t('admin:errorLoadingCountries', 'Unable to load countries') 
-                        : (countriesLoading 
-                            ? t('admin:loadingCountries', 'Loading countries...') 
-                            : t('admin:selectCountry', 'Select Country')
-                          )
+                      {countriesError
+                        ? t('admin:errorLoadingCountries', 'Unable to load countries')
+                        : (countriesLoading
+                          ? t('admin:loadingCountries', 'Loading countries...')
+                          : t('admin:selectCountry', 'Select Country')
+                        )
                       }
                     </option>
                     {countries.map(c => (
@@ -572,11 +577,10 @@ const AdminProvinces = () => {
                     value={createForm.province_english}
                     onChange={handleCreateChange}
                     disabled={createSubmitting}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      createErrors.province_english 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${createErrors.province_english
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="e.g. Punjab"
                   />
                   {createErrors.province_english && (
@@ -596,11 +600,10 @@ const AdminProvinces = () => {
                     onChange={handleCreateChange}
                     disabled={createSubmitting}
                     dir="auto"
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors font-urdu ${
-                      createErrors.province_urdu
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors font-urdu ${createErrors.province_urdu
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="پنجاب"
                   />
                   {createErrors.province_urdu && (
@@ -619,11 +622,10 @@ const AdminProvinces = () => {
                     value={createForm.province_abb}
                     onChange={handleCreateChange}
                     disabled={createSubmitting}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      createErrors.province_abb
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${createErrors.province_abb
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="e.g. PB"
                   />
                   {createErrors.province_abb && (
@@ -671,7 +673,7 @@ const AdminProvinces = () => {
                 <h3 className="text-lg font-bold text-gray-900">{t('admin:editProvince', 'Edit Province')}</h3>
                 <p className="text-xs text-gray-500 mt-1">{t('admin:editProvinceDesc', 'Update province reference data.')}</p>
               </div>
-              <button 
+              <button
                 onClick={closeEditModal}
                 disabled={editSubmitting}
                 className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
@@ -689,7 +691,7 @@ const AdminProvinces = () => {
                     {editApiError}
                   </div>
                 )}
-                
+
                 {/* Country Selection */}
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -700,19 +702,18 @@ const AdminProvinces = () => {
                     value={editForm.country_id}
                     onChange={handleEditChange}
                     disabled={editSubmitting || countriesLoading || !!countriesError}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      editErrors.country_id 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${editErrors.country_id
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                   >
                     <option value="">
-                      {countriesError 
-                        ? t('admin:errorLoadingCountries', 'Unable to load countries') 
-                        : (countriesLoading 
-                            ? t('admin:loadingCountries', 'Loading countries...') 
-                            : t('admin:selectCountry', 'Select Country')
-                          )
+                      {countriesError
+                        ? t('admin:errorLoadingCountries', 'Unable to load countries')
+                        : (countriesLoading
+                          ? t('admin:loadingCountries', 'Loading countries...')
+                          : t('admin:selectCountry', 'Select Country')
+                        )
                       }
                     </option>
                     {countries.map(c => (
@@ -737,11 +738,10 @@ const AdminProvinces = () => {
                     value={editForm.province_english}
                     onChange={handleEditChange}
                     disabled={editSubmitting}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      editErrors.province_english 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${editErrors.province_english
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="e.g. Punjab"
                   />
                   {editErrors.province_english && (
@@ -761,11 +761,10 @@ const AdminProvinces = () => {
                     onChange={handleEditChange}
                     disabled={editSubmitting}
                     dir="auto"
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors font-urdu ${
-                      editErrors.province_urdu
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors font-urdu ${editErrors.province_urdu
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="پنجاب"
                   />
                   {editErrors.province_urdu && (
@@ -784,11 +783,10 @@ const AdminProvinces = () => {
                     value={editForm.province_abb}
                     onChange={handleEditChange}
                     disabled={editSubmitting}
-                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${
-                      editErrors.province_abb
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
-                    }`}
+                    className={`block w-full px-4 py-2.5 border rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 sm:text-sm transition-colors ${editErrors.province_abb
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-[#C59B27] focus:ring-[#C59B27]/20'
+                      }`}
                     placeholder="e.g. PB"
                   />
                   {editErrors.province_abb && (
@@ -872,7 +870,7 @@ const AdminProvinces = () => {
               <div>
                 <h3 className="text-lg font-bold text-gray-900">{t('admin:deleteProvinceTitle', 'Delete Province')}</h3>
               </div>
-              <button 
+              <button
                 onClick={closeDeleteModal}
                 disabled={deleteSubmitting}
                 className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
@@ -901,7 +899,7 @@ const AdminProvinces = () => {
                   )}
                 </div>
               )}
-              
+
               <div className="text-gray-700 text-sm">
                 <p>
                   {t('admin:deleteProvinceConfirmMsg', 'Are you sure you want to delete this province?')}
@@ -952,3 +950,4 @@ const AdminProvinces = () => {
 };
 
 export default AdminProvinces;
+

@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Home,
   Headphones,
+  ArrowLeft,
 } from 'lucide-react';
 
 import bgImage from '../assets/FaisalMosque.png';
@@ -193,6 +194,16 @@ const Login = () => {
       {/* RIGHT SECTION - White Rounded Authentication Card */}
       <div className="relative lg:w-1/2 w-full flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12 z-10 pb-12 sm:pb-16 lg:min-h-screen">
         <div className="w-full max-w-[480px] bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 lg:p-10 text-gray-800 my-auto mx-auto lg:mx-0 lg:mr-auto lg:ml-4 xl:ml-12 border border-gray-100">
+          {/* Back to Home Link */}
+          <div className="mb-3 text-left rtl:text-right">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-500 hover:text-[#063B29] transition-colors group cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1 rtl:rotate-180 rtl:group-hover:translate-x-1" />
+              <span>{t('public:backToHome')}</span>
+            </Link>
+          </div>
 
           {/* Header */}
           <div className="text-center mb-5 sm:mb-6">
@@ -316,6 +327,7 @@ const Login = () => {
             <div className="text-right rtl:text-left pt-0.5">
               <Link
                 to="/forgot-password"
+                replace
                 className="inline-block py-1 text-[11px] sm:text-xs font-semibold text-[#B8860B] hover:text-[#966d09] transition-colors"
               >
                 {t('public:forgotPassword')}
@@ -340,6 +352,7 @@ const Login = () => {
 
               <Link
                 to="/signup"
+                replace
                 className="inline-block p-1 text-[#B8860B] hover:text-[#966d09] font-semibold transition-colors"
               >
                 {t('public:signUp')}

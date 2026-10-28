@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { ChevronDown, User, LogOut } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 
+import { getToken } from '../../Services/AuthSession';
+
 const CustomerAccountMenu = ({ theme = 'light' }) => {
   const { t } = useTranslation(['common']);
   const { user } = useAuth();
@@ -20,21 +22,24 @@ const CustomerAccountMenu = ({ theme = 'light' }) => {
   let roles = user?.roles || [];
   let userType = user?.user_type || user?.user_type_english;
 
-  const token = localStorage.getItem('isLoggedIn') === 'true' ? sessionStorage.getItem('PROPERTY_CARE_SESSION') : null;
-  if (token && (!roles || roles.length === 0)) {
+  const token = getToken();
+  if (token) {
     try {
-      const parsedSession = JSON.parse(token);
-      const decoded = JSON.parse(atob(parsedSession.token.split('.')[1]));
-      roles = decoded.roles || [];
+      const decoded = JSON.parse(atob(token.split('.')[1]));
+      if (!roles || roles.length === 0) roles = decoded.roles || [];
       if (!userType) userType = decoded.user_type;
       if (!firstName) firstName = decoded.user_first_name;
+      if (!middleName) middleName = decoded.user_middle_name;
       if (!lastName) lastName = decoded.user_last_name;
+      if (!email || email === 'user@example.com') email = decoded.email;
     } catch (e) {}
   }
   
   const displayName = [firstName, middleName, lastName].filter(Boolean).join(' ') || 'User';
-  const isAdmin = roles.some(r => r.toLowerCase() === 'admin');
-  const roleLabel = isAdmin ? 'Admin' : t('common:ppcMember');
+  const isAdmin = roles.some(r => r && r.toLowerCase() === 'admin');
+  const isEmployee = userType?.toLowerCase() === 'employee' || isAdmin;
+  const isCustomer = userType?.toLowerCase() === 'customer' && !isAdmin && !isEmployee;
+  const roleLabel = isAdmin ? 'Admin' : (isEmployee ? 'Employee' : t('common:ppcMember'));
   const initials = firstName?.trim()?.charAt(0)?.toUpperCase() || 'U';
 
   useEffect(() => {
@@ -104,15 +109,19 @@ const CustomerAccountMenu = ({ theme = 'light' }) => {
 
         {/* Actions */}
         <div className="p-2">
-          <button 
-            onClick={handleProfileClick}
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-[#1a2b25] hover:bg-[#1a2b25] hover:text-white rounded-xl transition-colors group"
-          >
-            <User size={16} className="text-gray-400 group-hover:text-[#e4d7be]" />
-            {t('common:myProfile')}
-          </button>
-          
-          <div className="h-px bg-gray-200/60 my-1"></div>
+          {isCustomer && (
+            <>
+              <button 
+                onClick={handleProfileClick}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-[#1a2b25] hover:bg-[#1a2b25] hover:text-white rounded-xl transition-colors group"
+              >
+                <User size={16} className="text-gray-400 group-hover:text-[#e4d7be]" />
+                {t('common:myProfile')}
+              </button>
+              
+              <div className="h-px bg-gray-200/60 my-1"></div>
+            </>
+          )}
           
           <button 
             onClick={handleLogout}

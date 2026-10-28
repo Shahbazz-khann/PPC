@@ -16,6 +16,7 @@ const customerRoutes = require('./routes/Customer');
 const referenceRoutes = require('./routes/Reference');
 const publicRoutes = require('./routes/Public/public.routes');
 const adminRoutes = require('./routes/Admin/admin.routes');
+const notificationRoutes = require('./routes/Notification/notification.routes');
 
 // --------------------------------------------------
 // Environment
@@ -112,6 +113,7 @@ apiRouter.use('/customer', customerRoutes);
 apiRouter.use('/reference', referenceRoutes);
 apiRouter.use('/public', publicRoutes);
 apiRouter.use('/admin', adminRoutes);
+apiRouter.use('/notifications', notificationRoutes);
 
 app.use(`/api/${API_VERSION}`, apiRouter);
 

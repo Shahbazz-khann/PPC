@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../../utils/logger');
 const customerModel = require('../../models/Customer/customer.model');
+const { notifyAdmins } = require('../../services/notification.service');
 
 // (Keep getProfile and updateProfile as they are... then append at bottom)
 
@@ -279,6 +280,15 @@ const addProperty = async (req, res, next) => {
         const propertyData = req.body;
 
         const propertyId = await customerModel.addProperty(userId, propertyData);
+
+        // Notify Admins of new property registration
+        notifyAdmins({
+            actorId: userId,
+            title: 'New Property Registered',
+            message: `A new property (#${propertyId}) was registered by a customer for verification.`,
+            type: 'property',
+            linkUrl: '/admin/properties',
+        });
 
         return res.status(201).json({
             success: true,

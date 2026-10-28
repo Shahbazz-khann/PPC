@@ -4,6 +4,7 @@ const logger = require('../../utils/logger');
 const getProperties = async (req, res, next) => {
     try {
         const { 
+            propertyId,
             intent, city, propertyType, minPrice, maxPrice,
             society, area, propertyUse, minSize, maxSize, sizeUom, rooms, bathrooms
         } = req.query;
@@ -69,6 +70,7 @@ const getProperties = async (req, res, next) => {
         }
 
         const filters = {
+            propertyId: propertyId ? parseInt(propertyId, 10) : undefined,
             intent: intent === 'Buy' ? 'Sale' : (intent === 'Rent' ? 'Rent' : intent),
             city,
             propertyType,
@@ -104,6 +106,34 @@ const getProperties = async (req, res, next) => {
     }
 };
 
+const getPropertyById = async (req, res, next) => {
+    try {
+        const { propertyId } = req.params;
+        const parsedId = parseInt(propertyId, 10);
+        if (isNaN(parsedId) || parsedId <= 0) {
+            const err = new Error('Invalid propertyId');
+            err.statusCode = 400;
+            throw err;
+        }
+
+        const properties = await getPublicProperties({ propertyId: parsedId }, 1);
+        if (!properties || properties.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Property not found or not currently active'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: properties[0]
+        });
+    } catch (error) {
+        logger.error(`Error in getPropertyById: ${error.message}`);
+        next(error);
+    }
+};
+
 const getFilters = async (req, res, next) => {
     try {
         const { city, society } = req.query;
@@ -121,5 +151,6 @@ const getFilters = async (req, res, next) => {
 
 module.exports = {
     getProperties,
+    getPropertyById,
     getFilters
 };

@@ -3,12 +3,13 @@ const router = express.Router();
 
 const { getProvinces, createProvince, updateProvince, deleteProvince } = require('../../../../controller/Admin/Reference/location/provinces.controller');
 const { validateGetProvinces, validateCreateProvince, validateProvinceId, validateUpdateProvince } = require('../../../../validators/Admin/Reference/location/provinces.validator');
-const { authenticate, authorize } = require('../../../../middlewares/authMiddleware');
+const { authenticate, authorizePageAccess } = require('../../../../middlewares/authMiddleware');
+const { ADMIN_PAGE_KEYS } = require('../../../../config/adminPageRegistry');
 
 router.get(
     '/',
     authenticate,
-    authorize('admin'),
+    authorizePageAccess(ADMIN_PAGE_KEYS.PAGE_REF_PROVINCES),
     validateGetProvinces,
     getProvinces
 );
@@ -16,7 +17,7 @@ router.get(
 router.post(
     '/',
     authenticate,
-    authorize('admin'),
+    authorizePageAccess(ADMIN_PAGE_KEYS.PAGE_REF_PROVINCES),
     validateCreateProvince,
     createProvince
 );
@@ -24,7 +25,7 @@ router.post(
 router.put(
     '/:id',
     authenticate,
-    authorize('admin'),
+    authorizePageAccess(ADMIN_PAGE_KEYS.PAGE_REF_PROVINCES),
     validateProvinceId,
     validateUpdateProvince,
     updateProvince
@@ -33,7 +34,7 @@ router.put(
 router.delete(
     '/:id',
     authenticate,
-    authorize('admin'),
+    authorizePageAccess(ADMIN_PAGE_KEYS.PAGE_REF_PROVINCES),
     validateProvinceId,
     deleteProvince
 );

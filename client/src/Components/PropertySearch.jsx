@@ -4,20 +4,20 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { getPublicPropertyFilters } from '../Services/property.service';
 import { useTranslation } from 'react-i18next';
 
-const PropertySearch = () => {
+const PropertySearch = ({ onSearch, onReset, heroOverlap = true, defaultAdvancedOpen = false }) => {
   const { t } = useTranslation(['public']);
   const location = useLocation();
   const getUrlParam = (key) => new URLSearchParams(location.search).get(key) || '';
 
   // Advanced panel toggle
-  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(defaultAdvancedOpen);
 
   // Dynamic filter lists
   const [cities, setCities] = useState([]);
   const [propertyTypes, setPropertyTypes] = useState([t('public:allTypes')]);
   const [societies, setSocieties] = useState([]);
   const [areas, setAreas] = useState([]);
-  const [propertyUses, setPropertyUses] = useState([t('public:allUses')]);
+  const [propertyUses, setPropertyUses] = useState([]);
   const [sizeUoms, setSizeUoms] = useState([]);
 
   // Selected filter values (Basic)
@@ -37,12 +37,38 @@ const PropertySearch = () => {
   const [rooms, setRooms] = useState(getUrlParam('rooms'));
   const [bathrooms, setBathrooms] = useState(getUrlParam('bathrooms'));
 
-  // If any advanced filter is present, open the panel
+  // Sync state when URL params change or are cleared
   useEffect(() => {
-    if (getUrlParam('society') || getUrlParam('area') || (getUrlParam('propertyUse') && getUrlParam('propertyUse') !== t('public:allUses')) || getUrlParam('minSize') || getUrlParam('maxSize') || getUrlParam('sizeUom') || getUrlParam('rooms') || getUrlParam('bathrooms')) {
+    setCity(getUrlParam('city'));
+    setIntent(getUrlParam('intent') || 'Buy');
+    setPropertyType(getUrlParam('propertyType') || t('public:allTypes'));
+    setMinPrice(getUrlParam('minPrice'));
+    setMaxPrice(getUrlParam('maxPrice'));
+    setSociety(getUrlParam('society'));
+    setArea(getUrlParam('area'));
+    setPropertyUse(getUrlParam('propertyUse') || t('public:allUses'));
+    setMinSize(getUrlParam('minSize'));
+    setMaxSize(getUrlParam('maxSize'));
+    setSizeUom(getUrlParam('sizeUom'));
+    setRooms(getUrlParam('rooms'));
+    setBathrooms(getUrlParam('bathrooms'));
+    const hasAdvancedParams = Boolean(
+      getUrlParam('society') ||
+      getUrlParam('area') ||
+      (getUrlParam('propertyUse') && getUrlParam('propertyUse') !== t('public:allUses')) ||
+      getUrlParam('minSize') ||
+      getUrlParam('maxSize') ||
+      getUrlParam('sizeUom') ||
+      getUrlParam('rooms') ||
+      getUrlParam('bathrooms')
+    );
+
+    if (defaultAdvancedOpen || hasAdvancedParams) {
       setIsAdvancedOpen(true);
+    } else {
+      setIsAdvancedOpen(false);
     }
-  }, [location.search]);
+  }, [location.search, defaultAdvancedOpen]);
 
   // Validation state
   const [searchError, setSearchError] = useState('');
@@ -75,7 +101,7 @@ const PropertySearch = () => {
           if (!city && !society) {
             setCities(res.data.cities || []);
             setPropertyTypes([t('public:allTypes'), ...(res.data.propertyTypes || [])]);
-            setPropertyUses([t('public:allUses'), ...(res.data.propertyUses || [])]);
+            setPropertyUses(res.data.propertyUses || []);
             setSizeUoms(res.data.sizeUoms || []);
             if (res.data.cities && res.data.cities.length > 0 && !city && !getUrlParam('city')) {
               setCity(res.data.cities[0]);
@@ -129,6 +155,9 @@ const PropertySearch = () => {
     setRooms('');
     setBathrooms('');
     setSearchError('');
+    if (onReset) {
+      onReset();
+    }
   };
 
   const handleSearch = () => {
@@ -155,30 +184,35 @@ const PropertySearch = () => {
     if (rooms && (Number(rooms) < 0 || !Number.isInteger(Number(rooms)))) return setSearchError(t('public:roomsError'));
     if (bathrooms && (Number(bathrooms) < 0 || !Number.isInteger(Number(bathrooms)))) return setSearchError(t('public:bathroomsError'));
 
-    const params = new URLSearchParams();
-    
+    const filters = {};
+
     // Basic
-    if (intent) params.append('intent', intent);
-    if (city) params.append('city', city);
-    if (propertyType && propertyType !== t('public:allTypes')) params.append('propertyType', propertyType);
-    if (minPrice) params.append('minPrice', minPrice);
-    if (maxPrice) params.append('maxPrice', maxPrice);
+    if (intent) filters.intent = intent;
+    if (city) filters.city = city;
+    if (propertyType && propertyType !== t('public:allTypes')) filters.propertyType = propertyType;
+    if (minPrice) filters.minPrice = minPrice;
+    if (maxPrice) filters.maxPrice = maxPrice;
 
     // Advanced
-    if (society) params.append('society', society);
-    if (area) params.append('area', area);
-    if (propertyUse && propertyUse !== t('public:allUses')) params.append('propertyUse', propertyUse);
-    if (minSize) params.append('minSize', minSize);
-    if (maxSize) params.append('maxSize', maxSize);
-    if (sizeUom) params.append('sizeUom', sizeUom);
-    if (rooms) params.append('rooms', rooms);
-    if (bathrooms) params.append('bathrooms', bathrooms);
+    if (society) filters.society = society;
+    if (area) filters.area = area;
+    if (propertyUse && propertyUse !== t('public:allUses')) filters.propertyUse = propertyUse;
+    if (minSize) filters.minSize = minSize;
+    if (maxSize) filters.maxSize = maxSize;
+    if (sizeUom) filters.sizeUom = sizeUom;
+    if (rooms) filters.rooms = rooms;
+    if (bathrooms) filters.bathrooms = bathrooms;
 
-    navigate(`/properties?${params.toString()}`);
+    if (onSearch) {
+      onSearch(filters);
+    } else {
+      const params = new URLSearchParams(filters);
+      navigate(`/properties?${params.toString()}`);
+    }
   };
 
   return (
-    <div className="relative max-w-7xl mx-auto px-6 md:px-12 -mt-10 md:-mt-42 z-30 mb-8">
+    <div className={`relative max-w-7xl mx-auto ${heroOverlap ? 'px-6 md:px-12 -mt-10 md:-mt-42 z-30 mb-8' : 'px-0 pt-5 mb-8 z-10'}`}>
       {searchError && (
         <div className="absolute top-[-40px] left-1/2 -translate-x-1/2 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded shadow-sm text-sm font-medium animate-in fade-in">
           {searchError}
@@ -291,7 +325,7 @@ const PropertySearch = () => {
         {isAdvancedOpen && (
           <div className="mt-4 pt-4 border-t border-gray-100 animate-in fade-in slide-in-from-top-2">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              
+
               {/* Row 1: Society | Area | Property Use */}
               <div className="relative w-full" ref={societyRef}>
                 <label className="block text-[11px] font-medium text-gray-500 mb-1">{t('public:society')}</label>
@@ -379,7 +413,7 @@ const PropertySearch = () => {
                 <input type="number" min="0" value={bathrooms} onChange={(e) => { setBathrooms(e.target.value); setSearchError(''); }} placeholder={t('public:eg2')} className="w-full px-3 py-2 text-xs md:text-sm font-semibold text-slate-800 bg-gray-50 border border-gray-200 rounded-lg outline-none placeholder:font-normal placeholder:text-gray-400" />
               </div>
             </div>
-            
+
             {/* Advanced Footer */}
             <div className="mt-6 flex items-center justify-end space-x-3">
               <button onClick={handleResetAdvanced} className="text-gray-500 hover:text-gray-700 text-xs md:text-sm font-semibold px-4 py-2 transition-colors">

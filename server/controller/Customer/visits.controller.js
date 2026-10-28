@@ -1,5 +1,6 @@
 const visitsModel = require('../../models/Customer/visits.model');
 const logger = require('../../utils/logger');
+const { notifyAdmins } = require('../../services/notification.service');
 
 /**
  * Get all property visits for the authenticated customer
@@ -88,6 +89,15 @@ const submitPropertyVisitRemarks = async (req, res) => {
             });
         }
         
+        // Notify Admins of visit feedback
+        notifyAdmins({
+            actorId: userId,
+            title: 'Visit Feedback Submitted',
+            message: `Customer submitted feedback remarks for property visit #${visitId}.`,
+            type: 'visit',
+            linkUrl: '/admin/property-visits',
+        });
+
         return res.status(200).json({
             success: true,
             message: result.message,

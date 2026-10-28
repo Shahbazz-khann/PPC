@@ -3,12 +3,13 @@ const router = express.Router();
 
 const { getCountries, createCountry, updateCountry, deleteCountry } = require('../../../../controller/Admin/Reference/location/countries.controller');
 const { validateGetCountries, validateCreateCountry, validateCountryId, validateUpdateCountry } = require('../../../../validators/Admin/Reference/location/countries.validator');
-const { authenticate, authorize } = require('../../../../middlewares/authMiddleware');
+const { authenticate, authorizePageAccess } = require('../../../../middlewares/authMiddleware');
+const { ADMIN_PAGE_KEYS } = require('../../../../config/adminPageRegistry');
 
 router.get(
     '/',
     authenticate,
-    authorize('admin'),
+    authorizePageAccess(ADMIN_PAGE_KEYS.PAGE_REF_COUNTRIES),
     validateGetCountries,
     getCountries
 );
@@ -16,7 +17,7 @@ router.get(
 router.post(
     '/',
     authenticate,
-    authorize('admin'),
+    authorizePageAccess(ADMIN_PAGE_KEYS.PAGE_REF_COUNTRIES),
     validateCreateCountry,
     createCountry
 );
@@ -24,7 +25,7 @@ router.post(
 router.put(
     '/:id',
     authenticate,
-    authorize('admin'),
+    authorizePageAccess(ADMIN_PAGE_KEYS.PAGE_REF_COUNTRIES),
     validateCountryId,
     validateUpdateCountry,
     updateCountry
@@ -33,7 +34,7 @@ router.put(
 router.delete(
     '/:id',
     authenticate,
-    authorize('admin'),
+    authorizePageAccess(ADMIN_PAGE_KEYS.PAGE_REF_COUNTRIES),
     validateCountryId,
     deleteCountry
 );

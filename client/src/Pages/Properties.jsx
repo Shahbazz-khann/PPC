@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { getPublicProperties } from '../Services/property.service';
 import { resolveMediaUrl } from '../Services/Api';
 import { useTranslation } from 'react-i18next';
-import { Search, Filter, MapPin, Maximize, Home as HomeIcon, ChevronRight } from 'lucide-react';
+import { MapPin, Maximize, Home as HomeIcon, ChevronRight } from 'lucide-react';
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
+import PropertySearch from '../Components/PropertySearch';
 
 const Properties = () => {
   const { t } = useTranslation(['public', 'properties']);
+  const navigate = useNavigate();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const location = useLocation();
 
   useEffect(() => {
@@ -42,12 +43,21 @@ const Properties = () => {
     fetchProperties();
   }, [location.search]);
 
-  const filteredProperties = properties.filter(prop => 
-    (prop.property_type || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (prop.society || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (prop.city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (prop.formatted_id || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleFilterSearch = (newFilters) => {
+    const params = new URLSearchParams();
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, value);
+      }
+    });
+    navigate(`/properties?${params.toString()}`);
+  };
+
+  const handleFilterReset = () => {
+    navigate('/properties');
+  };
+
+  const filteredProperties = properties;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FAF8F3] font-sans">
@@ -57,37 +67,30 @@ const Properties = () => {
         <div className="max-w-[1200px] mx-auto px-4 md:px-8">
           
           {/* Page Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-serif font-bold text-[#1a2b25] mb-2 tracking-tight">
-              {t('public:propertySearchResults') || 'Properties'}
-            </h1>
-            <p className="text-gray-500 font-medium text-sm max-w-xl">
-              Browse our complete catalog of available properties. Use the search and filters to find exactly what you are looking for.
-            </p>
+          <div className="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-serif font-bold text-[#1a2b25] mb-2 tracking-tight">
+                {t('public:propertySearchResults') || 'Properties'}
+              </h1>
+              <p className="text-gray-500 font-medium text-sm max-w-xl">
+                Browse our complete catalog of available properties. Use the search and filters to find exactly what you are looking for.
+              </p>
+            </div>
+            {!loading && (
+              <span className="text-sm font-bold text-gray-500 shrink-0">
+                {filteredProperties.length} Properties found
+              </span>
+            )}
           </div>
 
-          {/* Search and Filter Toolbar */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
-            <div className="relative w-full flex-1">
-              <div className="absolute inset-y-0 start-0 ps-4 flex items-center pointer-events-none">
-                <Search size={18} className="text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search by property title, location, society, or type..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full ps-11 pe-4 py-3.5 rounded-2xl border border-gray-200 bg-white focus:border-[#B8860B] focus:ring-1 focus:ring-[#B8860B] outline-none transition-all text-sm font-medium text-gray-800 shadow-sm"
-              />
-            </div>
-            <div className="flex items-center gap-6 w-full md:w-auto shrink-0">
-              <span className="text-sm font-semibold text-gray-500 hidden md:block">
-                {!loading && `${filteredProperties.length} Properties found`}
-              </span>
-              <button className="flex items-center justify-center gap-2 px-6 py-3.5 border border-gray-200 bg-white rounded-2xl text-sm font-bold text-gray-800 hover:bg-gray-50 transition-colors shadow-sm w-full md:w-auto">
-                <Filter size={16} /> Filters
-              </button>
-            </div>
+          {/* Advanced Search & Filter Card */}
+          <div className="mb-8">
+            <PropertySearch
+              heroOverlap={false}
+              defaultAdvancedOpen={false}
+              onSearch={handleFilterSearch}
+              onReset={handleFilterReset}
+            />
           </div>
 
           {/* Properties List */}
@@ -113,91 +116,116 @@ const Properties = () => {
                   key={property.property_id}
                   to={`/properties/${property.property_id}`}
                   state={{ property }}
-                  className="bg-white rounded-[24px] p-4 shadow-sm border border-gray-100 flex flex-col xl:flex-row gap-6 transition-all hover:shadow-md group cursor-pointer block"
+                  className="bg-white rounded-2xl md:rounded-3xl p-4 sm:p-5 shadow-xs border border-gray-100 flex flex-col md:flex-row gap-5 lg:gap-6 transition-all duration-200 hover:shadow-md hover:border-gray-200 group cursor-pointer block"
                 >
                   {/* Image Container */}
-                  <div className="h-[240px] xl:w-[360px] shrink-0 relative rounded-[16px] overflow-hidden bg-[#FAF8F3] flex items-center justify-center">
+                  <div className="w-full md:w-64 lg:w-72 xl:w-80 h-52 sm:h-60 md:h-auto md:min-h-[220px] shrink-0 relative rounded-xl lg:rounded-2xl overflow-hidden bg-[#FAF8F3] flex items-center justify-center">
                     <img
                       src={resolveMediaUrl(property.image_url) || '/placeholder-image.jpg'}
-                      alt={property.formatted_id}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      alt={property.formatted_id || property.property_type}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
                     />
                     <div className="absolute top-3 start-3">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold shadow-sm border border-white/50 bg-[#063B29] text-white uppercase tracking-wider">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider shadow-xs bg-[#063B29] text-white uppercase">
                         {property.demand_type === 'Sale' ? 'FOR SALE' : 'FOR RENT'}
                       </span>
                     </div>
                   </div>
 
-                  {/* Property Information Container */}
-                  <div className="flex flex-col flex-1 py-1 xl:flex-row xl:justify-between">
-                    {/* Middle Content */}
-                    <div className="flex flex-col flex-1 pe-6">
-                      <div className="text-[10px] font-bold text-[#B8860B] uppercase tracking-[0.15em] mb-2 flex items-center gap-2">
-                        <span>{property.property_type}</span>
-                        <span className="w-1 h-1 rounded-full bg-[#B8860B]/50"></span>
-                        <span>{property.demand_type}</span>
+                  {/* Information & Action Content */}
+                  <div className="flex flex-col flex-1 justify-between min-w-0">
+                    <div>
+                      {/* Top Row: Type/Demand & Price (Price on mobile) */}
+                      <div className="flex flex-row items-center justify-between gap-2 mb-2">
+                        <div className="text-[11px] font-bold text-[#B8860B] uppercase tracking-wider flex items-center gap-2">
+                          <span>{property.property_type}</span>
+                          <span className="w-1 h-1 rounded-full bg-[#B8860B]/60"></span>
+                          <span>{property.demand_type}</span>
+                        </div>
+                        {/* Price visible on mobile */}
+                        <div className="md:hidden">
+                          <span className="text-lg font-bold text-[#1a2b25]">
+                            {property.currency_code} {Number(property.current_price).toLocaleString()}
+                          </span>
+                          {property.demand_type === 'Rent' && (
+                            <span className="text-xs text-gray-500 ms-1 font-medium">/mo</span>
+                          )}
+                        </div>
                       </div>
 
-                      <h3 className="text-2xl font-serif font-bold text-[#1a2b25] mb-2">
-                        {property.property_type} in {property.society}
+                      {/* Title */}
+                      <h3 className="text-lg sm:text-xl md:text-2xl font-serif font-bold text-[#1a2b25] mb-1.5 leading-snug line-clamp-1 group-hover:text-[#063B29] transition-colors">
+                        {property.property_type} in {property.society || property.city || 'Prime Area'}
                       </h3>
 
-                      <div className="flex items-center gap-1.5 mb-4 text-sm font-medium text-gray-500">
-                        <MapPin size={16} className="text-gray-400" />
-                        <span>{[property.society, property.city, property.province].filter(Boolean).join(', ')}</span>
+                      {/* Location */}
+                      <div className="flex items-center gap-1.5 mb-3 text-xs sm:text-sm font-medium text-gray-500">
+                        <MapPin size={15} className="text-[#063B29] shrink-0" />
+                        <span className="truncate">
+                          {[property.society, property.city, property.province].filter(Boolean).join(', ')}
+                        </span>
                       </div>
 
                       {/* Horizontal Specs Row */}
-                      <div className="flex flex-wrap items-center gap-4 text-[13px] font-semibold text-gray-600 mb-5 border-t border-gray-100 pt-4">
+                      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-[13px] font-semibold text-gray-700 mb-3 py-2 border-y border-gray-100">
                         <div className="flex items-center gap-1.5">
-                          <Maximize size={16} className="text-gray-400" />
-                          {Number(property.property_size)} {property.size_uom}
+                          <Maximize size={15} className="text-gray-400" />
+                          <span>{Number(property.property_size)} {property.size_uom}</span>
                         </div>
                         {property.rooms > 0 && (
                           <>
-                            <div className="w-[1px] h-4 bg-gray-200"></div>
+                            <div className="w-[1px] h-3.5 bg-gray-200"></div>
                             <div className="flex items-center gap-1.5">
-                              <HomeIcon size={16} className="text-gray-400" />
-                              {property.rooms} Beds
+                              <HomeIcon size={15} className="text-gray-400" />
+                              <span>{property.rooms} Beds</span>
                             </div>
                           </>
                         )}
                         {property.bathrooms > 0 && (
                           <>
-                            <div className="w-[1px] h-4 bg-gray-200"></div>
+                            <div className="w-[1px] h-3.5 bg-gray-200"></div>
                             <div className="flex items-center gap-1.5">
-                              <HomeIcon size={16} className="text-gray-400" />
-                              {property.bathrooms} Baths
+                              <HomeIcon size={15} className="text-gray-400" />
+                              <span>{property.bathrooms} Baths</span>
                             </div>
                           </>
                         )}
                       </div>
 
-                      <p className="text-[13px] text-gray-500 font-medium leading-relaxed max-w-2xl">
-                        {property.property_description || ''}
-                      </p>
+                      {/* Description snippet */}
+                      {property.property_description && (
+                        <p className="text-xs sm:text-[13px] text-gray-500 font-normal leading-relaxed line-clamp-2 mb-4">
+                          {property.property_description}
+                        </p>
+                      )}
                     </div>
 
-                    {/* Right Actions Area (Price) */}
-                    <div className="flex flex-col justify-between items-end shrink-0 w-full xl:w-[200px] mt-6 xl:mt-0">
-                      <div className="flex xl:flex-col gap-1 w-full text-end">
-                        <span className="text-2xl font-bold text-[#1a2b25] whitespace-nowrap">
-                          {property.currency_code} {Number(property.current_price).toLocaleString()}
-                        </span>
-                        {property.demand_type === 'Rent' && (
-                          <span className="text-sm font-medium text-gray-500">
-                            per month
+                    {/* Bottom Action Row (Price & Button) */}
+                    <div className="flex items-center justify-between gap-4 pt-3 mt-auto border-t border-gray-100 md:border-0 md:pt-0">
+                      {/* Price on Desktop */}
+                      <div className="hidden md:block">
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xl lg:text-2xl font-bold text-[#1a2b25] tracking-tight">
+                            {property.currency_code} {Number(property.current_price).toLocaleString()}
                           </span>
-                        )}
+                          {property.demand_type === 'Rent' && (
+                            <span className="text-xs text-gray-500 font-medium">
+                              /month
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      
-                      <div className="w-full mt-auto pt-6">
-                        <div className="w-full px-4 py-2.5 rounded-xl bg-[#1a2b25] text-[13px] font-bold text-white hover:bg-[#2c4232] transition-colors flex items-center justify-center gap-2">
-                          View Details <ChevronRight size={14} />
+
+                      {/* View Details Button */}
+                      <div className="w-full md:w-auto ms-auto">
+                        <div className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#063B29] text-xs sm:text-sm font-bold text-white group-hover:bg-[#052b1e] transition-all shadow-xs group-hover:shadow-sm">
+                          <span>View Details</span>
+                          <ChevronRight size={14} className="rtl:rotate-180 group-hover:translate-x-0.5 transition-transform" />
                         </div>
                       </div>
                     </div>
+
                   </div>
                 </Link>
               ))

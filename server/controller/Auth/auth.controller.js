@@ -6,6 +6,8 @@ const crypto = require('crypto');
 const { sendPasswordResetEmail, sendVerificationEmail } = require('../../utils/email');
 const pendingUserModel = require('../../models/Auth/pending_user.model');
 const { pool } = require('../../config/db');
+const rolePageAccessModel = require('../../models/Admin/rolePageAccess.model');
+const permissionService = require('../../services/permission.service');
 /**
  * User Signup Controller
  */
@@ -441,6 +443,65 @@ const logout = async (req, res, next) => {
     }
 };
 
+/**
+ * Controller to retrieve effective page permissions for the currently authenticated employee.
+ * Resolves live active roles from the database to guarantee immunity to stale JWT claims.
+ */
+const getMyPermissions = async (req, res, next) => {
+    try {
+        if (!req.user || !req.user.user_id) {
+            return res.status(401).json({
+                success: false,
+                message: 'Authentication token is required'
+            });
+        }
+
+        const userId = req.user.user_id.toString();
+
+        // 1. Verify user exists and is active in database
+        const user = await authModel.getUserById(userId);
+        if (!user || user.is_active === false) {
+            return res.status(401).json({
+                success: false,
+                message: 'Authenticated user not found or inactive'
+            });
+        }
+
+        // 2. Ensure user is an Employee (Customers do not possess administrative page permissions)
+        const userType = (user.user_type_english || req.user.user_type || '').trim().toLowerCase();
+        if (userType !== 'employee') {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied: Only employees have administrative page permissions'
+            });
+        }
+
+        // 3. Resolve live active roles dynamically from the database
+        const liveRoles = await rolePageAccessModel.getLiveActiveRolesByUserId(userId);
+
+        // 4. Resolve authoritative effective page permissions across all 37 canonical pages
+        const effective = await permissionService.resolveEffectivePermissions(liveRoles);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Effective permissions retrieved successfully',
+            data: {
+                user_id: userId,
+                roles: liveRoles.map((r) => ({
+                    role_id: r.role_id,
+                    role_english: r.role_english
+                })),
+                isAdminRoot: effective.isAdminRoot,
+                allowedPageKeys: effective.allowedPageKeys,
+                permissionsMap: effective.permissionsMap
+            }
+        });
+    } catch (error) {
+        logger.error('Get effective permissions error:', error);
+        next(error);
+    }
+};
+
 module.exports = {
     signup,
     verifyEmail,
@@ -449,5 +510,6 @@ module.exports = {
     forgotPassword,
     resetPassword,
     getUsers,
-    getMe
+    getMe,
+    getMyPermissions
 };
