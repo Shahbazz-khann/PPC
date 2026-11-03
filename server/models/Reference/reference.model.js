@@ -235,6 +235,17 @@ const getAreas = async (societyId, searchStr) => {
     return result.rows;
 };
 
+const getCurrencies = async () => {
+    const query = `
+        SELECT currency_id, currency_english, currency_urdu, currency_code, currency_symbol, is_active
+        FROM currencies
+        WHERE is_active = true
+        ORDER BY currency_id ASC
+    `;
+    const result = await pool.query(query);
+    return result.rows;
+};
+
 module.exports = {
     getIdentityTypes,
     getCountries,
@@ -251,9 +262,11 @@ module.exports = {
     getMarlaSizes,
     getAmenities,
     getDemandTypes,
+    getCurrencies,
     getPropertyPurposes,
     getPPCServices,
     getCities,
     getSocieties,
     getAreas
 };
+

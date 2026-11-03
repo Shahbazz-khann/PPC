@@ -11,6 +11,7 @@ router.get('/genders', authenticate, referenceController.getGenders);
 
 // Bootstrap API for Property Form reference data
 router.get('/property-form', authenticate, referenceController.getPropertyFormData);
+router.get('/currencies', referenceController.getCurrencies);
 
 // Request Reference APIs
 router.get('/property-purposes', authenticate, referenceController.getPropertyPurposes);

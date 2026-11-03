@@ -51,25 +51,25 @@ const StatusBadge = ({ status }) => {
 };
 
 const SummaryCard = ({ title, value, subtitle, icon: Icon, colorClass, iconBgColor }) => (
-  <div className="bg-white p-4 rounded-[24px] shadow-sm border border-gray-100/50 flex flex-col justify-between relative overflow-hidden group cursor-pointer transition-all hover:shadow-md h-[160px]">
+  <div className="bg-white p-3.5 sm:p-4 rounded-[20px] sm:rounded-[24px] shadow-sm border border-gray-100/60 flex flex-col justify-between relative overflow-hidden group cursor-pointer transition-all hover:shadow-md h-[115px] sm:h-[120px]">
     {/* Decorative shape top right */}
-    <div className={`absolute -top-12 -right-12 w-40 h-40 rounded-full opacity-[0.15] transition-transform group-hover:scale-110 ${colorClass.split(' ')[0]}`}></div>
+    <div className={`absolute -top-12 -right-12 w-36 h-36 rounded-full opacity-[0.12] transition-transform group-hover:scale-110 ${colorClass.split(' ')[0]}`}></div>
 
-    <div className="flex justify-between items-start z-10">
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${iconBgColor}`}>
-        <Icon size={24} className={colorClass.split(' ')[1]} />
+    <div className="flex justify-between items-center z-10">
+      <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${iconBgColor}`}>
+        <Icon size={19} className={colorClass.split(' ')[1]} />
+      </div>
+      <div className="w-7 h-7 rounded-full bg-[#FAF8F3] flex items-center justify-center text-[#B8860B] group-hover:bg-[#B8860B] group-hover:text-white transition-all shadow-2xs">
+        <ArrowRight size={13} className="rtl:rotate-180 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform" />
       </div>
     </div>
 
     <div className="z-10 mt-auto">
-      <p className="text-[13px] font-semibold text-gray-600 mb-1">{title}</p>
-      <div className="flex items-end justify-between">
-        <h3 className="text-4xl font-serif font-bold text-[#2a211f]">{value}</h3>
-        <div className="w-8 h-8 rounded-full bg-[#FAF8F3] flex items-center justify-center text-[#B8860B] group-hover:bg-[#B8860B] group-hover:text-white transition-colors">
-          <ArrowRight size={16} />
-        </div>
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="text-xs sm:text-[13px] font-semibold text-gray-600 truncate">{title}</p>
+        <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[#2a211f] shrink-0 leading-none">{value}</h3>
       </div>
-      <p className="text-[11px] text-gray-400 mt-2 font-medium">{subtitle}</p>
+      <p className="text-[10px] sm:text-[11px] text-gray-400 mt-1 font-medium truncate">{subtitle}</p>
     </div>
   </div>
 );
@@ -160,17 +160,16 @@ const CustomerDashboard = () => {
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16  font-sans">
 
       {/* --- HERO AREA --- */}
-      <div className="relative w-full bg-[#FAF8F3] pt-4 pb-20 sm:pb-28 overflow-hidden">
+      <div className="relative w-full bg-[#FAF8F3] pt-4 pb-20 sm:pb-28">
 
         {/* Background Image & Gradient */}
-        <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-full lg:w-[60%] h-full z-0">
+        <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-full lg:w-[60%] h-full z-0 overflow-hidden pointer-events-none">
           <img src={HeroBg} alt="Hero background" className="w-full h-full object-cover object-right rtl:object-left rtl:-scale-x-100" />
           <div className="absolute inset-0 bg-gradient-to-r rtl:bg-gradient-to-l from-[#FAF8F3] via-[#FAF8F3]/95 lg:via-[#FAF8F3]/80 to-transparent"></div>
         </div>
 
-        {/* Inner Container for alignment */}
-        <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
-          {/* Top Navigation inside Hero */}
+        {/* Top Navigation inside Hero - High z-index so dropdowns float above overlapping cards */}
+        <div className="relative z-50 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center text-sm font-semibold text-gray-500 gap-2">
               <Home size={18} />
@@ -207,8 +206,10 @@ const CustomerDashboard = () => {
               <CustomerAccountMenu />
             </div>
           </div>
+        </div>
 
-          {/* Hero Content */}
+        {/* Hero Content */}
+        <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
           <div className="max-w-2xl mt-4">
             <h1 className="text-2xl sm:text-3xl xl:text-4xl font-serif font-bold text-[#1a2b25] mb-4 sm:mb-0.5 tracking-tight leading-tight">
               {t('dashboard:greeting', { name: customerName })}
@@ -236,7 +237,7 @@ const CustomerDashboard = () => {
       <div className="px-4 sm:px-6 lg:px-6 max-w-[1600px] mx-auto">
 
         {/* Summary Stats (Overlapping Hero) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative z-20 mt-4 sm:-mt-12 lg:-mt-20 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative z-20 mt-4 sm:-mt-10 lg:-mt-16 mb-4">
           <SummaryCard
             title={t('dashboard:forSale')}
             value={loading ? "-" : String(summary.forSale).padStart(2, '0')}

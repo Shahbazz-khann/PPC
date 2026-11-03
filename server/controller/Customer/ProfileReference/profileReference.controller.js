@@ -71,7 +71,8 @@ const getPropertyFormData = async (req, res, next) => {
             uom,
             marlaSizes,
             amenities,
-            demandTypes
+            demandTypes,
+            currencies
         ] = await Promise.all([
             referenceModel.getCountries(),
             referenceModel.getProvinces(),
@@ -84,7 +85,8 @@ const getPropertyFormData = async (req, res, next) => {
             referenceModel.getUOM(),
             referenceModel.getMarlaSizes(),
             referenceModel.getAmenities(),
-            referenceModel.getDemandTypes()
+            referenceModel.getDemandTypes(),
+            referenceModel.getCurrencies()
         ]);
 
         return res.status(200).json({
@@ -102,7 +104,8 @@ const getPropertyFormData = async (req, res, next) => {
                 uom,
                 marlaSizes,
                 amenities,
-                demandTypes
+                demandTypes,
+                currencies
             }
         });
     } catch (error) {
@@ -181,6 +184,16 @@ const getAreas = async (req, res, next) => {
     }
 };
 
+const getCurrencies = async (req, res, next) => {
+    try {
+        const data = await referenceModel.getCurrencies();
+        return res.status(200).json({ success: true, message: 'Currencies retrieved successfully', data });
+    } catch (error) {
+        logger.error('Get Currencies Error:', error);
+        next(error);
+    }
+};
+
 module.exports = {
     getIdentityTypes,
     getCountries,
@@ -189,6 +202,7 @@ module.exports = {
     getPropertyFormData,
     getPropertyPurposes,
     getPPCServices,
+    getCurrencies,
     getCities,
     getSocieties,
     getAreas

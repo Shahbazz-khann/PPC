@@ -76,5 +76,9 @@
   "no": "No",
   "unknownCapacity": "Unknown Capacity",
   "egAmount": "e.g. 50000000",
-  "maximumMargin": "Maximum Margin (PKR)"
+  "maximumMargin": "Maximum Margin (PKR)",
+  "currency": "Currency",
+  "selectCurrency": "Select Currency",
+  "newDemandAmountDynamic": "New Demand Amount ({{currency}})",
+  "maximumMarginDynamic": "Maximum Margin ({{currency}})"
 }

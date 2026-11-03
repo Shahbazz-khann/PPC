@@ -87,8 +87,45 @@ const createRequest = async (req, res, next) => {
     }
 };
 
+/**
+ * Withdraw a request for the authenticated customer
+ */
+const withdrawRequest = async (req, res, next) => {
+    try {
+        const userId = req.user.user_id;
+        const { requestId } = req.params;
+
+        const updatedRequest = await requestsModel.withdrawCustomerRequest(userId, requestId);
+
+        // Notify Admins that customer withdrew request
+        notifyAdmins({
+            actorId: userId,
+            title: 'Request Withdrawn',
+            message: `Customer withdrew service request #${requestId}.`,
+            type: 'request',
+            linkUrl: '/admin/requests',
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Request withdrawn successfully',
+            data: updatedRequest
+        });
+    } catch (error) {
+        logger.error('Withdraw Customer Request Error:', error);
+        if (error.statusCode) {
+            return res.status(error.statusCode).json({
+                success: false,
+                message: error.message
+            });
+        }
+        next(error);
+    }
+};
+
 module.exports = {
     getRequests,
     getRequestById,
-    createRequest
+    createRequest,
+    withdrawRequest
 };

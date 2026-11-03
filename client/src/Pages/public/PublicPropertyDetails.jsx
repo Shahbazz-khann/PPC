@@ -15,10 +15,12 @@ import {
   Bath, 
   MessageCircle,
   Copy,
-  Check
+  Check,
+  FileText
 } from 'lucide-react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
+import { useAuth } from '../../Context/AuthContext';
 import { resolveMediaUrl } from '../../Services/Api';
 import { getPublicPropertyById } from '../../Services/property.service';
 
@@ -27,12 +29,26 @@ const PublicPropertyDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation(['public']);
+  const { user } = useAuth();
 
   const [property, setProperty] = useState(location.state?.property || null);
   const [loading, setLoading] = useState(!location.state?.property);
   const [error, setError] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [copied, setCopied] = useState(false);
+
+  const handleCreateRequest = () => {
+    const selectedPropId = propertyId || property?.property_id;
+    const targetUrl = `/customer/requests/new?property_id=${selectedPropId}`;
+    const isCustomer = user && (user.user_type?.toLowerCase() === 'customer' || user.user_type_english?.toLowerCase() === 'customer');
+
+    if (isCustomer) {
+      navigate(targetUrl);
+    } else {
+      sessionStorage.setItem('pending_request_property_id', String(selectedPropId));
+      navigate(`/signup?redirect=${encodeURIComponent(targetUrl)}`);
+    }
+  };
 
   useEffect(() => {
     // If state was not provided or property ID doesn't match the current route, fetch from API
@@ -155,7 +171,7 @@ const PublicPropertyDetails = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FAF8F3]/50 font-sans text-gray-800">
+    <div className="flex flex-col min-h-screen bg-[#FAF8F3] font-sans text-gray-800">
       <Navbar />
 
       <main className="flex-grow pb-16 pt-6">
@@ -444,6 +460,21 @@ const PublicPropertyDetails = () => {
                 </h3>
                 <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">
                   {property.property_description || `Villa in ${property.society || 'DHA Defence Phase 1'}`}
+                </p>
+              </div>
+
+              {/* Create Request CTA */}
+              <div className="pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={handleCreateRequest}
+                  className="w-full py-3.5 px-4 bg-[#063B29] hover:bg-[#04281c] text-white font-bold text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer group hover:scale-[1.01]"
+                >
+                  <FileText size={18} className="text-[#B8860B] transition-transform group-hover:scale-110" />
+                  <span>Create Request</span>
+                </button>
+                <p className="text-[11px] text-gray-400 text-center mt-2 font-medium">
+                  Submit an official request to inquire or purchase this property
                 </p>
               </div>
 

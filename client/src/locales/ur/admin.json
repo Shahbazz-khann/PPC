@@ -14,6 +14,8 @@
   "visitsModule": "دورے",
   "inspectionsModule": "معائنہ",
   "verificationsModule": "تصدیقات",
+  "messagesModule": "پیغامات اور ان باکس",
+
   "moduleReady": "ماڈیول تیار ہے",
   "needsAttention": "توجہ درکار ہے",
   "requestsAwaiting": "جائزہ کے منتظر درخواستیں",

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 const AISection = () => {
   const { t } = useTranslation(['public']);
   return (
-    <section className="max-w-7xl mx-auto px-6 md:px-12 mb-12">
+    <section className="max-w-7xl mx-auto px-6 md:px-12 mb-8">
       <div className="bg-[#053223] text-white rounded-2xl p-6 md:p-8 flex flex-col lg:flex-row items-center justify-between gap-6 border border-[#084230]">
         
         {/* Left Side Content */}

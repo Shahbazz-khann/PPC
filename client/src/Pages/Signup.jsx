@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { User, Mail, Globe, Phone, Lock, Eye, EyeOff, ShieldCheck, Home, Headphones, Key, CheckCircle2, Circle, ArrowLeft } from 'lucide-react';
 import bgImage from '../assets/faisalmosqueSignup.png';
@@ -10,6 +10,10 @@ import { useTranslation } from 'react-i18next';
 const Signup = () => {
   const { t } = useTranslation(['public']);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectParam = searchParams.get('redirect');
+  const redirectUrl = redirectParam || '';
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -79,7 +83,8 @@ const Signup = () => {
       const response = await verifyEmail({ email: registeredEmail, otp });
       if (response && response.success) {
         setFormMessage({ text: "Account created successfully!", type: "success" });
-        setTimeout(() => navigate("/login"), 1500);
+        const targetLogin = redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login";
+        setTimeout(() => navigate(targetLogin), 1500);
       }
     } catch (error) {
       console.error("Verification error:", error);
@@ -524,7 +529,7 @@ const Signup = () => {
               <span className="text-[11px] sm:text-sm text-gray-600 font-medium">
                 {t('public:alreadyHaveAccount')}{' '}
                 <Link
-                  to="/login"
+                  to={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"}
                   replace
                   className="inline-block p-1 text-[#B8860B] hover:text-[#966d09] font-semibold transition-colors"
                 >

@@ -68,8 +68,10 @@ export const adminMenu = [
       { key: 'requestsModule', namespace: 'admin', path: '/admin/requests' },
       { key: 'visitsModule', namespace: 'admin', path: '/admin/property-visits' },
       { key: 'inspectionReports', namespace: 'common', path: '/admin/inspection-reports' },
+      { key: 'messagesModule', namespace: 'admin', path: '/admin/messages' },
     ]
   },
+
 
   {
     key: 'navPending', namespace: 'admin', icon: FolderArchive, children: [

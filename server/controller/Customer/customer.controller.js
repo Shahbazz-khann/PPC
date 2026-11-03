@@ -463,7 +463,8 @@ const setPropertyDemand = async (req, res, next) => {
         const propertyId = req.params.propertyId;
         const customerId = req.verifiedCustomerId; // From verifyPropertyOwnership middleware
         const userId = req.user.user_id;
-        const { demand_type_id, demand_amount, maximum_margin } = req.body;
+        const { demand_type_id, demand_amount, maximum_margin, currency_id, demand_currency_id } = req.body;
+        const selectedCurrencyId = currency_id || demand_currency_id || null;
 
         if (maximum_margin === undefined || maximum_margin === null || maximum_margin === '') {
             return res.status(400).json({
@@ -493,7 +494,8 @@ const setPropertyDemand = async (req, res, next) => {
             userId,
             demand_type_id,
             demand_amount,
-            parsedMargin
+            parsedMargin,
+            selectedCurrencyId
         );
 
         return res.status(200).json({

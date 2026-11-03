@@ -5,7 +5,7 @@ import {
   ChevronRight, FileText, Home, Wrench, Calendar, MapPin, 
   AudioLines, AlertTriangle, X, Info, Clock, Check, Phone, Headset, MessageSquare
 } from 'lucide-react';
-import { getCustomerRequestById, resolveMediaUrl } from '../../../Services/customer.services';
+import { getCustomerRequestById, withdrawCustomerRequest, resolveMediaUrl } from '../../../Services/customer.services';
 import PropVilla from '../../../assets/prop_villa.png'; // Fallback aesthetic image
 
 const StatusBadge = ({ status }) => {
@@ -110,6 +110,7 @@ const CustomerRequestDetails = () => {
   const [error, setError] = useState(null);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawError, setWithdrawError] = useState(null);
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
 
   useEffect(() => {
     const fetchRequest = async () => {
@@ -155,8 +156,26 @@ const CustomerRequestDetails = () => {
 
   const canWithdraw = request.status === 'Pending' || request.status === 'Under Review';
 
-  const handleWithdraw = () => {
-    setWithdrawError("Withdraw action is not yet connected to the backend API. This is a frontend demo.");
+  const handleWithdraw = async () => {
+    try {
+      setIsWithdrawing(true);
+      setWithdrawError(null);
+      const res = await withdrawCustomerRequest(requestId);
+      if (res?.success) {
+        setShowWithdrawModal(false);
+        setRequest(prev => ({
+          ...prev,
+          status: 'Withdrawn',
+          statusAbb: 'WDR'
+        }));
+      } else {
+        setWithdrawError(res?.message || 'Failed to withdraw request');
+      }
+    } catch (err) {
+      setWithdrawError(err.message || 'Failed to withdraw request. Please try again.');
+    } finally {
+      setIsWithdrawing(false);
+    }
   };
 
   const isPropertyReq = request.category === 'PROPERTY';
@@ -457,9 +476,12 @@ const CustomerRequestDetails = () => {
                 {t('requests:needHelp')} <br/>{t('requests:ourTeamAssist')}
               </p>
               
-              <button className="w-full flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-200 text-[#1a2b25] rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors shadow-sm mb-3">
+              <Link 
+                to={`/customer/inbox/new?replyTo=PPC-SUPPORT&subject=${encodeURIComponent(`Inquiry regarding Request #${request.id}: ${titleText || 'Request Details'}`)}`}
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-200 text-[#1a2b25] rounded-xl font-bold text-sm hover:bg-gray-50 hover:border-[#B8860B] transition-all shadow-sm mb-3 cursor-pointer"
+              >
                 <MessageSquare size={16} className="text-[#B8860B]" /> {t('requests:sendMessage')}
-              </button>
+              </Link>
             </div>
 
           </div>
@@ -488,25 +510,31 @@ const CustomerRequestDetails = () => {
             </div>
             
             {withdrawError && (
-              <div className="mb-6 p-3 bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold rounded-xl flex items-center gap-2">
-                <Info size={16} className="shrink-0" />
-                {withdrawError}
+              <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-800 text-xs font-bold rounded-xl flex items-center gap-2 text-start">
+                <AlertTriangle size={16} className="shrink-0 text-red-500" />
+                <span>{withdrawError}</span>
               </div>
             )}
             
             <div className="flex flex-col sm:flex-row gap-3">
               <button 
+                type="button"
                 onClick={() => { setShowWithdrawModal(false); setWithdrawError(null); }}
                 className="flex-1 py-3 rounded-xl text-sm font-bold text-gray-600 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
+                disabled={isWithdrawing}
               >
                 {t('requests:cancel')}
               </button>
               <button 
+                type="button"
                 onClick={handleWithdraw}
-                className="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-red-600 border border-red-600 hover:bg-red-700 shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!!withdrawError}
+                className="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-red-600 border border-red-600 hover:bg-red-700 shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                disabled={isWithdrawing}
               >
-                {t('requests:withdraw')}
+                {isWithdrawing && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                )}
+                <span>{t('requests:withdraw')}</span>
               </button>
             </div>
           </div>

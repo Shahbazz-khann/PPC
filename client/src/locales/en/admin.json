@@ -14,6 +14,8 @@
   "visitsModule": "Visits",
   "inspectionsModule": "Inspections",
   "verificationsModule": "Verifications",
+  "messagesModule": "Inbox & Messages",
+
   "moduleReady": "Module Ready",
   "needsAttention": "Needs Attention",
   "requestsAwaiting": "Requests Awaiting Review",

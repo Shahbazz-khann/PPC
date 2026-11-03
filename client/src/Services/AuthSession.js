@@ -59,6 +59,8 @@ export const saveSession = (session) => {
 export const clearSession = () => {
   try {
     sessionStorage.removeItem(LOGIN_SESSION_KEY);
+    sessionStorage.removeItem('pending_request_property_id');
+    localStorage.removeItem('isLoggedIn');
     return true;
   } catch {
     return false;

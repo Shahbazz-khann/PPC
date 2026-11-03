@@ -61,7 +61,7 @@ const FeaturedProperties = ({ filters, onResetFilters }) => {
   const isFiltered = Boolean(filters && Object.keys(filters).length > 0);
 
   return (
-    <section id="featured-properties-section" className="max-w-7xl mx-auto px-6 md:px-12 mb-16 scroll-mt-6">
+    <section id="featured-properties-section" className="max-w-7xl mx-auto px-6 md:px-12 mb-8 scroll-mt-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
         <div>

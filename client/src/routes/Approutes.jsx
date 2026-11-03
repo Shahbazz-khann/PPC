@@ -66,6 +66,9 @@ import AdminPropertyAdd from '../Pages/Admin/properties/AdminPropertyAdd';
 import AdminRequests from '../Pages/Admin/requests/AdminRequests';
 import AdminPropertyVisits from '../Pages/Admin/visits/AdminPropertyVisits';
 import AdminInspectionReports from '../Pages/Admin/inspections/AdminInspectionReports';
+import AdminMessagesList from '../Pages/admin/messages/AdminMessagesList';
+import AdminMessageDetails from '../Pages/admin/messages/AdminMessageDetails';
+import AdminMessageCreate from '../Pages/admin/messages/AdminMessageCreate';
 
 // Admin Pending
 import AdminPaymentSummary from '../Pages/Admin/payments/AdminPaymentSummary';
@@ -227,6 +230,12 @@ const Approutes = () => {
             <Route path="visits" element={<AdminPropertyVisits />} />
             <Route path="inspection-reports" element={<AdminInspectionReports />} />
             <Route path="verification-reports" element={<Navigate to="/admin/properties" replace />} />
+
+            {/* Messages / Inbox */}
+            <Route path="messages" element={<AdminMessagesList />} />
+            <Route path="messages/new" element={<AdminMessageCreate />} />
+            <Route path="messages/:messageId" element={<AdminMessageDetails />} />
+            <Route path="inbox" element={<Navigate to="/admin/messages" replace />} />
 
             {/* Pending */}
             <Route path="property-registry" element={<Navigate to="/admin/properties" replace />} />

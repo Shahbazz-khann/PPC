@@ -1,12 +1,40 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, ChevronDown, Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, UserCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Logo3 from '../assets/IMAGEEEEEEEEEEEEEEEEEEEE.png';
+import { useAuth } from '../Context/AuthContext';
 
-const Navbar = () => {
+const Navbar = ({ overlay = false }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { t } = useTranslation(['public']);
+  const { isAuthenticated, user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleServicesClick = (e) => {
+    e.preventDefault();
+    if (mobileMenuOpen) setMobileMenuOpen(false);
+
+    if (location.pathname === '/') {
+      const el = document.getElementById('our-core-services');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      navigate('/#our-core-services');
+    }
+  };
+
+  // When overlay=true the navbar floats over a dark background → use white text
+  const linkClass = overlay
+    ? 'text-white hover:text-[#C48C33] transition-colors'
+    : 'text-black hover:text-[#063B29] transition-colors';
+
+  const firstName = user?.user_first_name || user?.name || null;
+  // Determine the correct dashboard route based on user type
+  const isEmployee = user?.user_type?.toLowerCase() === 'employee' || user?.user_type_english?.toLowerCase() === 'employee';
+  const dashboardPath = isEmployee ? '/admin/dashboard' : '/customer/dashboard';
 
   return (
     <nav className="w-full bg-transparent py-2 z-20 relative">
@@ -19,39 +47,51 @@ const Navbar = () => {
       </div>
 
       {/* Desktop Navigation Links */}
-      <div className="hidden md:flex items-center space-x-6 lg:space-x-8 text-xs font-bold text-black tracking-wider uppercase shrink-0">
+      <div className={`hidden md:flex items-center space-x-6 lg:space-x-8 text-xs font-bold tracking-wider uppercase shrink-0 ${overlay ? 'text-white' : 'text-black'}`}>
         <div className="relative py-1">
-          <Link to="/" className="hover:text-[#063B29] transition-colors">{t('public:home')}</Link>
+          <Link to="/" className={linkClass}>{t('public:home')}</Link>
           <span className="absolute bottom-0 left-0 w-full h-[2px] "></span>
         </div>
-        <Link to="/about" className="cursor-pointer text-black hover:text-[#063B29] transition-colors whitespace-nowrap">{t('public:aboutUs')}</Link>
-        <Link to="/services" className="flex items-center cursor-pointer text-black hover:text-[#063B29] transition-colors whitespace-nowrap">
+        <Link to="/about" className={`cursor-pointer whitespace-nowrap ${linkClass}`}>{t('public:aboutUs')}</Link>
+        <a
+          href="/#our-core-services"
+          onClick={handleServicesClick}
+          className={`flex items-center cursor-pointer whitespace-nowrap ${linkClass}`}
+        >
           <span>{t('public:services')}</span>
-          <ChevronDown className="w-3.5 h-3.5 ml-1 rtl:mr-1 rtl:ml-0 stroke-[2.5]" />
-        </Link>
-        <Link to="/properties" className="flex items-center cursor-pointer text-black hover:text-[#063B29] transition-colors whitespace-nowrap">
+        </a>
+        <Link to="/properties" className={`flex items-center cursor-pointer whitespace-nowrap ${linkClass}`}>
           <span>{t('public:properties')}</span>
-          <ChevronDown className="w-3.5 h-3.5 ml-1 rtl:mr-1 rtl:ml-0 stroke-[2.5]" />
         </Link>
-        <Link to="/contact" className="cursor-pointer text-black hover:text-[#063B29] transition-colors whitespace-nowrap">{t('public:contactUs')}</Link>
+        <Link to="/contact" className={`cursor-pointer whitespace-nowrap ${linkClass}`}>{t('public:contactUs')}</Link>
       </div>
 
       {/* Desktop Right Action Items */}
       <div className="hidden md:flex items-center space-x-4 lg:space-x-6 shrink-0">
-        <Search className="w-4.5 h-4.5 text-[#063B29] cursor-pointer stroke-[2.5] shrink-0" />
-        <Link to="/login" className="bg-[#063B29] text-white text-xs font-bold tracking-wider px-5 py-2.5 rounded-md uppercase whitespace-nowrap shrink-0">
-          {t('public:loginSignup')}
-        </Link>
+        {isAuthenticated ? (
+          /* Logged-in: show Go to Dashboard button */
+          <Link
+            to={dashboardPath}
+            className="flex items-center gap-2 bg-[#063B29] text-white text-xs font-bold tracking-wider px-4 py-2.5 rounded-md uppercase whitespace-nowrap shrink-0 hover:bg-[#0a5a3d] transition-colors"
+          >
+            <UserCircle2 className="w-4 h-4 shrink-0" />
+            Go to Your Profile
+          </Link>
+        ) : (
+          /* Guest: show Login / Sign Up */
+          <Link to="/login" className="bg-[#063B29] text-white text-xs font-bold tracking-wider px-5 py-2.5 rounded-md uppercase whitespace-nowrap shrink-0 hover:bg-[#0a5a3d] transition-colors">
+            {t('public:loginSignup')}
+          </Link>
+        )}
       </div>
 
-      {/* Mobile Hamburger and Search */}
-      <div className="flex md:hidden items-center space-x-4">
-        <Search className="w-5 h-5 text-[#063B29] cursor-pointer stroke-[2.5]" />
+      {/* Mobile Hamburger */}
+      <div className="flex md:hidden items-center">
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label={mobileMenuOpen ? t('public:closeMenu') : t('public:openMenu')}
           aria-expanded={mobileMenuOpen}
-          className="text-[#063B29] focus:outline-none p-1"
+          className={`focus:outline-none p-1 ${overlay ? 'text-white' : 'text-[#063B29]'}`}
         >
           {mobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
         </button>
@@ -64,21 +104,39 @@ const Navbar = () => {
           <div className="flex flex-col space-y-5 text-sm font-bold text-black tracking-wider uppercase">
             <Link to="/" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#063B29] transition-colors block">{t('public:home')}</Link>
             <Link to="/about" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#063B29] transition-colors block">{t('public:aboutUs')}</Link>
-            <Link to="/services" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between hover:text-[#063B29] transition-colors">
+            <a
+              href="/#our-core-services"
+              onClick={handleServicesClick}
+              className="flex items-center justify-between hover:text-[#063B29] transition-colors cursor-pointer"
+            >
               <span>{t('public:services')}</span>
-              <ChevronDown className="w-4 h-4 stroke-[2]" />
-            </Link>
+            </a>
             <Link to="/properties" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between hover:text-[#063B29] transition-colors">
               <span>{t('public:properties')}</span>
-              <ChevronDown className="w-4 h-4 stroke-[2]" />
             </Link>
             <Link to="/contact" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#063B29] transition-colors block">{t('public:contactUs')}</Link>
           </div>
-          
+
+          {/* Bottom CTA — Dashboard if logged in, Login if guest */}
           <div className="pt-5 border-t border-gray-100 w-full">
-            <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="bg-[#063B29] text-white text-sm font-bold tracking-wider px-5 py-3 rounded-md uppercase text-center block w-full">
-              {t('public:loginSignup')}
-            </Link>
+            {isAuthenticated ? (
+              <Link
+                to={dashboardPath}
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 bg-[#063B29] text-white text-sm font-bold tracking-wider px-5 py-3 rounded-md uppercase w-full hover:bg-[#0a5a3d] transition-colors"
+              >
+                <UserCircle2 className="w-5 h-5" />
+                Go to Your Profile
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="bg-[#063B29] text-white text-sm font-bold tracking-wider px-5 py-3 rounded-md uppercase text-center block w-full hover:bg-[#0a5a3d] transition-colors"
+              >
+                {t('public:loginSignup')}
+              </Link>
+            )}
           </div>
         </div>
       )}

@@ -21,6 +21,7 @@ const inspectionsController = require('../../controller/Customer/inspections.con
 router.post('/requests', authenticate, authorize('customer'), requestsController.createRequest);
 router.get('/requests', authenticate, authorize('customer'), requestsController.getRequests);
 router.get('/requests/:requestId', authenticate, authorize('customer'), validateRequestId, requestsController.getRequestById);
+router.patch('/requests/:requestId/withdraw', authenticate, authorize('customer'), validateRequestId, requestsController.withdrawRequest);
 
 const visitsController = require('../../controller/Customer/visits.controller');
 // Property Visits
@@ -99,4 +100,12 @@ router.post(
     customerController.uploadPropertyVideo
 );
 
+// Messages
+const messagesController = require('../../controller/Customer/messages.controller');
+router.get('/messages', authenticate, authorize('customer'), messagesController.getMessages);
+router.get('/messages/:messageId', authenticate, authorize('customer'), messagesController.getMessageById);
+router.post('/messages', authenticate, authorize('customer'), messagesController.createMessage);
+router.patch('/messages/:messageId/read', authenticate, authorize('customer'), messagesController.markMessageAsRead);
+
 module.exports = router;
+

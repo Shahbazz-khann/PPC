@@ -516,6 +516,30 @@ export const getAdminDashboardActivity = async (params = {}) => {
   return await api.get('/admin/dashboard/activity', params);
 };
 
+/**
+ * Admin Inbox & Messages Operations Services
+ */
+export const getAdminMessages = async (params = {}) => {
+  return await api.get('/admin/messages', { params });
+};
+
+export const getAdminMessageById = async (messageId) => {
+  return await api.get(`/admin/messages/${messageId}`);
+};
+
+export const sendAdminMessage = async (payload) => {
+  return await api.post('/admin/messages', payload);
+};
+
+export const markAdminMessageAsRead = async (messageId) => {
+  return await api.patch(`/admin/messages/${messageId}/read`);
+};
+
+export const getAdminMessagingCustomers = async () => {
+  return await api.get('/admin/messages/customers');
+};
+
+
 
 
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import {
   Mail,
@@ -27,6 +27,13 @@ const Login = () => {
   const { login } = useAuth();
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const redirectParam = searchParams.get('redirect');
+  const fromStateUrl = location.state?.from
+    ? (location.state.from.pathname + (location.state.from.search || ''))
+    : null;
+  const redirectUrl = redirectParam || fromStateUrl || null;
 
   const {
     register,
@@ -68,12 +75,22 @@ const Login = () => {
         const decoded = parseJwt(response.token);
         const roles = decoded?.roles || [];
 
+        // Clean up any stale pending request property in session storage
+        sessionStorage.removeItem('pending_request_property_id');
+
+        const userType = (response.data?.user_type || response.data?.user_type_english || '').toLowerCase();
+        const isAdmin = roles.some(r => r && r.toLowerCase() === 'admin');
+
         // Redirect based on user_type
-        if (response.data?.user_type === 'Customer') {
-          navigate('/customer/dashboard');
+        if (userType === 'customer') {
+          if (redirectUrl) {
+            navigate(redirectUrl);
+          } else {
+            navigate('/customer/dashboard');
+          }
         } else if (
-          response.data?.user_type === 'Employee' &&
-          roles.some(r => r.toLowerCase() === 'admin')
+          userType === 'employee' &&
+          isAdmin
         ) {
           navigate('/admin/dashboard');
         } else {
@@ -351,7 +368,7 @@ const Login = () => {
               {t('public:noAccount')}{' '}
 
               <Link
-                to="/signup"
+                to={redirectUrl ? `/signup?redirect=${encodeURIComponent(redirectUrl)}` : "/signup"}
                 replace
                 className="inline-block p-1 text-[#B8860B] hover:text-[#966d09] font-semibold transition-colors"
               >

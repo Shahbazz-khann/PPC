@@ -76,5 +76,9 @@
   "no": "نہیں",
   "unknownCapacity": "نامعلوم صلاحیت",
   "egAmount": "مثال: 50000000",
-  "maximumMargin": "زیادہ سے زیادہ مارجن (PKR)"
+  "maximumMargin": "زیادہ سے زیادہ مارجن (PKR)",
+  "currency": "کرنسی",
+  "selectCurrency": "کرنسی منتخب کریں",
+  "newDemandAmountDynamic": "نئی طلب کی رقم ({{currency}})",
+  "maximumMarginDynamic": "زیادہ سے زیادہ مارجن ({{currency}})"
 }

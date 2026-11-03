@@ -155,14 +155,16 @@ const createCustomerRequest = async (userId, data) => {
             throw err;
         }
 
-        // 4. Property Ownership Resolution
+        // 4. Property Validation
+        let isOwner = false;
         if (data.propertyId) {
-            const propRes = await client.query('SELECT property_id FROM properties WHERE property_id = $1 AND customer_id = $2 AND is_active = true', [data.propertyId, customerId]);
+            const propRes = await client.query('SELECT property_id, customer_id FROM properties WHERE property_id = $1 AND is_active = true', [data.propertyId]);
             if (propRes.rows.length === 0) {
-                const err = new Error('Property not found or you do not have permission to use it');
+                const err = new Error('Property not found or inactive');
                 err.statusCode = 400;
                 throw err;
             }
+            isOwner = String(propRes.rows[0].customer_id) === String(customerId);
         }
 
         if (isServiceReq) {
@@ -193,15 +195,15 @@ const createCustomerRequest = async (userId, data) => {
 
             const purposeName = purpRes.rows[0].purpose_description;
 
-            // Reject Purchase/Lease
-            if (purposeName === 'Purchase' || purposeName === 'Lease') {
-                const err = new Error(`${purposeName} request flow is not available yet.`);
+            // Only the owner can list their property for Sale or request Renovation on it
+            if ((purposeName === 'Sale' || purposeName === 'Renovation') && !isOwner) {
+                const err = new Error(`Only the property owner can create a ${purposeName} listing for this property.`);
                 err.statusCode = 400;
                 throw err;
             }
 
-            // Demand validation for Sale/Rent
-            if (purposeName === 'Sale' || purposeName === 'Rent') {
+            // Demand validation for owner Sale or Rent
+            if (purposeName === 'Sale' || (purposeName === 'Rent' && isOwner)) {
                 // Get current active demand
                 const demRes = await client.query(`
                     SELECT dt.demand_type_english 
@@ -273,8 +275,121 @@ const createCustomerRequest = async (userId, data) => {
     }
 };
 
+/**
+ * Withdraw a customer request
+ * @param {number} userId - The authenticated user ID
+ * @param {string|number} requestId - The request ID to withdraw
+ * @returns {Promise<Object>} The updated request
+ */
+const withdrawCustomerRequest = async (userId, requestId) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        // 1. Resolve Customer ID
+        const customerRes = await client.query(
+            'SELECT customer_id FROM customers WHERE user_id = $1 AND is_active = true FOR UPDATE',
+            [userId]
+        );
+        if (customerRes.rows.length === 0) {
+            const err = new Error('Customer profile not found or inactive');
+            err.statusCode = 404;
+            throw err;
+        }
+        const customerId = customerRes.rows[0].customer_id;
+
+        // 2. Fetch request and lock it for update, verifying ownership
+        const reqRes = await client.query(
+            'SELECT request_id FROM customer_requests WHERE request_id = $1 AND customer_id = $2 AND is_active = true FOR UPDATE',
+            [requestId, customerId]
+        );
+        if (reqRes.rows.length === 0) {
+            const err = new Error('Request not found or does not belong to you');
+            err.statusCode = 404;
+            throw err;
+        }
+
+        // 3. Check current active status
+        const statusCheckQuery = `
+            SELECT st.request_status_english, st.request_status_type_id
+            FROM customer_request_status_history sh
+            JOIN customer_request_status_types st ON sh.request_status_type_id = st.request_status_type_id
+            WHERE sh.request_id = $1 AND sh.is_active = true
+            ORDER BY sh.request_status_history_id DESC
+            LIMIT 1
+        `;
+        const currentStatusRes = await client.query(statusCheckQuery, [requestId]);
+        const currentStatusName = currentStatusRes.rows[0]?.request_status_english || '';
+
+        // Only requests in 'Pending' or 'Under Review' can be withdrawn by customer
+        if (
+            currentStatusName.toLowerCase() !== 'pending' &&
+            currentStatusName.toLowerCase() !== 'under review'
+        ) {
+            const err = new Error(
+                `Cannot withdraw request in '${currentStatusName}' status. Only Pending or Under Review requests can be withdrawn.`
+            );
+            err.statusCode = 400;
+            throw err;
+        }
+
+        // 4. Resolve 'Withdrawn' status type ID
+        const withdrawnStatusRes = await client.query(
+            `SELECT request_status_type_id, request_status_english FROM customer_request_status_types WHERE LOWER(request_status_english) = 'withdrawn' AND is_active = true`
+        );
+        if (withdrawnStatusRes.rows.length === 0) {
+            throw new Error('Withdrawn status master not found. Data integrity error.');
+        }
+        const withdrawnStatusId = withdrawnStatusRes.rows[0].request_status_type_id;
+
+        // 5. Deactivate previous active status history records
+        await client.query(
+            `UPDATE customer_request_status_history
+             SET is_active = false, update_date_time = CURRENT_TIMESTAMP
+             WHERE request_id = $1 AND is_active = true`,
+            [requestId]
+        );
+
+        // 6. Insert new active status history record
+        const insertHistoryQuery = `
+            INSERT INTO customer_request_status_history (
+                request_id,
+                request_status_type_id,
+                effective_date,
+                status_remarks,
+                creation_date_time,
+                update_date_time,
+                created_by_user,
+                is_active
+            ) VALUES (
+                $1, $2, CURRENT_DATE, 'Withdrawn by customer', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $3, true
+            )
+        `;
+        await client.query(insertHistoryQuery, [requestId, withdrawnStatusId, userId]);
+
+        // 7. Update update_date_time on customer_requests
+        await client.query(
+            `UPDATE customer_requests
+             SET update_date_time = CURRENT_TIMESTAMP
+             WHERE request_id = $1`,
+            [requestId]
+        );
+
+        await client.query('COMMIT');
+
+        // 8. Return updated customer request details
+        return await getCustomerRequestById(userId, requestId);
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 module.exports = {
     getCustomerRequests,
     getCustomerRequestById,
-    createCustomerRequest
+    createCustomerRequest,
+    withdrawCustomerRequest
 };

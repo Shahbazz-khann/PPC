@@ -172,7 +172,7 @@ const verifyPropertyOwnership = async (req, res, next) => {
 };
 
 const validatePropertyDemand = (req, res, next) => {
-    const { demand_type_id, demand_amount } = req.body;
+    const { demand_type_id, demand_amount, currency_id, demand_currency_id } = req.body;
 
     const errors = [];
 
@@ -188,6 +188,16 @@ const validatePropertyDemand = (req, res, next) => {
         errors.push('demand_amount must be a positive number.');
     } else {
         req.body.demand_amount = parsedDemandAmount;
+    }
+
+    const rawCurrencyId = currency_id || demand_currency_id;
+    if (rawCurrencyId !== undefined && rawCurrencyId !== null && rawCurrencyId !== '') {
+        const parsedCurrencyId = parseInt(rawCurrencyId, 10);
+        if (isNaN(parsedCurrencyId) || parsedCurrencyId <= 0) {
+            errors.push('currency_id must be a positive integer.');
+        } else {
+            req.body.currency_id = parsedCurrencyId;
+        }
     }
 
     if (errors.length > 0) {

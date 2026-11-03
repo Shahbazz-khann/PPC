@@ -988,12 +988,18 @@ const getPropertyDetailByIdAndUserId = async (propertyId, userId) => {
                 pd.demand_id,
                 pdt.demand_type_english AS demand_type,
                 pd.demand_amount,
+                pd.maximum_margin,
                 pd.discount_percent,
                 pd.discount_amount,
                 pd.final_amount,
-                pd.effective_date
+                pd.effective_date,
+                pd.demand_currency_id,
+                c.currency_code,
+                c.currency_symbol,
+                c.currency_english
              FROM property_demand pd
              JOIN property_demand_types pdt ON pd.demand_type_id = pdt.demand_type_id
+             LEFT JOIN currencies c ON pd.demand_currency_id = c.currency_id
              WHERE pd.property_id = $1 AND pd.is_active = true
              LIMIT 1`,
             [propertyId]
@@ -1083,7 +1089,7 @@ const getPropertyDetailByIdAndUserId = async (propertyId, userId) => {
 /**
  * Add or Update Property Demand (Pricing)
  */
-const addPropertyDemand = async (propertyId, customerId, userId, demandTypeId, demandAmount, maximumMargin) => {
+const addPropertyDemand = async (propertyId, customerId, userId, demandTypeId, demandAmount, maximumMargin, passedCurrencyId = null) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
@@ -1097,14 +1103,36 @@ const addPropertyDemand = async (propertyId, customerId, userId, demandTypeId, d
             throw Object.assign(new Error('Property not found or you do not have permission.'), { statusCode: 403 });
         }
 
-        // 2. Resolve PKR currency ID
-        const currencyResult = await client.query(
-            "SELECT currency_id FROM currencies WHERE currency_code = 'PKR'"
-        );
-        if (currencyResult.rowCount === 0) {
-            throw Object.assign(new Error('PKR currency is not configured in the system.'), { statusCode: 500 });
+        // 2. Resolve Currency
+        let currencyId;
+        let currencyCode = 'PKR';
+        let currencySymbol = 'Rs';
+        let currencyEnglish = 'Pakistani Rupee';
+
+        if (passedCurrencyId) {
+            const curCheck = await client.query(
+                'SELECT currency_id, currency_code, currency_symbol, currency_english FROM currencies WHERE currency_id = $1 AND is_active = true',
+                [passedCurrencyId]
+            );
+            if (curCheck.rowCount === 0) {
+                throw Object.assign(new Error('Selected currency is invalid or inactive.'), { statusCode: 400 });
+            }
+            currencyId = curCheck.rows[0].currency_id;
+            currencyCode = curCheck.rows[0].currency_code;
+            currencySymbol = curCheck.rows[0].currency_symbol;
+            currencyEnglish = curCheck.rows[0].currency_english;
+        } else {
+            const currencyResult = await client.query(
+                "SELECT currency_id, currency_code, currency_symbol, currency_english FROM currencies WHERE currency_code = 'PKR'"
+            );
+            if (currencyResult.rowCount === 0) {
+                throw Object.assign(new Error('PKR currency is not configured in the system.'), { statusCode: 500 });
+            }
+            currencyId = currencyResult.rows[0].currency_id;
+            currencyCode = currencyResult.rows[0].currency_code;
+            currencySymbol = currencyResult.rows[0].currency_symbol;
+            currencyEnglish = currencyResult.rows[0].currency_english;
         }
-        const currencyId = currencyResult.rows[0].currency_id;
 
         // 3. Validate Demand Type
         const demandTypeResult = await client.query(
@@ -1207,10 +1235,12 @@ const addPropertyDemand = async (propertyId, customerId, userId, demandTypeId, d
             demand_type: demandTypeEnglish,
             demand_amount: insertDemandAmount,
             discount_amount: insertDiscountAmount,
-            discount_percent: insertDiscountPercent,
             final_amount: insertFinalAmount,
             effective_date: newDemandRow.effective_date,
-            currency_code: 'PKR',
+            demand_currency_id: currencyId,
+            currency_code: currencyCode,
+            currency_symbol: currencySymbol,
+            currency_english: currencyEnglish,
             is_active: true
         };
     } catch (error) {

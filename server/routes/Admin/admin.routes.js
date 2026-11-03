@@ -21,6 +21,7 @@ const propertiesRoutes = require('./properties.routes');
 const requestsRoutes = require('./requests.routes');
 const visitsRoutes = require('./visits.routes');
 const inspectionsRoutes = require('./inspections.routes');
+const messagesRoutes = require('./messages.routes');
 const dashboardRoutes = require('./dashboard.routes');
 
 // Dashboard Overview & KPIs
@@ -36,6 +37,8 @@ router.use('/properties', propertiesRoutes);
 router.use('/requests', requestsRoutes);
 router.use('/visits', visitsRoutes);
 router.use('/inspections', inspectionsRoutes);
+router.use('/messages', messagesRoutes);
+
 
 // Mount Admin subroutes
 router.use('/reference/location/countries', countriesRoutes);

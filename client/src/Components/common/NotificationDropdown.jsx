@@ -196,7 +196,7 @@ const NotificationDropdown = () => {
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className={`relative ${isOpen ? 'z-50' : ''}`} ref={dropdownRef}>
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}

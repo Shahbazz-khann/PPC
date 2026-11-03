@@ -5,6 +5,7 @@ import { customerMenu, adminMenu } from '../../Config/menuconfig';
 import { LogOut, Menu, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 import { getToken } from '../../Services/AuthSession';
+import { useUnreadMessages } from '../../Context/UnreadMessagesContext';
 
 // Use existing branding assets
 import LogoImg from '../../assets/Footery.png';
@@ -15,6 +16,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { unreadCount } = useUnreadMessages();
 
   const token = getToken();
   let roles = user?.roles || [];
@@ -144,6 +146,9 @@ const Sidebar = () => {
       }
 
       // Standard Link
+      const isInbox = item.path === '/customer/inbox';
+      const showBadge = isInbox && unreadCount > 0;
+
       return (
         <NavLink
           key={id}
@@ -157,14 +162,23 @@ const Sidebar = () => {
             } ${isExpanded ? 'justify-start' : 'justify-center'}`
           }
         >
-          {Icon ? (
-            <Icon size={18} className="shrink-0" />
-          ) : depth > 0 ? (
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50 group-hover:bg-amber-400 shrink-0 transition-colors" />
-          ) : null}
+          {/* Icon with red dot indicator when sidebar is collapsed */}
+          <div className="relative shrink-0">
+            {Icon ? (
+              <Icon size={18} />
+            ) : depth > 0 ? (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50 group-hover:bg-amber-400 shrink-0 transition-colors" />
+            ) : null}
+            {/* Collapsed red dot */}
+            {showBadge && !isExpanded && (
+              <span
+                className="absolute -top-1 -end-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#002a1b] animate-pulse"
+              />
+            )}
+          </div>
 
           <div
-            className={`flex items-center transition-all duration-300 min-w-0 flex-1 ${
+            className={`flex items-center justify-between transition-all duration-300 min-w-0 flex-1 ${
               isExpanded ? 'opacity-100 ms-2.5' : 'w-0 opacity-0 ms-0 overflow-hidden'
             }`}
           >
@@ -175,11 +189,24 @@ const Sidebar = () => {
             >
               {text}
             </span>
+            {/* Expanded red badge with count */}
+            {showBadge && isExpanded && (
+              <span
+                className="ms-2 min-w-[20px] h-5 px-1.5 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full shadow-lg animate-pulse"
+              >
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
           </div>
 
           {!isExpanded && (
             <div className="hidden md:block absolute start-full ms-4 px-3 py-2 bg-[#001f14] text-white text-xs font-medium rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap shadow-xl border border-[#003d29]">
               {text}
+              {showBadge && (
+                <span className="ms-2 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
               <div className="absolute top-1/2 -start-1 -translate-y-1/2 border-[5px] border-transparent border-e-[#001f14]" />
             </div>
           )}

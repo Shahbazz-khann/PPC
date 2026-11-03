@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronRight, ArrowLeft, Send, Mail } from 'lucide-react';
+import { ChevronRight, ArrowLeft, Send, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useMessages } from './useMessages';
 
 const CustomerMessageCreate = () => {
@@ -20,66 +20,63 @@ const CustomerMessageCreate = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Mock recipients
+  // Available PPC recipients
   const recipients = [
-    { id: 'PPC-MGMT', name: 'PPC Management' },
-    { id: 'PPC-SUPPORT', name: 'PPC Support' }
+    { id: 'PPC-MGMT', name: 'PPC Management (Approvals & Inspections)' },
+    { id: 'PPC-SUPPORT', name: 'PPC Support (Help & Inquiries)' }
   ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error on change
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
     }
+    if (apiError) setApiError(null);
   };
 
   const validate = () => {
     const newErrors = {};
     if (!formData.to) newErrors.to = 'Please select a recipient.';
     if (!formData.subject.trim()) newErrors.subject = 'Subject is required.';
-    if (formData.subject.trim().length > 100) newErrors.subject = 'Subject is too long (max 100 characters).';
+    if (formData.subject.trim().length > 150) newErrors.subject = 'Subject is too long (max 150 characters).';
     if (!formData.body.trim()) newErrors.body = 'Message body cannot be empty.';
-    if (formData.body.trim().length > 2000) newErrors.body = 'Message is too long (max 2000 characters).';
+    if (formData.body.trim().length > 3000) newErrors.body = 'Message is too long (max 3000 characters).';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsSubmitting(true);
+    setApiError(null);
 
-    // Simulate network delay
-    setTimeout(() => {
-      const recipientName = recipients.find(r => r.id === formData.to)?.name || 'PPC';
-      
-      const newMessage = {
-        id: `MSG-NEW-${Date.now()}`,
-        direction: 'outbox',
-        sender: { id: 'CUSTOMER', name: 'Customer' },
-        recipient: { id: formData.to, name: recipientName },
+    try {
+      await addMessage({
+        to: formData.to,
         subject: formData.subject.trim(),
         body: formData.body.trim(),
-        createdAt: new Date().toISOString(),
-        isRead: true, // Outbox messages are inherently read by sender
-        replyToMessageId: originalMessageId
-      };
+        replyToMessageId: originalMessageId,
+      });
 
-      addMessage(newMessage);
       setToastMessage('Message sent successfully!');
 
-      // Redirect after toast
+      // Redirect back to customer inbox
       setTimeout(() => {
         navigate('/customer/inbox');
-      }, 1500);
+      }, 1200);
 
-    }, 800);
+    } catch (err) {
+      console.error('Failed to send message:', err);
+      setApiError(err?.response?.data?.message || 'Failed to send message. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -87,8 +84,8 @@ const CustomerMessageCreate = () => {
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-[#1E5631] text-white px-6 py-3 rounded-lg shadow-xl font-bold flex items-center gap-2 animate-bounce">
-          <Send size={18} /> {toastMessage}
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-[#1E5631] text-white px-6 py-3 rounded-xl shadow-xl font-bold flex items-center gap-2 animate-bounce">
+          <CheckCircle2 size={18} /> {toastMessage}
         </div>
       )}
 
@@ -115,14 +112,25 @@ const CustomerMessageCreate = () => {
           </Link>
         </div>
 
+        {apiError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3 text-sm">
+            <AlertCircle size={18} className="text-red-500 shrink-0" />
+            <span className="font-medium">{apiError}</span>
+          </div>
+        )}
+
         <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-6 sm:p-8 bg-[#fafcfb] border-b border-gray-100 flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[#eaf1ec] text-[#1E5631] flex items-center justify-center shrink-0">
               <Mail size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">New Message</h2>
-              <p className="text-sm font-medium text-gray-500">Send a direct message to PPC.</p>
+              <h2 className="text-lg font-bold text-gray-900">
+                {replyToId ? 'Send a Reply' : 'New Message'}
+              </h2>
+              <p className="text-sm font-medium text-gray-500">
+                Send a direct message to PPC department representatives.
+              </p>
             </div>
           </div>
 
@@ -130,7 +138,9 @@ const CustomerMessageCreate = () => {
             
             {/* To Field */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">To <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                To <span className="text-red-500">*</span>
+              </label>
               <select
                 name="to"
                 value={formData.to}
@@ -140,7 +150,7 @@ const CustomerMessageCreate = () => {
                   errors.to ? 'border-red-300 bg-red-50' : 'border-gray-200'
                 } ${replyToId ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                <option value="">Select Recipient...</option>
+                <option value="">Select Recipient Department...</option>
                 {recipients.map(r => (
                   <option key={r.id} value={r.id}>{r.name}</option>
                 ))}
@@ -150,7 +160,9 @@ const CustomerMessageCreate = () => {
 
             {/* Subject Field */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Subject <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Subject <span className="text-red-500">*</span>
+              </label>
               <input
                 type="text"
                 name="subject"
@@ -166,7 +178,9 @@ const CustomerMessageCreate = () => {
 
             {/* Message Body Field */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Message <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Message <span className="text-red-500">*</span>
+              </label>
               <textarea
                 name="body"
                 value={formData.body}

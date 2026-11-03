@@ -39,7 +39,7 @@ const Categories = () => {
   const featuresData = getFeaturesData(t);
   
   return (
-    <section className="max-w-7xl mx-auto px-6 md:px-12 mb-10">
+    <section className="max-w-7xl mx-auto px-6 md:px-12 mb-4">
       {/* Section Title */}
       <div className="flex items-center justify-between mb-6 md:mb-8">
         <h2 className="text-[#063B29] font-bold text-lg md:text-xl tracking-tight uppercase">

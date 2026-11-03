@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import homeImg from '../assets/home.webp';
 import rentHouseImg from '../assets/RentHouse1.jpg';
 import propertyCareImg from '../assets/PropertyCare.webp';
@@ -51,19 +50,12 @@ const Services = () => {
   const servicesData = getServicesData(t);
   
   return (
-    <section id="our-core-services" className="max-w-7xl mx-auto px-6 md:px-12 mb-16 scroll-mt-8">
+    <section id="our-core-services" className="max-w-7xl mx-auto px-6 md:px-12 mb-8 scroll-mt-16">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-4">
         <h2 className="text-[#063B29] font-bold text-lg md:text-xl tracking-tight uppercase">
           {t('public:ourCoreServices')}
         </h2>
-        <Link
-          to="/services"
-          className="text-[#063B29] font-semibold text-xs md:text-sm flex items-center gap-1"
-        >
-          <span>{t('public:viewAllServices')}</span>
-          <span className="rtl:rotate-180">&rarr;</span>
-        </Link>
       </div>
 
       {/* Services Grid */}
@@ -71,7 +63,7 @@ const Services = () => {
         {servicesData.map((service) => (
           <div
             key={service.id}
-            className="bg-white border border-gray-200/80 rounded-xl p-3.5 flex flex-col justify-between h-full shadow-sm"
+            className="bg-white border border-gray-200/80 rounded-xl p-3.5 flex flex-col h-full shadow-sm"
           >
             <div>
               <img
@@ -82,17 +74,10 @@ const Services = () => {
               <h3 className="text-slate-900 font-bold text-xs md:text-sm mb-1.5 leading-snug">
                 {service.title}
               </h3>
-              <p className="text-gray-500 text-[11px] leading-relaxed mb-4">
+              <p className="text-gray-500 text-[11px] leading-relaxed">
                 {service.description}
               </p>
             </div>
-            <Link
-              to="/services"
-              className="text-[#063B29] font-bold text-[11px] tracking-wider uppercase flex items-center gap-1 mt-auto"
-            >
-              <span>{t('public:explore')}</span>
-              <span className="rtl:rotate-180">&rarr;</span>
-            </Link>
           </div>
         ))}
       </div>

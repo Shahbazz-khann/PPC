@@ -65,24 +65,6 @@ const Properties = () => {
 
       <main className="flex-grow pt-8 pb-16">
         <div className="max-w-[1200px] mx-auto px-4 md:px-8">
-          
-          {/* Page Header */}
-          <div className="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-serif font-bold text-[#1a2b25] mb-2 tracking-tight">
-                {t('public:propertySearchResults') || 'Properties'}
-              </h1>
-              <p className="text-gray-500 font-medium text-sm max-w-xl">
-                Browse our complete catalog of available properties. Use the search and filters to find exactly what you are looking for.
-              </p>
-            </div>
-            {!loading && (
-              <span className="text-sm font-bold text-gray-500 shrink-0">
-                {filteredProperties.length} Properties found
-              </span>
-            )}
-          </div>
-
           {/* Advanced Search & Filter Card */}
           <div className="mb-8">
             <PropertySearch

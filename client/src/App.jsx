@@ -2,7 +2,9 @@ import { useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import Approutes from './routes/Approutes';
 import { AuthProvider } from './Context/AuthContext';
+import { UnreadMessagesProvider } from './Context/UnreadMessagesContext';
 import { useTranslation } from 'react-i18next';
+import ScrollToTop from './Components/ScrollToTop';
 
 const App = () => {
   const { i18n } = useTranslation();
@@ -14,8 +16,11 @@ const App = () => {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
-        <Approutes />
+        <UnreadMessagesProvider>
+          <Approutes />
+        </UnreadMessagesProvider>
       </AuthProvider>
     </BrowserRouter>
   );

@@ -2,11 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  ChevronRight, ChevronLeft, Edit2, MapPin, Maximize,
+  ChevronRight, ChevronLeft, ChevronDown, Edit2, MapPin, Maximize,
   Home, CheckSquare, List, Image as ImageIcon, Video,
   Map, Ruler, Navigation, Tag, DollarSign, Calendar, X
 } from 'lucide-react';
-import { getCustomerPropertyDetail, resolveMediaUrl, getPropertyFormReference, setCustomerPropertyDemand } from '../../../Services/customer.services';
+import { getCustomerPropertyDetail, resolveMediaUrl, getPropertyFormReference, setCustomerPropertyDemand, getCurrencies } from '../../../Services/customer.services';
 
 const CustomerPropertyDetails = () => {
   const { propertyId } = useParams();
@@ -16,12 +16,14 @@ const CustomerPropertyDetails = () => {
 
   const [propertyData, setPropertyData] = useState(null);
   const [demandTypes, setDemandTypes] = useState([]);
+  const [currencies, setCurrencies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Demand Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDemandType, setSelectedDemandType] = useState(null); // Full object: { demand_type_id, demand_type_english }
+  const [selectedCurrencyId, setSelectedCurrencyId] = useState('');
   const [demandAmountInput, setDemandAmountInput] = useState('');
   const [maximumMarginInput, setMaximumMarginInput] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -31,14 +33,19 @@ const CustomerPropertyDetails = () => {
     try {
       setLoading(true);
       setError(null);
-      const [resDetail, resRef] = await Promise.all([
+      const [resDetail, resRef, resCurrencies] = await Promise.all([
         getCustomerPropertyDetail(propertyId),
-        getPropertyFormReference()
+        getPropertyFormReference(),
+        getCurrencies().catch(() => ({ data: [] }))
       ]);
       setPropertyData(resDetail.data);
       if (resRef?.data?.demandTypes) {
         setDemandTypes(resRef.data.demandTypes);
       }
+      const curList = (resCurrencies?.data && Array.isArray(resCurrencies.data))
+        ? resCurrencies.data
+        : (resRef?.data?.currencies || []);
+      setCurrencies(curList);
     } catch (err) {
       setError(err.message || 'Failed to fetch property details');
     } finally {
@@ -100,8 +107,22 @@ const CustomerPropertyDetails = () => {
     setDemandAmountInput('');
     setMaximumMarginInput('');
     setSubmitError(null);
+
+    // Default currency to current demand currency, or PKR, or first available
+    const activeDemandCurId = demand?.demand_currency_id;
+    const defaultCur = (currencies.length > 0 && activeDemandCurId)
+      ? currencies.find(c => String(c.currency_id) === String(activeDemandCurId))
+      : (currencies.find(c => c.currency_code === 'PKR') || currencies[0]);
+    setSelectedCurrencyId(defaultCur ? String(defaultCur.currency_id) : '');
+
     setIsModalOpen(true);
   };
+
+  const activeModalCurrency = useMemo(() => {
+    return currencies.find(c => String(c.currency_id) === String(selectedCurrencyId)) || null;
+  }, [currencies, selectedCurrencyId]);
+
+  const currencyCodeText = activeModalCurrency?.currency_code || demand?.currency_code || 'PKR';
 
   const handleSubmitDemand = async (e) => {
     e.preventDefault();
@@ -124,7 +145,8 @@ const CustomerPropertyDetails = () => {
       await setCustomerPropertyDemand(propertyId, {
         demand_type_id: selectedDemandType.demand_type_id,
         demand_amount: Number(demandAmountInput),
-        maximum_margin: Number(maximumMarginInput)
+        maximum_margin: Number(maximumMarginInput),
+        currency_id: selectedCurrencyId ? Number(selectedCurrencyId) : undefined
       });
       setIsModalOpen(false);
       // Refetch property details to get official backend values
@@ -482,7 +504,7 @@ const CustomerPropertyDetails = () => {
                     </div>
                     <div className="mb-4">
                       <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">{t('propertyDetails:currentDemand')}</p>
-                      <p className="text-4xl font-bold text-[#1a2b25] mb-3">PKR {Number(demand.final_amount ?? demand.demand_amount).toLocaleString()}</p>
+                      <p className="text-4xl font-bold text-[#1a2b25] mb-3">{demand.currency_code || 'PKR'} {Number(demand.final_amount ?? demand.demand_amount).toLocaleString()}</p>
                       <p className="text-sm font-semibold text-gray-500 flex items-center gap-1.5">
                         <Calendar size={14} />
                         {t('propertyDetails:effectiveFrom')} {new Date(demand.effective_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -553,7 +575,7 @@ const CustomerPropertyDetails = () => {
               {demand && demand.demand_type === selectedDemandType.demand_type_english && (
                 <div className="mb-6 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                   <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{t('propertyDetails:currentAmount')}</span>
-                  <span className="text-xl font-bold text-gray-800">PKR {Number(demand.final_amount ?? demand.demand_amount).toLocaleString()}</span>
+                  <span className="text-xl font-bold text-gray-800">{demand.currency_code || 'PKR'} {Number(demand.final_amount ?? demand.demand_amount).toLocaleString()}</span>
                 </div>
               )}
 
@@ -565,7 +587,33 @@ const CustomerPropertyDetails = () => {
 
               <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-bold text-[#1a2b25] mb-2">{t('propertyDetails:newDemandAmount')} <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-bold text-[#1a2b25] mb-2">
+                    {t('propertyDetails:currency', 'Currency')} <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={selectedCurrencyId}
+                      onChange={(e) => setSelectedCurrencyId(e.target.value)}
+                      disabled={submitLoading || currencies.length === 0}
+                      className="w-full p-4 pe-10 rounded-xl border border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B] outline-none transition-colors text-base font-bold text-[#1a2b25] bg-white cursor-pointer"
+                      required
+                    >
+                      {currencies.map((cur) => (
+                        <option key={cur.currency_id} value={cur.currency_id}>
+                          {cur.currency_code} - {cur.currency_english} ({cur.currency_symbol})
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center px-4 text-gray-500">
+                      <ChevronDown size={18} />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-[#1a2b25] mb-2">
+                    {t('propertyDetails:newDemandAmountDynamic', { currency: currencyCodeText, defaultValue: `New Demand Amount (${currencyCodeText})` })} <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="number"
                     value={demandAmountInput}
@@ -578,7 +626,9 @@ const CustomerPropertyDetails = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#1a2b25] mb-2">{t('propertyDetails:maximumMargin')} <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-bold text-[#1a2b25] mb-2">
+                    {t('propertyDetails:maximumMarginDynamic', { currency: currencyCodeText, defaultValue: `Maximum Margin (${currencyCodeText})` })} <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="number"
                     value={maximumMarginInput}

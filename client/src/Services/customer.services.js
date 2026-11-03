@@ -21,6 +21,10 @@ export const getCustomerRequestById = async (requestId) => {
   return await api.get(`/customer/requests/${requestId}`);
 };
 
+export const withdrawCustomerRequest = async (requestId) => {
+  return await api.patch(`/customer/requests/${requestId}/withdraw`);
+};
+
 export const createCustomerRequest = async (payload) => {
   return await api.post("/customer/requests", payload);
 };
@@ -101,6 +105,10 @@ export const getPropertyFormReference = async () => {
   return await api.get("/reference/property-form");
 };
 
+export const getCurrencies = async () => {
+  return await api.get("/reference/currencies");
+};
+
 export const getPropertyPurposes = async () => {
   return await api.get("/reference/property-purposes");
 };
@@ -177,3 +185,32 @@ export const getCustomerPropertyVisitById = async (visitId) => {
 export const submitCustomerPropertyVisitRemarks = async (visitId, remarks) => {
   return await api.patch(`/customer/property-visits/${visitId}/remarks`, { remarks });
 };
+
+/**
+ * Get all messages for authenticated customer (with optional ?folder=inbox|outbox&search=)
+ */
+export const getCustomerMessages = async (params = {}) => {
+  return await api.get('/customer/messages', { params });
+};
+
+/**
+ * Get single message detail
+ */
+export const getCustomerMessageById = async (messageId) => {
+  return await api.get(`/customer/messages/${messageId}`);
+};
+
+/**
+ * Create a new message from customer to PPC
+ */
+export const createCustomerMessage = async (payload) => {
+  return await api.post('/customer/messages', payload);
+};
+
+/**
+ * Mark a message as read
+ */
+export const markCustomerMessageAsRead = async (messageId) => {
+  return await api.patch(`/customer/messages/${messageId}/read`);
+};
+

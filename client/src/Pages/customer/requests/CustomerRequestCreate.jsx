@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   ChevronRight, CheckCircle2, Home, Wrench, FileText, MapPin, AudioLines, UploadCloud, X,
   Sparkles, Droplets, Zap, Paintbrush, Hammer, Wind, Bug, Leaf, PenTool, DollarSign, AlertTriangle
 } from 'lucide-react';
 import { getCustomerProperties, getPropertyPurposes, getPPCServices, createCustomerRequest } from '../../../Services/customer.services';
+import { getPublicPropertyById } from '../../../Services/property.service';
 import { resolveMediaUrl } from '../../../Services/Api';
 import PropertyRequirementsForm from './components/PropertyRequirementsForm';
 
@@ -16,6 +17,9 @@ const REQUEST_CATEGORIES = {
 
 const CustomerRequestCreate = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const queryPropertyId = searchParams.get('property_id') || sessionStorage.getItem('pending_request_property_id');
+
   const { t } = useTranslation(['requests', 'common']);
   const [currentStep, setCurrentStep] = useState(1);
   const [isFetching, setIsFetching] = useState(true);
@@ -24,6 +28,7 @@ const CustomerRequestCreate = () => {
   const [purposesList, setPurposesList] = useState([]);
   const [servicesList, setServicesList] = useState([]);
   const [propertiesList, setPropertiesList] = useState([]);
+  const [targetProperty, setTargetProperty] = useState(null);
 
   const [formData, setFormData] = useState({
     category: '',
@@ -59,15 +64,47 @@ const CustomerRequestCreate = () => {
     try {
       setIsFetching(true);
       setFetchError(null);
-      const [purposesRes, servicesRes, propertiesRes] = await Promise.all([
+      const [purposesRes, servicesRes, propertiesRes, targetPropRes] = await Promise.all([
         getPropertyPurposes(),
         getPPCServices(),
-        getCustomerProperties()
+        getCustomerProperties(),
+        queryPropertyId ? getPublicPropertyById(queryPropertyId).catch(() => null) : Promise.resolve(null)
       ]);
 
-      if (purposesRes?.success) setPurposesList(purposesRes.data || []);
+      const loadedPurposes = purposesRes?.success ? (purposesRes.data || []) : [];
+      if (purposesRes?.success) setPurposesList(loadedPurposes);
       if (servicesRes?.success) setServicesList(servicesRes.data || []);
       if (propertiesRes?.success) setPropertiesList(propertiesRes.data || []);
+
+      if (targetPropRes?.success && targetPropRes.data) {
+        const prop = targetPropRes.data;
+        setTargetProperty(prop);
+
+        // Pre-configure request for this property
+        const demandType = (prop.demand_type || '').toLowerCase();
+        let matchedPurpose = null;
+        if (demandType.includes('rent') || demandType.includes('lease')) {
+          matchedPurpose = loadedPurposes.find(p => {
+            const desc = (p.purpose_description || '').toLowerCase();
+            return desc.includes('rent') || desc.includes('lease');
+          });
+        } else {
+          matchedPurpose = loadedPurposes.find(p => {
+            const desc = (p.purpose_description || '').toLowerCase();
+            return desc.includes('purchase') || desc.includes('sale') || desc.includes('buy');
+          });
+        }
+
+        setFormData(prev => ({
+          ...prev,
+          category: REQUEST_CATEGORIES.PROPERTY,
+          propertyId: prop.property_id,
+          purposeId: matchedPurpose ? matchedPurpose.purpose_id : prev.purposeId,
+          description: `I am interested in this property (${prop.property_type || 'Property'} in ${prop.society || prop.city || ''}) and would like to request more details.`
+        }));
+
+        setCurrentStep(2);
+      }
     } catch (error) {
       console.error('Failed to fetch reference data', error);
       setFetchError('Unable to load request purposes.');
@@ -112,6 +149,8 @@ const CustomerRequestCreate = () => {
   };
 
   const isPurchaseOrLease = () => {
+    // If a specific property is targeted from public details, bypass generic requirements
+    if (formData.propertyId) return false;
     if (formData.category === REQUEST_CATEGORIES.PROPERTY) {
       const purposeObj = purposesList.find(p => p.purpose_id === formData.purposeId);
       if (purposeObj && (purposeObj.purpose_description === 'Purchase' || purposeObj.purpose_description === 'Lease')) {
@@ -229,8 +268,8 @@ const CustomerRequestCreate = () => {
 
   const handleSubmit = async () => {
     try {
-      if (isPurchaseOrLease()) {
-        setErrors(prev => ({ ...prev, submit: 'Purchase and Lease request submission is disabled at this time.' }));
+      if (isPurchaseOrLease() && !formData.propertyId) {
+        setErrors(prev => ({ ...prev, submit: 'Please select a property or specify requirements.' }));
         return;
       }
 
@@ -252,6 +291,7 @@ const CustomerRequestCreate = () => {
       const response = await createCustomerRequest(payload);
 
       if (response?.success) {
+        sessionStorage.removeItem('pending_request_property_id');
         navigate('/customer/requests');
       }
     } catch (error) {
@@ -280,6 +320,9 @@ const CustomerRequestCreate = () => {
 
   const getSelectedPropertyName = () => {
     if (!formData.propertyId) return 'No linked property';
+    if (targetProperty && String(targetProperty.property_id) === String(formData.propertyId)) {
+      return `${targetProperty.property_type || 'Property'} in ${targetProperty.society || targetProperty.city || 'Pakistan'}`;
+    }
     const prop = propertiesList.find(p => String(p.property_id) === String(formData.propertyId));
     return prop ? `${prop.property_type} in ${prop.society}` : 'Unknown Property';
   };
@@ -493,6 +536,56 @@ const CustomerRequestCreate = () => {
 
                       <div className="space-y-4">
                         <label className="block text-sm font-bold text-gray-800">{t('requests:selectProperty')} {isPropertyRequired() ? <span className="text-red-500">*</span> : <span className="text-gray-400 font-normal text-xs ml-1 rtl:mr-1 rtl:ml-0">{t('requests:optional')}</span>}</label>
+
+                        {targetProperty && (
+                          <div
+                            onClick={() => { setFormData(prev => ({ ...prev, propertyId: targetProperty.property_id })); setErrors({}); }}
+                            className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-4 ${
+                              String(formData.propertyId) === String(targetProperty.property_id)
+                                ? 'border-[#063B29] bg-emerald-50/60 ring-1 ring-[#063B29]/20 shadow-sm'
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3.5 min-w-0">
+                              <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-emerald-200/80">
+                                {targetProperty.image_url ? (
+                                  <img
+                                    src={resolveMediaUrl(targetProperty.image_url)}
+                                    alt="Property"
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <Home size={22} className="m-auto text-gray-400 mt-4" />
+                                )}
+                              </div>
+                              <div className="min-w-0 truncate">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="px-2 py-0.5 rounded-md bg-[#063B29] text-white text-[10px] font-bold uppercase tracking-wider">
+                                    Requested Property
+                                  </span>
+                                  <span className="text-xs font-bold text-emerald-800">
+                                    {targetProperty.demand_type || 'For Sale'}
+                                  </span>
+                                </div>
+                                <p className="font-bold text-sm text-[#1a2b25] truncate">
+                                  {targetProperty.property_type} in {targetProperty.society || targetProperty.city || 'Pakistan'}
+                                </p>
+                                <p className="text-xs font-semibold text-gray-500">
+                                  {targetProperty.current_price ? `PKR ${Number(targetProperty.current_price).toLocaleString()}` : ''}
+                                </p>
+                              </div>
+                            </div>
+                            <CheckCircle2
+                              size={22}
+                              className={`shrink-0 ${
+                                String(formData.propertyId) === String(targetProperty.property_id)
+                                  ? 'text-[#063B29]'
+                                  : 'text-gray-300'
+                              }`}
+                            />
+                          </div>
+                        )}
+
                         <div className="grid grid-cols-1 gap-4 max-h-[300px] overflow-y-auto pr-2 rtl:pl-2 rtl:pr-0 custom-scrollbar">
                       <button
                         onClick={() => { setFormData(prev => ({ ...prev, propertyId: '' })); setErrors({}); }}
@@ -712,7 +805,10 @@ const CustomerRequestCreate = () => {
                 </button>
               ) : (
                 <button
-                  onClick={() => navigate('/customer/requests')}
+                  onClick={() => {
+                    sessionStorage.removeItem('pending_request_property_id');
+                    navigate('/customer/requests');
+                  }}
                   className="px-6 py-2.5 rounded-full text-sm font-bold text-gray-600 hover:bg-gray-100 transition-colors"
                 >
                   {t('requests:cancel')}

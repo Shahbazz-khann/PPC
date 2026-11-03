@@ -15,6 +15,7 @@ const Logout = () => {
         console.error("Logout API call failed:", error);
       } finally {
         // Clear local state and session storage regardless of API success
+        sessionStorage.removeItem('pending_request_property_id');
         logout();
         setLoggedOut(true);
       }
