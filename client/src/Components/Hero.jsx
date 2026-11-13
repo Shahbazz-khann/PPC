@@ -1,7 +1,7 @@
 
 import Navbar from './Navbar';
 // import faisalMosqueImg from '../assets/FaisalMosque.png';
-import faisalMosqueImg from '../assets/fsq.png';
+import faisalMosqueImg from '../assets/fsq.webp';
 import { useTranslation } from 'react-i18next';
 
 const Hero = () => {

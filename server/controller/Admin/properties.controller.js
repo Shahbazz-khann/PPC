@@ -3,6 +3,7 @@ const {
   getAdminPropertyStats: fetchAdminPropertyStats,
   getAdminPropertyById: fetchAdminPropertyById,
   updateAdminPropertyApproval,
+  updateAdminPropertyStatus,
   createAdminProperty,
   uploadAdminPropertyPictures: saveAdminPropertyPictures,
   uploadAdminPropertyVideo: saveAdminPropertyVideo,
@@ -169,6 +170,44 @@ const updatePropertyApproval = async (req, res) => {
 };
 
 /**
+ * Controller handler for updating listing status of a property.
+ * PATCH /api/v1/admin/properties/:id/status
+ */
+const updatePropertyStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, remarks } = req.body;
+    const userId = req.user?.user_id || null;
+
+    const result = await updateAdminPropertyStatus(id, status, remarks, userId);
+
+    return res.status(200).json({
+      success: true,
+      message: `Property status updated to "${result.status}" successfully`,
+      data: result,
+    });
+  } catch (error) {
+    if (logger && logger.error) {
+      logger.error('Error in updatePropertyStatus controller:', error);
+    } else {
+      console.error('Error in updatePropertyStatus controller:', error);
+    }
+
+    if (error.message === 'Property not found') {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found',
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'An unexpected error occurred while updating property status',
+    });
+  }
+};
+
+/**
  * Controller handler for registering a new property as an Admin.
  * POST /api/v1/admin/properties
  */
@@ -317,6 +356,7 @@ module.exports = {
   getPropertyStats,
   getPropertyById,
   updatePropertyApproval,
+  updatePropertyStatus,
   createProperty,
   uploadPropertyPictures,
   uploadPropertyVideo,

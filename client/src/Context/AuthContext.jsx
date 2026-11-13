@@ -114,12 +114,29 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
+  const refreshUser = async () => {
+    try {
+      const response = await getCurrentUser();
+      if (response?.success && response?.data) {
+        const freshUser = response.data;
+        updateUser(freshUser);
+        setSession((prev) => ({
+          ...prev,
+          user: freshUser,
+        }));
+      }
+    } catch (e) {
+      console.error('AuthContext: Failed to refresh user:', e);
+    }
+  };
+
   const value = {
     user: session.user || null,
     token: session.token || null,
     isAuthenticated: Boolean(session.token),
     login,
     logout,
+    refreshUser,
   };
 
   return (

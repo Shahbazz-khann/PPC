@@ -41,8 +41,15 @@ const getPublicProperties = async (filters = {}, limit = 50) => {
                 FROM property_pictures pp2
                 WHERE pp2.property_id = p.property_id AND pp2.is_active = true
             ) AS images,
+            (
+                SELECT pv.video_url
+                FROM property_videos pv
+                WHERE pv.property_id = p.property_id AND pv.is_active = true
+                ORDER BY pv.display_order ASC
+                LIMIT 1
+            ) AS video_url,
             p.creation_date_time,
-            COALESCE(cu.mobile, '+92 336 6006060') AS contact_phone
+            COALESCE(cu.mobile, '+92 333 5373095') AS contact_phone
         FROM properties p
         ${PUBLIC_ELIGIBILITY_JOINS}
         LEFT JOIN currencies cur ON pd.demand_currency_id = cur.currency_id
@@ -141,39 +148,17 @@ const getPublicProperties = async (filters = {}, limit = 50) => {
 };
 
 /**
- * Get dynamic filter options derived ONLY from active/eligible properties
+ * Get dynamic filter options from active reference tables.
  * Contextual filtering allows narrowing down societies/areas based on parent selection.
  * @param {string} city - optional city filter
  * @param {string} society - optional society filter
  */
 const getPublicPropertyFilters = async (city = null, society = null) => {
-    
-    let baseWhere = PUBLIC_ELIGIBILITY_WHERE;
-    const baseParams = [];
-    let paramIdx = 1;
-
-    let contextualWhere = baseWhere;
-    const contextualParams = [];
-    let ctxParamIdx = 1;
-
-    if (city) {
-        contextualWhere += ` AND c.city_english = $${ctxParamIdx++}`;
-        contextualParams.push(city);
-    }
-    if (society) {
-        contextualWhere += ` AND s.society_english = $${ctxParamIdx++}`;
-        contextualParams.push(society);
-    }
-
-    // 1. Fetch distinct valid cities (Global)
+    // 1. Fetch all active cities (Global)
     const citiesQuery = `
         SELECT DISTINCT c.city_english
-        FROM properties p
-        ${PUBLIC_ELIGIBILITY_JOINS}
-        JOIN areas a ON p.area_id = a.area_id
-        JOIN societies s ON a.society_id = s.society_id
-        JOIN cities c ON s.city_id = c.city_id
-        WHERE ${baseWhere} AND c.city_english IS NOT NULL
+        FROM cities c
+        WHERE c.is_active = true AND c.city_english IS NOT NULL
         ORDER BY c.city_english ASC
     `;
 
@@ -201,43 +186,49 @@ const getPublicPropertyFilters = async (city = null, society = null) => {
         ORDER BY uom_id ASC
     `;
 
-    // 5. Fetch societies (Contextual based on City)
-    let societiesQueryWhere = baseWhere;
+    // 5. Fetch active societies from reference table (Contextual based on City)
+    let societiesWhere = `s.is_active = true AND c.is_active = true AND s.society_english IS NOT NULL`;
     const societiesParams = [];
     if (city) {
-        societiesQueryWhere += ` AND c.city_english = $1`;
+        societiesWhere += ` AND c.city_english = $1`;
         societiesParams.push(city);
     }
     const societiesQuery = `
         SELECT DISTINCT s.society_english
-        FROM properties p
-        ${PUBLIC_ELIGIBILITY_JOINS}
-        JOIN areas a ON p.area_id = a.area_id
-        JOIN societies s ON a.society_id = s.society_id
+        FROM societies s
         JOIN cities c ON s.city_id = c.city_id
-        WHERE ${societiesQueryWhere} AND s.society_english IS NOT NULL
+        WHERE ${societiesWhere}
         ORDER BY s.society_english ASC
     `;
 
-    // 6. Fetch areas (Contextual based on City AND Society)
+    // 6. Fetch active areas from reference table (Contextual based on City AND Society)
+    let areasWhere = `a.is_active = true AND s.is_active = true AND c.is_active = true AND a.area_english IS NOT NULL`;
+    const areasParams = [];
+    let areaParamIdx = 1;
+    if (city) {
+        areasWhere += ` AND c.city_english = $${areaParamIdx++}`;
+        areasParams.push(city);
+    }
+    if (society) {
+        areasWhere += ` AND s.society_english = $${areaParamIdx++}`;
+        areasParams.push(society);
+    }
     const areasQuery = `
         SELECT DISTINCT a.area_english
-        FROM properties p
-        ${PUBLIC_ELIGIBILITY_JOINS}
-        JOIN areas a ON p.area_id = a.area_id
+        FROM areas a
         JOIN societies s ON a.society_id = s.society_id
         JOIN cities c ON s.city_id = c.city_id
-        WHERE ${contextualWhere} AND a.area_english IS NOT NULL
+        WHERE ${areasWhere}
         ORDER BY a.area_english ASC
     `;
 
     const [citiesResult, typesResult, usesResult, uomsResult, societiesResult, areasResult] = await Promise.all([
-        pool.query(citiesQuery, baseParams),
-        pool.query(typesQuery, baseParams),
-        pool.query(usesQuery, baseParams),
-        pool.query(uomsQuery, baseParams),
+        pool.query(citiesQuery),
+        pool.query(typesQuery),
+        pool.query(usesQuery),
+        pool.query(uomsQuery),
         pool.query(societiesQuery, societiesParams),
-        pool.query(areasQuery, contextualParams)
+        pool.query(areasQuery, areasParams)
     ]);
 
     return {

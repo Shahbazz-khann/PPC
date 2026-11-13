@@ -17,14 +17,16 @@ import {
   ShieldCheck,
   Lock,
   Eye,
-  EyeOff
+  EyeOff,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { getCustomerProfile, getIdentityTypes, getCountries, getCustomerTitles, getGenders, updateCustomerProfile, uploadProfileImage, resolveMediaUrl, changeCustomerPassword } from '../../Services/customer.services';
 
 const CustomerProfile = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
 
   const [referenceData, setReferenceData] = useState({
     titles: [],
@@ -61,6 +63,18 @@ const CustomerProfile = () => {
   const [editForm, setEditForm] = useState(profileData);
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const [errors, setErrors] = useState({});
+
+  // Toast Notification State
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const toastTimeoutRef = useRef(null);
+
+  const triggerToast = (message, type = 'success') => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setToast({ show: true, message, type });
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast(prev => ({ ...prev, show: false }));
+    }, 4000);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -393,9 +407,13 @@ const CustomerProfile = () => {
         setProfileData(mappedData);
         setEditForm(mappedData);
         setIsEditing(false);
+        triggerToast('Profile updated successfully!', 'success');
+        if (refreshUser) refreshUser();
       }
     } catch (err) {
-      setSaveError(err.response?.data?.message || err.message || 'Failed to update profile.');
+      const msg = err.response?.data?.message || err.message || 'Failed to update profile.';
+      setSaveError(msg);
+      triggerToast(msg, 'error');
     } finally {
       setIsSaving(false);
     }
@@ -456,10 +474,14 @@ const CustomerProfile = () => {
         setEditForm(prev => ({ ...prev, profile_image_url: newUrl }));
 
         setImageUploadSuccess('Profile picture uploaded successfully.');
+        triggerToast('Profile picture uploaded successfully!', 'success');
+        if (refreshUser) refreshUser();
         setTimeout(() => setImageUploadSuccess(''), 3000);
       }
     } catch (err) {
-      setImageUploadError(err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to upload image.');
+      const msg = err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to upload image.';
+      setImageUploadError(msg);
+      triggerToast(msg, 'error');
     } finally {
       setIsUploadingImage(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -500,6 +522,31 @@ const CustomerProfile = () => {
   return (
     <div className="w-full bg-[#FAF8F3] min-h-screen pb-16 font-sans">
 
+      {/* Short pop / Toast Message */}
+      {toast.show && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border border-gray-100 bg-white animate-in slide-in-from-top-3 fade-in duration-300">
+          {toast.type === 'success' ? (
+            <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <CheckCircle2 size={18} />
+            </div>
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+              <AlertCircle size={18} />
+            </div>
+          )}
+          <div>
+            <p className="text-sm font-bold text-gray-900">{toast.type === 'success' ? 'Success' : 'Error'}</p>
+            <p className="text-xs text-gray-600 font-medium">{toast.message}</p>
+          </div>
+          <button
+            onClick={() => setToast({ show: false, message: '', type: 'success' })}
+            className="ml-3 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Header Breadcrumb Area */}
       <div className="pt-6 px-4 sm:px-8 lg:px-12 xl:px-4">
         <div className="flex items-center text-sm font-semibold text-gray-500 gap-2 mb-8">
@@ -520,8 +567,9 @@ const CustomerProfile = () => {
             <div className="relative group flex flex-col items-center">
               <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#eaf1ec] border-4 border-white shadow-md flex items-center justify-center text-[#2c5f43] font-serif text-3xl font-bold overflow-hidden relative">
                 {isUploadingImage && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-20">
-                    <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="absolute inset-0 bg-black/55 backdrop-blur-xs flex flex-col items-center justify-center z-20 text-white animate-in fade-in">
+                    <Loader2 size={24} className="animate-spin mb-1 text-white" />
+                    <span className="text-[10px] font-bold tracking-tight">Uploading...</span>
                   </div>
                 )}
                 {profileData.profile_image_url ? (
@@ -533,9 +581,10 @@ const CustomerProfile = () => {
               <button
                 onClick={handleImageClick}
                 disabled={isUploadingImage}
-                className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-md text-gray-600 hover:text-[#1a2b25] border border-gray-100 transition-transform hover:scale-110 disabled:opacity-50"
+                title="Change Profile Picture"
+                className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-md text-gray-600 hover:text-[#1a2b25] border border-gray-100 transition-transform hover:scale-110 disabled:opacity-50 cursor-pointer"
               >
-                <Camera size={16} />
+                {isUploadingImage ? <Loader2 size={16} className="animate-spin text-[#002a1b]" /> : <Camera size={16} />}
               </button>
               <input
                 type="file"

@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, X, Home as HomeIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Home as HomeIcon, Video } from 'lucide-react';
 import { getPublicProperties } from '../Services/property.service';
 import { resolveMediaUrl } from '../Services/Api';
 import { useTranslation } from 'react-i18next';
+import { formatPriceInWords } from '../utils/priceFormatter';
 
 const FeaturedProperties = ({ filters, onResetFilters }) => {
   const { t } = useTranslation(['public']);
@@ -178,6 +179,11 @@ const FeaturedProperties = ({ filters, onResetFilters }) => {
                     <span className="absolute top-2 left-2 rtl:left-auto rtl:right-2 bg-[#063B29] text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shadow-xs">
                       {property.demand_type === 'Sale' ? t('public:forSale') : t('public:forRent')}
                     </span>
+                    {property.video_url && (
+                      <span className="absolute top-2 right-2 rtl:right-auto rtl:left-2 bg-black/65 backdrop-blur-xs text-white text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow-xs">
+                        <Video size={10} /> Video
+                      </span>
+                    )}
                   </div>
 
                   {/* Title & Subtitle */}
@@ -199,7 +205,7 @@ const FeaturedProperties = ({ filters, onResetFilters }) => {
                 {/* Price */}
                 <div className="text-[#063B29] font-bold text-xs md:text-sm mt-auto pt-2 border-t border-gray-100 flex items-baseline justify-between">
                   <span>
-                    {property.currency_code} {Number(property.current_price).toLocaleString()}
+                    {formatPriceInWords(property.current_price, property.currency_code)}
                     {property.demand_type === 'Rent' && (
                       <span className="text-gray-500 font-normal text-[10px] md:text-[11px]">
                         {' '}

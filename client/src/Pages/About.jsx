@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
-import LillaHero from '../assets/tilla.png';
+import LillaHero from '../assets/tilla.webp';
 import PropertyCareImg from '../assets/PropertyCare.webp';
 
 /* ─── Core Values ─────────────────────────────────────────────── */
@@ -290,10 +290,10 @@ const About = () => {
               Contact Us
             </Link>
             <a
-              href="tel:+923366006060"
-              className="border border-white/30 hover:border-white text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-8 py-3.5 rounded-xl transition-all inline-flex items-center gap-2"
+              href="tel:+923335373095"
+              className="border border-white/30 hover:border-white text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-8 py-3.5 rounded-xl transition-all inline-flex items-center gap-2 cursor-pointer"
             >
-              <Phone size={15} /> +92 336 6006 060
+              <Phone size={15} /> +92 333 5373095
             </a>
           </div>
 

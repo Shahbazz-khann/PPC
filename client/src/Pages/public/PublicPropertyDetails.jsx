@@ -16,13 +16,21 @@ import {
   MessageCircle,
   Copy,
   Check,
-  FileText
+  FileText,
+  Video,
+  Play
 } from 'lucide-react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import { useAuth } from '../../Context/AuthContext';
 import { resolveMediaUrl } from '../../Services/Api';
 import { getPublicPropertyById } from '../../Services/property.service';
+import { formatPriceInWords } from '../../utils/priceFormatter';
+
+const OFFICIAL_WHATSAPP_DISPLAY = '+92 300 9562656';
+const OFFICIAL_WHATSAPP_CLEAN = '923009562656';
+const OFFICIAL_PHONE_DISPLAY = '+92 333 5373095';
+const OFFICIAL_PHONE_TEL = '+923335373095';
 
 const PublicPropertyDetails = () => {
   const { propertyId } = useParams();
@@ -34,8 +42,8 @@ const PublicPropertyDetails = () => {
   const [property, setProperty] = useState(location.state?.property || null);
   const [loading, setLoading] = useState(!location.state?.property);
   const [error, setError] = useState(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [copied, setCopied] = useState(false);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const [copiedPhone, setCopiedPhone] = useState(false);
 
   const handleCreateRequest = () => {
     const selectedPropId = propertyId || property?.property_id;
@@ -112,21 +120,30 @@ const PublicPropertyDetails = () => {
     ? property.images.map((img) => resolveMediaUrl(img)).filter(Boolean)
     : (property.image_url ? [resolveMediaUrl(property.image_url)].filter(Boolean) : []);
 
-  const handleNextImage = () => {
-    if (images.length > 0) {
-      setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  const videoUrl = property.video_url ? resolveMediaUrl(property.video_url) : null;
+
+  // Unified media items list: all images first, then video right after images
+  const mediaItems = [
+    ...images.map((url) => ({ type: 'image', url })),
+    ...(videoUrl ? [{ type: 'video', url: videoUrl }] : [])
+  ];
+
+  const handleNextMedia = () => {
+    if (mediaItems.length > 0) {
+      setCurrentMediaIndex((prev) => (prev === mediaItems.length - 1 ? 0 : prev + 1));
     }
   };
 
-  const handlePrevImage = () => {
-    if (images.length > 0) {
-      setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  const handlePrevMedia = () => {
+    if (mediaItems.length > 0) {
+      setCurrentMediaIndex((prev) => (prev === 0 ? mediaItems.length - 1 : prev - 1));
     }
   };
 
   const title = `${Number(property.property_size || 0)}${property.size_uom || ''} ${property.property_type || ''} For ${property.demand_type || ''}`;
   const locationText = property.society || property.city || 'Location';
-  const priceDisplay = `${property.currency_code || 'PKR'} ${Number(property.current_price || 0).toLocaleString()}`;
+  const priceDisplayInWords = formatPriceInWords(property.current_price, property.currency_code);
+  const priceDisplayNumeric = `${property.currency_code || 'PKR'} ${Number(property.current_price || 0).toLocaleString()}`;
 
   // Dynamic Phone Formatter & Action Helpers
   const formatPhoneDisplay = (phoneStr) => {
@@ -153,20 +170,19 @@ const PublicPropertyDetails = () => {
     return phoneStr;
   };
 
-  const getWhatsAppLink = (phoneStr, propTitle) => {
-    const cleanNumber = getCleanTel(phoneStr).replace('+', '');
-    const msg = encodeURIComponent(`Hello, I am inquiring about: ${propTitle || 'this property'}. Please provide more details.`);
+  const getWhatsAppLink = (cleanNumber, propTitle, propCode) => {
+    const codeTag = propCode ? ` (${propCode})` : '';
+    const msg = encodeURIComponent(`Hello Pakistan Property Care, I am inquiring about property${codeTag}: ${propTitle || 'this listing'}. Please provide more details.`);
     return `https://wa.me/${cleanNumber}?text=${msg}`;
   };
 
   const handleCopyPhone = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    const phone = formatPhoneDisplay(property?.contact_phone);
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(phone);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      navigator.clipboard.writeText(OFFICIAL_PHONE_DISPLAY);
+      setCopiedPhone(true);
+      setTimeout(() => setCopiedPhone(false), 2000);
     }
   };
 
@@ -214,43 +230,63 @@ const PublicPropertyDetails = () => {
               </div>
             </div>
 
-            {/* Image Container */}
-            <div className="w-full h-[400px] md:h-[500px] relative bg-gray-100 rounded-2xl overflow-hidden mb-5 group shadow-sm">
-              {images.length > 0 ? (
+            {/* Media Container (Images & Video Walkthrough) */}
+            <div className="w-full h-[400px] md:h-[500px] relative bg-black/90 rounded-2xl overflow-hidden mb-5 group shadow-sm flex items-center justify-center">
+              {mediaItems.length > 0 ? (
                 <>
-                  <img
-                    src={images[currentImageIndex]}
-                    alt={property.formatted_id || title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => { e.target.src = '/placeholder-image.jpg'; }}
-                  />
+                  {mediaItems[currentMediaIndex].type === 'video' ? (
+                    <video
+                      key={mediaItems[currentMediaIndex].url}
+                      controls
+                      autoPlay
+                      playsInline
+                      className="w-full h-full object-contain bg-black"
+                      poster={images[0] || undefined}
+                    >
+                      <source src={mediaItems[currentMediaIndex].url} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <img
+                      src={mediaItems[currentMediaIndex].url}
+                      alt={property.formatted_id || title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => { e.target.src = '/placeholder-image.jpg'; }}
+                    />
+                  )}
                   
-                  {images.length > 1 && (
+                  {mediaItems.length > 1 && (
                     <>
                       <button 
                         type="button"
-                        onClick={handlePrevImage} 
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/85 text-white flex items-center justify-center transition-all cursor-pointer shadow-md active:scale-95 z-10"
-                        aria-label="Previous image"
+                        onClick={handlePrevMedia} 
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/85 text-white flex items-center justify-center transition-all cursor-pointer shadow-md active:scale-95 z-20"
+                        aria-label="Previous slide"
                       >
                         <ChevronLeft size={22} />
                       </button>
                       <button 
                         type="button"
-                        onClick={handleNextImage} 
-                        className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/85 text-white flex items-center justify-center transition-all cursor-pointer shadow-md active:scale-95 z-10"
-                        aria-label="Next image"
+                        onClick={handleNextMedia} 
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/85 text-white flex items-center justify-center transition-all cursor-pointer shadow-md active:scale-95 z-20"
+                        aria-label="Next slide"
                       >
                         <ChevronRight size={22} />
                       </button>
                     </>
                   )}
 
-                  {/* Overlays on Image */}
-                  <div className="absolute bottom-4 left-4 flex items-center gap-2.5">
-                    <div className="bg-black/65 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 backdrop-blur-sm">
-                      <ImageIcon size={14} /> {images.length}
-                    </div>
+                  {/* Overlays on Media */}
+                  <div className="absolute bottom-4 left-4 flex items-center gap-2.5 z-10 pointer-events-none">
+                    {mediaItems[currentMediaIndex].type === 'video' ? (
+                      <div className="bg-red-600/95 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 backdrop-blur-sm shadow-md">
+                        <Video size={14} className="animate-pulse" /> Video Walkthrough ({currentMediaIndex + 1}/{mediaItems.length})
+                      </div>
+                    ) : (
+                      <div className="bg-black/65 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 backdrop-blur-sm">
+                        <ImageIcon size={14} /> {currentMediaIndex + 1} / {mediaItems.length}
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
@@ -260,25 +296,43 @@ const PublicPropertyDetails = () => {
               )}
             </div>
 
-            {/* Gallery Thumbnails Strip */}
-            {images.length > 1 && (
+            {/* Gallery Thumbnails Strip (Images + Video at the end) */}
+            {mediaItems.length > 1 && (
               <div className="flex items-center gap-3 overflow-x-auto pb-2 mb-4 scrollbar-none">
-                {images.map((img, idx) => (
+                {mediaItems.map((item, idx) => (
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => setCurrentImageIndex(idx)}
+                    onClick={() => setCurrentMediaIndex(idx)}
                     className={`relative w-20 h-14 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer shadow-2xs ${
-                      currentImageIndex === idx
+                      currentMediaIndex === idx
                         ? 'border-[#063B29] ring-2 ring-[#063B29]/30 scale-102'
                         : 'border-transparent opacity-65 hover:opacity-100 hover:border-gray-300'
                     }`}
                   >
-                    <img
-                      src={img}
-                      alt={`Gallery thumbnail ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
+                    {item.type === 'video' ? (
+                      <div className="w-full h-full bg-[#1a2b25] flex flex-col items-center justify-center text-white relative">
+                        {images[0] && (
+                          <img
+                            src={images[0]}
+                            alt="Video thumbnail poster"
+                            className="w-full h-full object-cover opacity-35"
+                          />
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                          <Play size={18} className="text-white fill-white" />
+                        </div>
+                        <span className="absolute bottom-1 text-[8px] font-bold uppercase tracking-wider text-white bg-red-600/90 px-1 py-0.2 rounded">
+                          Video
+                        </span>
+                      </div>
+                    ) : (
+                      <img
+                        src={item.url}
+                        alt={`Gallery thumbnail ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                   </button>
                 ))}
               </div>
@@ -305,7 +359,7 @@ const PublicPropertyDetails = () => {
                   
                   {/* WhatsApp Quick Action Button */}
                   <a
-                    href={getWhatsAppLink(property.contact_phone, title)}
+                    href={getWhatsAppLink(OFFICIAL_WHATSAPP_CLEAN, title, property?.formatted_id || property?.property_id)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold shadow-2xs transition-all hover:scale-105 cursor-pointer shrink-0"
@@ -316,9 +370,10 @@ const PublicPropertyDetails = () => {
                   </a>
                 </div>
 
-                <div className="flex items-center justify-between gap-2 bg-white/95 border border-emerald-100 rounded-xl p-2.5 shadow-2xs">
+                {/* Direct Call / Phone Number */}
+                <div className="flex items-center justify-between gap-2 bg-white/95 border border-emerald-100 rounded-xl p-2.5 shadow-2xs hover:border-emerald-300 transition-colors">
                   <a
-                    href={`tel:${getCleanTel(property.contact_phone)}`}
+                    href={`tel:${OFFICIAL_PHONE_TEL}`}
                     className="flex items-center gap-3 text-slate-900 hover:text-[#063B29] transition-colors group flex-1 min-w-0"
                     title="Click to Call"
                   >
@@ -330,7 +385,7 @@ const PublicPropertyDetails = () => {
                         Contact Number
                       </span>
                       <span className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight group-hover:text-[#063B29]">
-                        {formatPhoneDisplay(property.contact_phone)}
+                        {OFFICIAL_PHONE_DISPLAY}
                       </span>
                     </div>
                   </a>
@@ -341,7 +396,7 @@ const PublicPropertyDetails = () => {
                     className="p-2 rounded-lg text-gray-400 hover:text-emerald-700 hover:bg-emerald-50 transition-colors shrink-0 cursor-pointer"
                     title="Copy phone number"
                   >
-                    {copied ? <Check size={16} className="text-emerald-600" /> : <Copy size={16} />}
+                    {copiedPhone ? <Check size={16} className="text-emerald-600" /> : <Copy size={16} />}
                   </button>
                 </div>
               </div>
@@ -352,8 +407,13 @@ const PublicPropertyDetails = () => {
                   Demand Price
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                  {priceDisplay}
+                  {priceDisplayInWords}
                 </h2>
+                {Number(property.current_price) >= 100000 && (
+                  <p className="text-xs text-gray-400 font-medium mt-0.5">
+                    ({priceDisplayNumeric})
+                  </p>
+                )}
               </div>
 
               {/* 5 Feature Badges Row */}
@@ -426,7 +486,7 @@ const PublicPropertyDetails = () => {
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-gray-50">
                     <span className="text-gray-500 font-normal">Price</span>
-                    <span className="font-semibold text-gray-800">{priceDisplay}</span>
+                    <span className="font-semibold text-gray-800">{priceDisplayInWords}</span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-gray-50">
                     <span className="text-gray-500 font-normal">Location</span>

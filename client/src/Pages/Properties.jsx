@@ -3,10 +3,11 @@ import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { getPublicProperties } from '../Services/property.service';
 import { resolveMediaUrl } from '../Services/Api';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Maximize, Home as HomeIcon, ChevronRight } from 'lucide-react';
+import { MapPin, Maximize, Home as HomeIcon, ChevronRight, Video } from 'lucide-react';
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
 import PropertySearch from '../Components/PropertySearch';
+import { formatPriceInWords } from '../utils/priceFormatter';
 
 const Properties = () => {
   const { t } = useTranslation(['public', 'properties']);
@@ -113,6 +114,13 @@ const Properties = () => {
                         {property.demand_type === 'Sale' ? 'FOR SALE' : 'FOR RENT'}
                       </span>
                     </div>
+                    {property.video_url && (
+                      <div className="absolute top-3 end-3">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold shadow-xs bg-black/65 text-white backdrop-blur-xs">
+                          <Video size={11} /> Video
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Information & Action Content */}
@@ -128,7 +136,7 @@ const Properties = () => {
                         {/* Price visible on mobile */}
                         <div className="md:hidden">
                           <span className="text-lg font-bold text-[#1a2b25]">
-                            {property.currency_code} {Number(property.current_price).toLocaleString()}
+                            {formatPriceInWords(property.current_price, property.currency_code)}
                           </span>
                           {property.demand_type === 'Rent' && (
                             <span className="text-xs text-gray-500 ms-1 font-medium">/mo</span>
@@ -189,7 +197,7 @@ const Properties = () => {
                       <div className="hidden md:block">
                         <div className="flex items-baseline gap-1">
                           <span className="text-xl lg:text-2xl font-bold text-[#1a2b25] tracking-tight">
-                            {property.currency_code} {Number(property.current_price).toLocaleString()}
+                            {formatPriceInWords(property.current_price, property.currency_code)}
                           </span>
                           {property.demand_type === 'Rent' && (
                             <span className="text-xs text-gray-500 font-medium">

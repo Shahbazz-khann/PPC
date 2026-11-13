@@ -7,7 +7,8 @@ const DashboardLayout = () => {
   const location = useLocation();
   const isCustomerDashboard = location.pathname === '/customer/dashboard';
   const isCustomerProfile = location.pathname === '/customer/profile';
-  const noPadding = isCustomerDashboard || isCustomerProfile;
+  const isAdminDashboard = location.pathname === '/admin/dashboard';
+  const noPadding = isCustomerDashboard || isCustomerProfile || isAdminDashboard;
 
   return (
     <div className="flex h-screen w-full bg-[#FAF8F3] overflow-hidden">
@@ -17,7 +18,7 @@ const DashboardLayout = () => {
       {/* Main Content Wrapper */}
       <div className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
         {/* Topbar - fixed top */}
-        {!isCustomerDashboard && <Topbar />}
+        {!isCustomerDashboard && !isAdminDashboard && <Topbar />}
         
         {/* Main Content Area - scrollable */}
         <main className={`flex-1 min-w-0 overflow-y-auto bg-[#FAF8F3] ${noPadding ? '' : 'p-8'}`}>

@@ -100,6 +100,7 @@ const CustomerPropertyEdit = () => {
         propertyType: formData.propertyType || null,
         propertyUse: formData.propertyUse || null,
         area_id: formData.area || null,
+        area_name: formData.areaLabel || null,
         propertyLocation: formData.propertyLocation || null,
         propertySize: formData.propertySize || null,
         sizeUom: formData.sizeUom || null,

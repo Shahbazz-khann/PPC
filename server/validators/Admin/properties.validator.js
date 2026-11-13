@@ -171,6 +171,54 @@ const validateUpdatePropertyApproval = (req, res, next) => {
 };
 
 /**
+ * Validator for property status update.
+ * PATCH /api/v1/admin/properties/:id/status
+ */
+const validateUpdatePropertyStatus = (req, res, next) => {
+  const { id } = req.params;
+  let { status, remarks } = req.body;
+
+  const errors = [];
+
+  // 1. Property ID
+  if (typeof id !== 'string' || !/^[1-9]\d*$/.test(id)) {
+    errors.push('Property ID must be a positive integer');
+  }
+
+  // 2. Status type
+  const validStatuses = ['active', 'inactive', 'suspended', 'withdrawn'];
+  if (!status || typeof status !== 'string') {
+    errors.push('status is required and must be a string');
+  } else if (!validStatuses.includes(status.trim().toLowerCase())) {
+    errors.push("Invalid status. Must be one of: 'Active', 'Inactive', 'Suspended', 'Withdrawn'");
+  } else {
+    const lower = status.trim().toLowerCase();
+    req.body.status = lower.charAt(0).toUpperCase() + lower.slice(1);
+  }
+
+  // 3. Remarks (optional string)
+  if (remarks !== undefined && remarks !== null) {
+    if (typeof remarks !== 'string') {
+      errors.push('remarks must be a string');
+    } else if (remarks.length > 1000) {
+      errors.push('remarks cannot exceed 1000 characters');
+    } else {
+      req.body.remarks = remarks.trim();
+    }
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors,
+    });
+  }
+
+  next();
+};
+
+/**
  * Validator for Admin Property Registration request.
  * POST /api/v1/admin/properties
  */
@@ -213,6 +261,7 @@ module.exports = {
   validateGetProperties,
   validatePropertyId,
   validateUpdatePropertyApproval,
+  validateUpdatePropertyStatus,
   validateCreateAdminProperty,
 };
 

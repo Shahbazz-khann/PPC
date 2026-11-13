@@ -373,9 +373,18 @@ export const sendApiRequest = async ({
 
     // Handle API errors
     if (!response.ok) {
-      const errorMsg =
-        (responseData && typeof responseData === 'object' && (responseData.message || responseData.error)) ||
-        "Something went wrong";
+      let errorMsg = "Something went wrong";
+      if (responseData && typeof responseData === 'object') {
+        if (Array.isArray(responseData.errors) && responseData.errors.length > 0) {
+          errorMsg = responseData.errors.join(', ');
+        } else if (responseData.errors && typeof responseData.errors === 'object' && Object.keys(responseData.errors).length > 0) {
+          errorMsg = Object.values(responseData.errors).flat().join(', ');
+        } else if (responseData.message) {
+          errorMsg = responseData.message;
+        } else if (responseData.error) {
+          errorMsg = responseData.error;
+        }
+      }
       const error = new Error(errorMsg);
       error.status = response.status;
       error.statusCode = response.status;

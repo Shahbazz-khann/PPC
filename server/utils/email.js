@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
 const sendPasswordResetEmail = async (toEmail, resetUrl) => {
     try {
         const mailOptions = {
-            from: process.env.EMAIL_FROM || '"Pakistan Property Care" <shahbazzkhann2022@gmail.com>',
+            from: process.env.EMAIL_FROM || '"Pakistan Property Care" <pakistanpropertycare@gmail.com>',
             to: toEmail,
             subject: 'Password Reset Request - Pakistan Property Care',
             html: `
@@ -67,7 +67,7 @@ const sendPasswordResetEmail = async (toEmail, resetUrl) => {
 const sendVerificationEmail = async (toEmail, otp) => {
     try {
         const mailOptions = {
-            from: process.env.EMAIL_FROM || '"Pakistan Property Care" <shahbazzkhann2022@gmail.com>',
+            from: process.env.EMAIL_FROM || '"Pakistan Property Care" <pakistanpropertycare@gmail.com>',
             to: toEmail,
             subject: 'Verify your Email - Pakistan Property Care',
             html: `
@@ -101,7 +101,73 @@ const sendVerificationEmail = async (toEmail, otp) => {
         return false;
     }
 };
+
+/**
+ * Send contact enquiry email to PPC admin
+ * @param {Object} enquiry
+ * @param {string} enquiry.name
+ * @param {string} enquiry.email
+ * @param {string} enquiry.phone
+ * @param {string} enquiry.message
+ */
+const sendContactEnquiryEmail = async ({ name, email, phone, message }) => {
+    try {
+        const toAdminEmail = process.env.EMAIL_USER || 'pakistanpropertycare@gmail.com';
+        const mailOptions = {
+            from: process.env.EMAIL_FROM || '"Pakistan Property Care" <pakistanpropertycare@gmail.com>',
+            to: toAdminEmail,
+            replyTo: email,
+            subject: `[Website Contact Enquiry] from ${name}`,
+            html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
+                <div style="border-bottom: 2px solid #063B29; padding-bottom: 15px; margin-bottom: 20px;">
+                    <h2 style="color: #063B29; margin: 0; font-size: 22px;">Pakistan Property Care</h2>
+                    <p style="color: #6b7280; font-size: 13px; margin: 4px 0 0 0;">New Website Contact Form Enquiry</p>
+                </div>
+
+                <h3 style="color: #111827; margin: 0 0 15px 0; font-size: 16px;">Visitor Information:</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <tr>
+                        <td style="padding: 10px 12px; background-color: #f9fafb; font-weight: bold; width: 120px; color: #4b5563; font-size: 14px; border: 1px solid #e5e7eb;">Name:</td>
+                        <td style="padding: 10px 12px; color: #111827; font-size: 14px; border: 1px solid #e5e7eb; font-weight: 500;">${name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 12px; background-color: #f9fafb; font-weight: bold; color: #4b5563; font-size: 14px; border: 1px solid #e5e7eb;">Email:</td>
+                        <td style="padding: 10px 12px; color: #111827; font-size: 14px; border: 1px solid #e5e7eb;">
+                            <a href="mailto:${email}" style="color: #063B29; text-decoration: none; font-weight: bold;">${email}</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 12px; background-color: #f9fafb; font-weight: bold; color: #4b5563; font-size: 14px; border: 1px solid #e5e7eb;">Phone:</td>
+                        <td style="padding: 10px 12px; color: #111827; font-size: 14px; border: 1px solid #e5e7eb;">
+                            <a href="tel:${phone}" style="color: #063B29; text-decoration: none; font-weight: bold;">${phone || 'Not provided'}</a>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3 style="color: #111827; margin: 0 0 10px 0; font-size: 16px;">Message:</h3>
+                <div style="background-color: #f9fafb; border-left: 4px solid #063B29; padding: 15px; border-radius: 4px; color: #1f2937; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">
+${message}
+                </div>
+
+                <p style="color: #9ca3af; font-size: 12px; margin-top: 25px; border-top: 1px solid #f3f4f6; padding-top: 15px; text-align: center;">
+                    💡 You can click <strong>Reply</strong> to directly respond to ${name} (${email}).
+                </p>
+            </div>
+            `,
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        logger.info(`Contact enquiry email sent to admin. Message ID: ${info.messageId}`);
+        return true;
+    } catch (error) {
+        logger.error('Error sending contact enquiry email:', error);
+        return false;
+    }
+};
+
 module.exports = {
     sendPasswordResetEmail,
-    sendVerificationEmail
+    sendVerificationEmail,
+    sendContactEnquiryEmail
 };

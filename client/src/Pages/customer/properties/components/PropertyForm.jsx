@@ -163,13 +163,11 @@ const AutocompleteField = ({ label, name, value, displayValue, onChange, fetchOp
     const handleClickOutside = (event) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setShowSuggestions(false);
-        // Revert to selected display value if clicked outside without selecting
-        setInputValue(displayValue || '');
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [displayValue]);
+  }, []);
 
   // Debounced fetch
   useEffect(() => {
@@ -197,12 +195,10 @@ const AutocompleteField = ({ label, name, value, displayValue, onChange, fetchOp
   };
 
   const handleInputChange = (e) => {
-    setInputValue(e.target.value);
+    const text = e.target.value;
+    setInputValue(text);
     setShowSuggestions(true);
-    // Clear selection when typing
-    if (value) {
-      onChange({ target: { name, value: '', label: '' } });
-    }
+    onChange({ target: { name, value: '', label: text } });
   };
 
   return (
@@ -374,20 +370,20 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
     let isValid = true;
 
     if (step === 1) {
-      if (!formData.propertyType) { newErrors.propertyType = '{t("messages.required")}'; isValid = false; }
-      if (!formData.propertyUse) { newErrors.propertyUse = '{t("messages.required")}'; isValid = false; }
+      if (!formData.propertyType) { newErrors.propertyType = t("messages.required") || 'Required'; isValid = false; }
+      if (!formData.propertyUse) { newErrors.propertyUse = t("messages.required") || 'Required'; isValid = false; }
     }
     if (step === 2) {
-      if (!formData.district) { newErrors.district = '{t("messages.required")}'; isValid = false; }
+      if (!formData.district) { newErrors.district = t("messages.required") || 'Required'; isValid = false; }
     }
     if (step === 3) {
-      if (!formData.propertySize || formData.propertySize <= 0) { newErrors.propertySize = 'Must be greater than 0'; isValid = false; }
-      if (!formData.sizeUom) { newErrors.sizeUom = '{t("messages.required")}'; isValid = false; }
-      if (formData.coveredAreaSqFt && formData.coveredAreaSqFt < 0) { newErrors.coveredAreaSqFt = 'Cannot be negative'; isValid = false; }
-      if (formData.openAreaSqFt && formData.openAreaSqFt < 0) { newErrors.openAreaSqFt = 'Cannot be negative'; isValid = false; }
+      if (!formData.propertySize || formData.propertySize <= 0) { newErrors.propertySize = t("messages.mustBeGreaterThanZero") || 'Must be greater than 0'; isValid = false; }
+      if (!formData.sizeUom) { newErrors.sizeUom = t("messages.required") || 'Required'; isValid = false; }
+      if (formData.coveredAreaSqFt && formData.coveredAreaSqFt < 0) { newErrors.coveredAreaSqFt = t("messages.cannotBeNegative") || 'Cannot be negative'; isValid = false; }
+      if (formData.openAreaSqFt && formData.openAreaSqFt < 0) { newErrors.openAreaSqFt = t("messages.cannotBeNegative") || 'Cannot be negative'; isValid = false; }
       ['propertySizeFront', 'propertySizeBack', 'propertySizeLeft', 'propertySizeRight'].forEach(field => {
         if (formData[field] !== '' && formData[field] !== undefined && formData[field] <= 0) {
-          newErrors[field] = 'Must be greater than 0';
+          newErrors[field] = t("messages.mustBeGreaterThanZero") || 'Must be greater than 0';
           isValid = false;
         }
       });
@@ -395,7 +391,7 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
     if (step === 4) {
       ['rooms', 'bathrooms', 'floors', 'lounges', 'kitchens', 'drawingRooms', 'roadFrontFt', 'roadLeftFt', 'roadRightFt', 'roadBackFt'].forEach(field => {
         if (formData[field] && formData[field] < 0) {
-          newErrors[field] = 'Cannot be negative';
+          newErrors[field] = t("messages.cannotBeNegative") || 'Cannot be negative';
           isValid = false;
         }
       });
@@ -410,25 +406,25 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
     let isValid = true;
 
     // step 1
-    if (!formData.propertyType) { newErrors.propertyType = '{t("messages.required")}'; isValid = false; }
-    if (!formData.propertyUse) { newErrors.propertyUse = '{t("messages.required")}'; isValid = false; }
+    if (!formData.propertyType) { newErrors.propertyType = t("messages.required") || 'Required'; isValid = false; }
+    if (!formData.propertyUse) { newErrors.propertyUse = t("messages.required") || 'Required'; isValid = false; }
     // step 2
-    if (!formData.district) { newErrors.district = '{t("messages.required")}'; isValid = false; }
+    if (!formData.district) { newErrors.district = t("messages.required") || 'Required'; isValid = false; }
     // step 3
-    if (!formData.propertySize || formData.propertySize <= 0) { newErrors.propertySize = 'Must be greater than 0'; isValid = false; }
-    if (!formData.sizeUom) { newErrors.sizeUom = '{t("messages.required")}'; isValid = false; }
-    if (formData.coveredAreaSqFt && formData.coveredAreaSqFt < 0) { newErrors.coveredAreaSqFt = 'Cannot be negative'; isValid = false; }
-    if (formData.openAreaSqFt && formData.openAreaSqFt < 0) { newErrors.openAreaSqFt = 'Cannot be negative'; isValid = false; }
+    if (!formData.propertySize || formData.propertySize <= 0) { newErrors.propertySize = t("messages.mustBeGreaterThanZero") || 'Must be greater than 0'; isValid = false; }
+    if (!formData.sizeUom) { newErrors.sizeUom = t("messages.required") || 'Required'; isValid = false; }
+    if (formData.coveredAreaSqFt && formData.coveredAreaSqFt < 0) { newErrors.coveredAreaSqFt = t("messages.cannotBeNegative") || 'Cannot be negative'; isValid = false; }
+    if (formData.openAreaSqFt && formData.openAreaSqFt < 0) { newErrors.openAreaSqFt = t("messages.cannotBeNegative") || 'Cannot be negative'; isValid = false; }
     ['propertySizeFront', 'propertySizeBack', 'propertySizeLeft', 'propertySizeRight'].forEach(field => {
       if (formData[field] !== '' && formData[field] !== undefined && formData[field] <= 0) {
-        newErrors[field] = 'Must be greater than 0';
+        newErrors[field] = t("messages.mustBeGreaterThanZero") || 'Must be greater than 0';
         isValid = false;
       }
     });
     // step 4
     ['rooms', 'bathrooms', 'floors', 'lounges', 'kitchens', 'drawingRooms', 'roadFrontFt', 'roadLeftFt', 'roadRightFt', 'roadBackFt'].forEach(field => {
       if (formData[field] && formData[field] < 0) {
-        newErrors[field] = 'Cannot be negative';
+        newErrors[field] = t("messages.cannotBeNegative") || 'Cannot be negative';
         isValid = false;
       }
     });

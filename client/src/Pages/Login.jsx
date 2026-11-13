@@ -12,7 +12,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 
-import bgImage from '../assets/FaisalMosque.png';
+import bgImage from '../assets/FaisalMosque.webp';
 import logoImg from '../assets/IMAGEEEEEEEEEEEEEEEEEEEE.png';
 
 // import { loginUser } from '../services/auth.services';

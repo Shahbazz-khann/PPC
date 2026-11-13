@@ -5,5 +5,6 @@ const publicController = require('../../controller/Public/public.controller');
 router.get('/properties/search', publicController.getProperties);
 router.get('/properties/filters', publicController.getFilters);
 router.get('/properties/:propertyId', publicController.getPropertyById);
+router.post('/contact', publicController.submitContactEnquiry);
 
 module.exports = router;

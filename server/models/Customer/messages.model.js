@@ -60,17 +60,6 @@ const seedInitialMessagesIfEmpty = async (userId) => {
     const seedQueries = [
       {
         direction: 'inbox',
-        sender_id: 'PPC-MGMT',
-        sender_name: 'PPC Management',
-        recipient_id: 'CUSTOMER',
-        recipient_name: customerName,
-        subject: 'Property Verification Update',
-        body: 'Your property is currently under review by PPC Management. We will notify you once the verification is complete and the property is eligible for listing.',
-        is_read: false,
-        reply_to_message_id: null,
-      },
-      {
-        direction: 'inbox',
         sender_id: 'PPC-SUPPORT',
         sender_name: 'PPC Support',
         recipient_id: 'CUSTOMER',
@@ -271,10 +260,41 @@ const markCustomerMessageAsRead = async (userId, rawMessageId) => {
   return formatMessage(res.rows[0]);
 };
 
+/**
+ * Send an automated or system message to a customer's inbox.
+ */
+const sendSystemMessageToCustomer = async ({
+  userId,
+  senderId = 'PPC-MGMT',
+  senderName = 'PPC Management',
+  subject,
+  body,
+}) => {
+  try {
+    const userRes = await pool.query(
+      'SELECT user_first_name, user_last_name FROM users WHERE user_id = $1',
+      [userId]
+    );
+    const user = userRes.rows[0] || {};
+    const customerName = `${user.user_first_name || ''} ${user.user_last_name || ''}`.trim() || 'Customer';
+
+    await pool.query(
+      `INSERT INTO customer_messages 
+        (customer_id, direction, sender_id, sender_name, recipient_id, recipient_name, subject, body, is_read, reply_to_message_id)
+       VALUES ($1, 'inbox', $2, $3, 'CUSTOMER', $4, $5, $6, false, null)`,
+      [userId, senderId, senderName, customerName, subject, body]
+    );
+    logger.info(`[Messages] System message sent to customer ${userId}: "${subject}"`);
+  } catch (err) {
+    logger.error(`[Messages] Failed to send system message to customer ${userId}:`, err);
+  }
+};
+
 module.exports = {
   getCustomerMessages,
   getCustomerMessageById,
   createCustomerMessage,
   markCustomerMessageAsRead,
   parseMessageId,
+  sendSystemMessageToCustomer,
 };

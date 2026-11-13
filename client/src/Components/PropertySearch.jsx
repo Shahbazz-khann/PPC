@@ -77,7 +77,7 @@ const PropertySearch = ({ onSearch, onReset, heroOverlap = true, defaultAdvanced
   const [isCityOpen, setIsCityOpen] = useState(false);
   const [isPropertyTypeOpen, setIsPropertyTypeOpen] = useState(false);
   const [isSocietyOpen, setIsSocietyOpen] = useState(false);
-  const [isAreaOpen, setIsAreaOpen] = useState(false);
+  const [societySearch, setSocietySearch] = useState('');
   const [isPropertyUseOpen, setIsPropertyUseOpen] = useState(false);
   const [isSizeUomOpen, setIsSizeUomOpen] = useState(false);
 
@@ -85,7 +85,6 @@ const PropertySearch = ({ onSearch, onReset, heroOverlap = true, defaultAdvanced
   const cityRef = useRef(null);
   const propertyTypeRef = useRef(null);
   const societyRef = useRef(null);
-  const areaRef = useRef(null);
   const propertyUseRef = useRef(null);
   const sizeUomRef = useRef(null);
 
@@ -97,15 +96,13 @@ const PropertySearch = ({ onSearch, onReset, heroOverlap = true, defaultAdvanced
       try {
         const res = await getPublicPropertyFilters({ city, society });
         if (res.success && res.data) {
-          // Global
-          if (!city && !society) {
-            setCities(res.data.cities || []);
-            setPropertyTypes([t('public:allTypes'), ...(res.data.propertyTypes || [])]);
-            setPropertyUses(res.data.propertyUses || []);
-            setSizeUoms(res.data.sizeUoms || []);
-            if (res.data.cities && res.data.cities.length > 0 && !city && !getUrlParam('city')) {
-              setCity(res.data.cities[0]);
-            }
+          // Global reference lists
+          setCities(res.data.cities || []);
+          setPropertyTypes([t('public:allTypes'), ...(res.data.propertyTypes || [])]);
+          setPropertyUses(res.data.propertyUses || []);
+          setSizeUoms(res.data.sizeUoms || []);
+          if (res.data.cities && res.data.cities.length > 0 && !city && !getUrlParam('city')) {
+            setCity(res.data.cities[0]);
           }
           // Contextual
           setSocieties(res.data.societies || []);
@@ -123,8 +120,10 @@ const PropertySearch = ({ onSearch, onReset, heroOverlap = true, defaultAdvanced
     const handleClickOutside = (event) => {
       if (cityRef.current && !cityRef.current.contains(event.target)) setIsCityOpen(false);
       if (propertyTypeRef.current && !propertyTypeRef.current.contains(event.target)) setIsPropertyTypeOpen(false);
-      if (societyRef.current && !societyRef.current.contains(event.target)) setIsSocietyOpen(false);
-      if (areaRef.current && !areaRef.current.contains(event.target)) setIsAreaOpen(false);
+      if (societyRef.current && !societyRef.current.contains(event.target)) {
+        setIsSocietyOpen(false);
+        setSocietySearch('');
+      }
       if (propertyUseRef.current && !propertyUseRef.current.contains(event.target)) setIsPropertyUseOpen(false);
       if (sizeUomRef.current && !sizeUomRef.current.contains(event.target)) setIsSizeUomOpen(false);
     };
@@ -142,6 +141,7 @@ const PropertySearch = ({ onSearch, onReset, heroOverlap = true, defaultAdvanced
   const handleSocietyChange = (s) => {
     setSociety(s);
     setArea('');
+    setSocietySearch('');
     setIsSocietyOpen(false);
   };
 
@@ -195,7 +195,6 @@ const PropertySearch = ({ onSearch, onReset, heroOverlap = true, defaultAdvanced
 
     // Advanced
     if (society) filters.society = society;
-    if (area) filters.area = area;
     if (propertyUse && propertyUse !== t('public:allUses')) filters.propertyUse = propertyUse;
     if (minSize) filters.minSize = minSize;
     if (maxSize) filters.maxSize = maxSize;
@@ -210,6 +209,10 @@ const PropertySearch = ({ onSearch, onReset, heroOverlap = true, defaultAdvanced
       navigate(`/properties?${params.toString()}`);
     }
   };
+
+  const filteredSocieties = societySearch.trim()
+    ? societies.filter((s) => s.toLowerCase().includes(societySearch.trim().toLowerCase()))
+    : societies;
 
   return (
     <div className={`relative max-w-7xl mx-auto ${heroOverlap ? 'px-6 md:px-12 -mt-10 md:-mt-42 z-30 mb-8' : 'px-0 pt-5 mb-8 z-10'}`}>
@@ -326,35 +329,60 @@ const PropertySearch = ({ onSearch, onReset, heroOverlap = true, defaultAdvanced
           <div className="mt-4 pt-4 border-t border-gray-100 animate-in fade-in slide-in-from-top-2">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-              {/* Row 1: Society | Area | Property Use */}
-              <div className="relative w-full" ref={societyRef}>
+              {/* Row 1: Society (span 2) | Property Use (span 1) */}
+              <div className="relative w-full md:col-span-2" ref={societyRef}>
                 <label className="block text-[11px] font-medium text-gray-500 mb-1">{t('public:society')}</label>
-                <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-between cursor-pointer" onClick={() => setIsSocietyOpen(!isSocietyOpen)}>
+                <div
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-between cursor-pointer"
+                  onClick={() => {
+                    if (isSocietyOpen) setSocietySearch('');
+                    setIsSocietyOpen(!isSocietyOpen);
+                  }}
+                >
                   <span className="text-xs md:text-sm font-semibold text-slate-800">{society || t('public:anySociety')}</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
+                  <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform ${isSocietyOpen ? 'rotate-180' : ''}`} />
                 </div>
                 {isSocietyOpen && (
-                  <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 max-h-48 overflow-y-auto">
-                    <button className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => handleSocietyChange('')}>{t('public:anySociety')}</button>
-                    {societies.map((s) => (
-                      <button key={s} className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => handleSocietyChange(s)}>{s}</button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="relative w-full" ref={areaRef}>
-                <label className="block text-[11px] font-medium text-gray-500 mb-1">{t('public:areaBlock')}</label>
-                <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-between cursor-pointer" onClick={() => setIsAreaOpen(!isAreaOpen)}>
-                  <span className="text-xs md:text-sm font-semibold text-slate-800">{area || t('public:anyArea')}</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
-                </div>
-                {isAreaOpen && (
-                  <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 max-h-48 overflow-y-auto">
-                    <button className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => { setArea(''); setIsAreaOpen(false); }}>{t('public:anyArea')}</button>
-                    {areas.map((a) => (
-                      <button key={a} className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50" onClick={() => { setArea(a); setIsAreaOpen(false); }}>{a}</button>
-                    ))}
+                  <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+                    {societies.length > 8 && (
+                      <div className="p-2 border-b border-gray-100 bg-gray-50/70">
+                        <input
+                          type="text"
+                          value={societySearch}
+                          onChange={(e) => setSocietySearch(e.target.value)}
+                          placeholder={t('public:searchSociety', 'Search society...')}
+                          className="w-full px-2.5 py-1.5 text-xs bg-white border border-gray-200 rounded-lg outline-none focus:border-[#063B29]"
+                          onClick={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      </div>
+                    )}
+                    <div className="py-1.5 max-h-60 overflow-y-auto">
+                      {!societySearch.trim() && (
+                        <button
+                          type="button"
+                          className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50 flex items-center justify-between"
+                          onClick={() => handleSocietyChange('')}
+                        >
+                          <span>{t('public:anySociety')}</span>
+                          {!society && <Check className="w-3.5 h-3.5 text-[#063B29]" />}
+                        </button>
+                      )}
+                      {filteredSocieties.map((s) => (
+                        <button
+                          type="button"
+                          key={s}
+                          className="w-full text-left px-4 py-2 text-xs md:text-sm text-slate-700 hover:bg-gray-50 flex items-center justify-between"
+                          onClick={() => handleSocietyChange(s)}
+                        >
+                          <span>{s}</span>
+                          {society === s && <Check className="w-3.5 h-3.5 text-[#063B29]" />}
+                        </button>
+                      ))}
+                      {filteredSocieties.length === 0 && (
+                        <div className="px-4 py-3 text-xs text-gray-400 text-center">No societies found</div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

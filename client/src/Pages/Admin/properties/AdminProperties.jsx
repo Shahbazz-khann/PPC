@@ -38,7 +38,9 @@ import {
   Tv,
   RefreshCw,
   ChevronLeft,
-  Droplets
+  Droplets,
+  Video,
+  Play
 } from 'lucide-react';
 import { INITIAL_PROPERTIES, formatPrice } from './mockAdminProperties';
 import PropHouse from '../../../assets/prop_house.png';
@@ -48,7 +50,8 @@ import {
   getAdminProperties,
   getAdminPropertyStats,
   getAdminPropertyById,
-  updateAdminPropertyApproval
+  updateAdminPropertyApproval,
+  updateAdminPropertyStatus
 } from '../../../Services/admin.services';
 
 const formatDate = (isoString) => {
@@ -103,6 +106,42 @@ const AdminProperties = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [drawerLoading, setDrawerLoading] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  // Combined media items for drawer (pictures + video walkthrough)
+  const drawerMediaItems = useMemo(() => {
+    if (!selectedProperty) return [];
+    const items = [];
+
+    if (selectedProperty.pictures && selectedProperty.pictures.length > 0) {
+      selectedProperty.pictures.forEach((pic, idx) => {
+        items.push({
+          type: 'image',
+          id: pic.id || `pic-${idx}`,
+          url: pic.url,
+          title: pic.title || (idx === 0 ? 'Main View' : `Photo ${idx + 1}`)
+        });
+      });
+    } else if (selectedProperty.cover_image) {
+      items.push({
+        type: 'image',
+        id: 'cover',
+        url: selectedProperty.cover_image,
+        title: 'Main View'
+      });
+    }
+
+    const vUrl = selectedProperty.video_url || selectedProperty.video?.video_url || selectedProperty.videos?.[0]?.video_url;
+    if (vUrl) {
+      items.push({
+        type: 'video',
+        id: 'prop-video',
+        url: vUrl,
+        title: 'Walkthrough Video'
+      });
+    }
+
+    return items;
+  }, [selectedProperty]);
 
   // Quick Action Modal (Approve / Reject)
   const [decisionModal, setDecisionModal] = useState({
@@ -214,7 +253,10 @@ const AdminProperties = () => {
           ...res.data,
           pictures: (res.data.pictures && res.data.pictures.length > 0)
             ? res.data.pictures
-            : (prev?.pictures || [])
+            : (prev?.pictures || []),
+          video_url: res.data.video_url || prev?.video_url || null,
+          video: res.data.video || prev?.video || null,
+          videos: res.data.videos || prev?.videos || []
         }));
       }
     } catch (err) {
@@ -303,16 +345,40 @@ const AdminProperties = () => {
   };
 
   // Toggle Status directly
-  const handleToggleStatus = (property) => {
+  const handleToggleStatus = async (property) => {
     const nextStatus = property.status === 'Active' ? 'Inactive' : 'Active';
-    setProperties((prev) =>
-      prev.map((item) =>
-        item.property_id === property.property_id
-          ? { ...item, status: nextStatus, update_date_time: new Date().toISOString() }
-          : item
-      )
-    );
-    showToast(`Property ${property.formatted_id} status changed to ${nextStatus}.`);
+    try {
+      const res = await updateAdminPropertyStatus(property.property_id, {
+        status: nextStatus,
+        remarks: `Toggled status to ${nextStatus} by Administrator.`
+      });
+
+      if (res?.success) {
+        setProperties((prev) =>
+          prev.map((item) =>
+            item.property_id === property.property_id
+              ? { ...item, status: nextStatus, update_date_time: new Date().toISOString() }
+              : item
+          )
+        );
+
+        if (selectedProperty && String(selectedProperty.property_id) === String(property.property_id)) {
+          setSelectedProperty((prev) => ({
+            ...prev,
+            status: nextStatus,
+            update_date_time: new Date().toISOString()
+          }));
+        }
+
+        showToast(`Property ${property.formatted_id} status changed to ${nextStatus}.`);
+        fetchStats();
+      } else {
+        showToast(res?.message || 'Failed to update property status.');
+      }
+    } catch (err) {
+      console.error('Error toggling status:', err);
+      showToast(err?.message || 'Error occurred while updating property status.');
+    }
   };
 
   return (
@@ -692,6 +758,11 @@ const AdminProperties = () => {
                                 <Camera className="w-2.5 h-2.5" />
                                 {prop.total_photos || prop.pictures?.length || 0}
                               </span>
+                              {prop.video_url && (
+                                <span className="absolute top-1 left-1 bg-red-600/95 text-white text-[8px] font-bold px-1 py-0.5 rounded flex items-center gap-0.5 shadow-sm" title="Walkthrough video available">
+                                  <Video className="w-2.5 h-2.5" />
+                                </span>
+                              )}
                             </div>
                             <div>
                               <div className="flex items-center gap-1.5">
@@ -776,16 +847,26 @@ const AdminProperties = () => {
                         </td>
 
                         {/* Approval Stage Badge */}
-                        <td className="px-3 py-4">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${isApproved
-                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                        <td className="px-3 py-4" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDecisionModal({
+                                isOpen: true,
+                                property: prop,
+                                targetStage: prop.approval_stage || 'Approved',
+                                remarks: ''
+                              })
+                            }
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer transition-all hover:scale-105 ${isApproved
+                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
                               : isPending
-                                ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                                ? 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
                                 : isUnderReview
-                                  ? 'bg-blue-50 text-blue-800 border border-blue-200'
-                                  : 'bg-rose-50 text-rose-800 border border-rose-200'
+                                  ? 'bg-blue-50 text-blue-800 border border-blue-200 hover:bg-blue-100'
+                                  : 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100'
                               }`}
+                            title="Click to change approval stage"
                           >
                             <span
                               className={`w-1.5 h-1.5 rounded-full ${isApproved
@@ -798,7 +879,7 @@ const AdminProperties = () => {
                                 }`}
                             />
                             {prop.approval_stage}
-                          </span>
+                          </button>
                         </td>
 
                         {/* Status Toggle */}
@@ -912,10 +993,18 @@ const AdminProperties = () => {
                           {prop.property_size} {prop.size_uom} • {prop.property_type}
                         </span>
                       </div>
-                      <span className="bg-black/60 text-white text-[10px] font-medium px-2 py-1 rounded-md flex items-center gap-1">
-                        <Camera className="w-3 h-3" />
-                        {prop.pictures?.length || prop.total_photos || 0} Photos
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {prop.video_url && (
+                          <span className="bg-red-600/90 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm" title="Walkthrough video available">
+                            <Video className="w-3 h-3" />
+                            Video
+                          </span>
+                        )}
+                        <span className="bg-black/60 text-white text-[10px] font-medium px-2 py-1 rounded-md flex items-center gap-1">
+                          <Camera className="w-3 h-3" />
+                          {prop.pictures?.length || prop.total_photos || 0} Photos
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -1075,49 +1164,114 @@ const AdminProperties = () => {
 
             {/* Drawer Scrollable Body */}
             <div className="p-6 space-y-6 flex-1">
-              {/* Photo Showcase Carousel */}
+              {/* Photo & Video Showcase Carousel */}
               <div className="space-y-3">
-                <div className="relative h-64 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shadow-inner">
-                  <img
-                    src={
-                      selectedProperty.pictures?.[activeImageIndex]?.url
-                        ? resolveMediaUrl(selectedProperty.pictures[activeImageIndex].url)
-                        : (selectedProperty.cover_image ? resolveMediaUrl(selectedProperty.cover_image) : PropHouse)
-                    }
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = PropHouse;
-                    }}
-                    alt="Property detail"
-                    className="w-full h-full object-cover transition-all"
-                  />
-                  <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-lg">
-                    {selectedProperty.pictures?.[activeImageIndex]?.title || 'Main View'}
-                  </div>
-                </div>
-
-                {/* Thumbnails Strip */}
-                {selectedProperty.pictures && selectedProperty.pictures.length > 1 && (
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                    {selectedProperty.pictures.map((pic, idx) => (
-                      <button
-                        key={pic.id || idx}
-                        type="button"
-                        onClick={() => setActiveImageIndex(idx)}
-                        className={`w-16 h-12 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${activeImageIndex === idx ? 'border-[#C59B27] ring-2 ring-amber-400/30' : 'border-transparent opacity-60 hover:opacity-100'
-                          }`}
-                      >
+                {(() => {
+                  const currentMedia = drawerMediaItems[activeImageIndex] || drawerMediaItems[0];
+                  if (!currentMedia) {
+                    return (
+                      <div className="relative h-64 md:h-72 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shadow-inner flex items-center justify-center">
                         <img
-                          src={pic.url ? resolveMediaUrl(pic.url) : PropHouse}
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = PropHouse;
-                          }}
-                          alt="thumb"
+                          src={PropHouse}
+                          alt="No media"
                           className="w-full h-full object-cover"
                         />
-                      </button>
-                    ))}
+                        <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-lg">
+                          Main View
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (currentMedia.type === 'video') {
+                    return (
+                      <div className="relative h-64 md:h-72 rounded-2xl overflow-hidden bg-black border border-gray-800 shadow-inner flex items-center justify-center group">
+                        <video
+                          key={currentMedia.url}
+                          controls
+                          autoPlay
+                          playsInline
+                          className="w-full h-full object-contain bg-black"
+                          poster={
+                            drawerMediaItems.find(m => m.type === 'image')?.url
+                              ? resolveMediaUrl(drawerMediaItems.find(m => m.type === 'image').url)
+                              : undefined
+                          }
+                        >
+                          <source src={resolveMediaUrl(currentMedia.url)} type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                        <div className="absolute top-3 left-3 bg-red-600/95 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow pointer-events-none">
+                          <Video className="w-3.5 h-3.5 animate-pulse" /> Walkthrough Video
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="relative h-64 md:h-72 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shadow-inner">
+                      <img
+                        src={resolveMediaUrl(currentMedia.url)}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = PropHouse;
+                        }}
+                        alt="Property detail"
+                        className="w-full h-full object-cover transition-all"
+                      />
+                      <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-lg">
+                        {currentMedia.title || 'Main View'}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Thumbnails Strip */}
+                {drawerMediaItems && drawerMediaItems.length > 1 && (
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                    {drawerMediaItems.map((item, idx) => {
+                      const isActive = (activeImageIndex === idx) || (!drawerMediaItems[activeImageIndex] && idx === 0);
+                      return (
+                        <button
+                          key={item.id || idx}
+                          type="button"
+                          onClick={() => setActiveImageIndex(idx)}
+                          className={`relative w-16 h-12 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all cursor-pointer ${
+                            isActive
+                              ? 'border-[#C59B27] ring-2 ring-amber-400/30 scale-105'
+                              : 'border-transparent opacity-65 hover:opacity-100'
+                          }`}
+                        >
+                          {item.type === 'video' ? (
+                            <div className="w-full h-full bg-[#0a1f18] flex flex-col items-center justify-center text-white relative">
+                              {drawerMediaItems.find(m => m.type === 'image') && (
+                                <img
+                                  src={resolveMediaUrl(drawerMediaItems.find(m => m.type === 'image').url)}
+                                  alt="Video preview"
+                                  className="w-full h-full object-cover opacity-35"
+                                />
+                              )}
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                <Play className="w-4 h-4 text-white fill-white" />
+                              </div>
+                              <span className="absolute bottom-0.5 text-[8px] font-bold uppercase tracking-wider text-white bg-red-600 px-1 rounded shadow-xs">
+                                Video
+                              </span>
+                            </div>
+                          ) : (
+                            <img
+                              src={item.url ? resolveMediaUrl(item.url) : PropHouse}
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = PropHouse;
+                              }}
+                              alt="thumb"
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>

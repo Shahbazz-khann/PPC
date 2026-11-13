@@ -6,6 +6,7 @@ const {
   getPropertyStats,
   getPropertyById,
   updatePropertyApproval,
+  updatePropertyStatus,
   createProperty,
   uploadPropertyPictures,
   uploadPropertyVideo,
@@ -14,6 +15,7 @@ const {
   validateGetProperties,
   validatePropertyId,
   validateUpdatePropertyApproval,
+  validateUpdatePropertyStatus,
   validateCreateAdminProperty,
 } = require('../../validators/Admin/properties.validator');
 const { authenticate, authorize } = require('../../middlewares/authMiddleware');
@@ -128,6 +130,18 @@ router.patch(
   authorize('admin'),
   validateUpdatePropertyApproval,
   updatePropertyApproval
+);
+
+/**
+ * PATCH /api/v1/admin/properties/:id/status
+ * Updates status ('Active' | 'Inactive') for a single property by ID.
+ */
+router.patch(
+  '/:id/status',
+  authenticate,
+  authorize('admin'),
+  validateUpdatePropertyStatus,
+  updatePropertyStatus
 );
 
 module.exports = router;

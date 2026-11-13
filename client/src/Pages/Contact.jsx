@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Send, Loader2, AlertCircle, CheckCircle2, Mail, Phone } from 'lucide-react';
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
-import HeroBg from '../assets/newlilla.png';
+import HeroBg from '../assets/newlilla.webp';
+import api from '../Services/Api';
 
 /* ─── Component ───────────────────────────────────────────────── */
 const Contact = () => {
@@ -13,6 +14,7 @@ const Contact = () => {
     message: '',
   });
   const [status, setStatus] = useState('idle'); // idle | sending | success | error
+  const [errorMessage, setErrorMessage] = useState('');
   const [touched, setTouched] = useState({});
 
   const handleChange = (e) => {
@@ -35,28 +37,36 @@ const Contact = () => {
 
   const isValid = !errors.firstName && !errors.email && !errors.message;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setTouched({ firstName: true, email: true, message: true });
     if (!isValid) return;
 
     setStatus('sending');
+    setErrorMessage('');
 
-    const subject = encodeURIComponent('[PPC] Contact Form Enquiry');
-    const body = encodeURIComponent(
-      `Name: ${form.firstName}\n` +
-      `Email: ${form.email}\n` +
-      (form.phone ? `Phone: ${form.phone}\n` : '') +
-      `Message:\n${form.message}`
-    );
-    const mailto = `mailto:info@ppc.com.pk?subject=${subject}&body=${body}`;
+    try {
+      const res = await api.post('/public/contact', {
+        name: form.firstName,
+        firstName: form.firstName,
+        email: form.email,
+        phone: form.phone,
+        message: form.message,
+      });
 
-    setTimeout(() => {
-      window.location.href = mailto;
-      setStatus('success');
-      setForm({ firstName: '', email: '', phone: '', message: '' });
-      setTouched({});
-    }, 800);
+      if (res && res.success) {
+        setStatus('success');
+        setForm({ firstName: '', email: '', phone: '', message: '' });
+        setTouched({});
+      } else {
+        setStatus('error');
+        setErrorMessage(res?.message || 'Failed to send message. Please try again.');
+      }
+    } catch (err) {
+      console.error('Contact form submission error:', err);
+      setStatus('error');
+      setErrorMessage(err?.message || 'Failed to send message. Please try again.');
+    }
   };
 
   return (
@@ -92,8 +102,16 @@ const Contact = () => {
               {/* Success Banner */}
               {status === 'success' && (
                 <div className="mb-5 p-4 bg-emerald-50/90 backdrop-blur-sm border border-emerald-200 rounded-xl flex items-center gap-3 text-emerald-800 text-sm font-semibold">
-                  <CheckCircle2 size={18} className="shrink-0" />
-                  Message sent! Your email client has opened with details pre-filled.
+                  <CheckCircle2 size={18} className="shrink-0 text-emerald-600" />
+                  Thank you! Your message has been sent successfully. We will get back to you shortly.
+                </div>
+              )}
+
+              {/* Error Banner */}
+              {status === 'error' && (
+                <div className="mb-5 p-4 bg-red-50/90 backdrop-blur-sm border border-red-200 rounded-xl flex items-center gap-3 text-red-800 text-sm font-semibold">
+                  <AlertCircle size={18} className="shrink-0 text-red-600" />
+                  {errorMessage || 'Failed to send your message. Please try again.'}
                 </div>
               )}
 
@@ -199,7 +217,7 @@ const Contact = () => {
                   {status === 'sending' ? (
                     <>
                       <Loader2 size={17} className="animate-spin" />
-                      Opening Email Client…
+                      Sending Message…
                     </>
                   ) : (
                     <>

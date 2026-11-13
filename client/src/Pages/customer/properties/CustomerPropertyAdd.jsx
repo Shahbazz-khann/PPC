@@ -40,6 +40,7 @@ const CustomerPropertyAdd = () => {
         city_id: formData.city || null,
         society_id: formData.society || null,
         area_id: formData.area || null,
+        area_name: formData.areaLabel || null,
 
         propertyLocation: formData.propertyLocation || null,
 
@@ -152,7 +153,13 @@ const CustomerPropertyAdd = () => {
     } catch (error) {
       // Property creation itself failed — show error, stay on form
       console.error('Error adding property:', error);
-      setSubmitError(error.message || 'An error occurred while adding the property.');
+      const detailedError =
+        (Array.isArray(error.response?.data?.errors) && error.response.data.errors.join(', ')) ||
+        (error.response?.data?.errors && typeof error.response.data.errors === 'object' && Object.values(error.response.data.errors).flat().join(', ')) ||
+        error.response?.data?.message ||
+        error.message ||
+        'An error occurred while adding the property.';
+      setSubmitError(detailedError);
     } finally {
       setIsSubmitting(false);
     }

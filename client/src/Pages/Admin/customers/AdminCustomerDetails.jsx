@@ -22,6 +22,7 @@ import {
   Fingerprint,
 } from 'lucide-react';
 import { getAdminCustomerById } from '../../../Services/admin.services';
+import { resolveMediaUrl } from '../../../Services/Api';
 
 /**
  * Format ISO timestamp to UK date string (e.g., 08 Sep 2026).
@@ -282,8 +283,19 @@ const AdminCustomerDetails = () => {
       {/* 2. Page Header Area */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-[#002a1b] text-white flex items-center justify-center text-xl font-bold shadow-sm shrink-0">
-            {initials}
+          <div className="w-16 h-16 rounded-2xl bg-[#002a1b] text-white flex items-center justify-center text-xl font-bold shadow-sm shrink-0 overflow-hidden relative border border-gray-100">
+            {customer?.profile_image_url ? (
+              <img
+                src={resolveMediaUrl(customer.profile_image_url)}
+                alt={customer.customer_name || 'Customer'}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            ) : (
+              <span>{initials}</span>
+            )}
           </div>
           <div>
             <div className="flex items-center flex-wrap gap-2.5">

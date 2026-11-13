@@ -33,7 +33,6 @@ export const adminMenu = [
           { key: 'navTehsils', namespace: 'admin', path: '/admin/reference/tehsils' },
           { key: 'navCities', namespace: 'admin', path: '/admin/reference/cities' },
           { key: 'navSocieties', namespace: 'admin', path: '/admin/reference/societies' },
-          { key: 'navAreas', namespace: 'admin', path: '/admin/reference/areas' },
         ]
       },
       {

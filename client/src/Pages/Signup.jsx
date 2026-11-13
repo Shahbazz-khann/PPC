@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { User, Mail, Globe, Phone, Lock, Eye, EyeOff, ShieldCheck, Home, Headphones, Key, CheckCircle2, Circle, ArrowLeft } from 'lucide-react';
-import bgImage from '../assets/faisalmosqueSignup.png';
+import bgImage from '../assets/faisalmosqueSignup.webp';
 import logoImg from '../assets/IMAGEEEEEEEEEEEEEEEEEEEE.png';
 import { signupUser, verifyEmail } from '../Services/auth.services';
 import { useTranslation } from 'react-i18next';

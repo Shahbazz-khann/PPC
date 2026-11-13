@@ -179,6 +179,13 @@ const getAdminProperties = async (options = {}) => {
       pa.approval_remarks,
       (SELECT COUNT(*)::int FROM property_pictures pp WHERE pp.property_id = p.property_id AND pp.is_active = true) AS total_photos,
       pp_first.picture_url AS cover_image,
+      (
+        SELECT pv.video_url
+        FROM property_videos pv
+        WHERE pv.property_id = p.property_id AND pv.is_active = true
+        ORDER BY pv.display_order ASC, pv.property_video_id ASC
+        LIMIT 1
+      ) AS video_url,
       p.creation_date_time,
       p.update_date_time
     FROM properties p
@@ -395,6 +402,19 @@ const getAdminPropertyById = async (propertyId) => {
   );
   property.pictures = picRes.rows;
 
+  // Fetch video (active)
+  const vidRes = await pool.query(
+    `SELECT property_video_id::text AS id, video_url, video_description AS title, display_order
+     FROM property_videos
+     WHERE property_id = $1 AND is_active = true
+     ORDER BY display_order ASC, property_video_id ASC
+     LIMIT 1`,
+    [propertyId]
+  );
+  property.video_url = vidRes.rows.length > 0 ? vidRes.rows[0].video_url : null;
+  property.video = vidRes.rows.length > 0 ? vidRes.rows[0] : null;
+  property.videos = vidRes.rows;
+
   // Fetch amenities
   const amRes = await pool.query(
     `SELECT a.amenity_id::text AS amenity_id, a.amenity_description AS name
@@ -429,7 +449,7 @@ const updateAdminPropertyApproval = async (propertyId, stageName, remarks, userI
       `SELECT p.property_id, c.user_id 
        FROM properties p 
        LEFT JOIN customers c ON p.customer_id = c.customer_id 
-       WHERE p.property_id = $1 FOR UPDATE`,
+       WHERE p.property_id = $1 FOR UPDATE OF p`,
       [propertyId]
     );
     if (propRes.rowCount === 0) {

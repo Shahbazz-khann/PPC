@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Users, Search, Filter, RotateCcw, AlertCircle, RefreshCw, UserCheck, UserX, UserPlus, Eye } from 'lucide-react';
 import { getAdminCustomers, getAdminCustomerStats } from '../../../Services/admin.services';
+import { resolveMediaUrl } from '../../../Services/Api';
 import Dropdown from '../../../Components/common/Dropdown';
 
 const formatDate = (isoString) => {
@@ -385,9 +386,21 @@ const AdminCustomers = () => {
                       <td className="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">
                         <Link
                           to={`/admin/customers/${cust.customer_id}`}
-                          className="hover:text-[#1E5631] hover:underline transition-colors"
+                          className="flex items-center gap-3 hover:text-[#1E5631] transition-colors group"
                         >
-                          {cust.customer_name || '-'}
+                          <div className="w-8 h-8 rounded-full bg-[#002a1b] text-white flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden shadow-xs border border-gray-100">
+                            {cust.profile_image_url ? (
+                              <img
+                                src={resolveMediaUrl(cust.profile_image_url)}
+                                alt=""
+                                className="w-full h-full object-cover"
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                              />
+                            ) : (
+                              <span>{(cust.customer_name || 'C').charAt(0).toUpperCase()}</span>
+                            )}
+                          </div>
+                          <span className="group-hover:underline">{cust.customer_name || '-'}</span>
                         </Link>
                       </td>
 

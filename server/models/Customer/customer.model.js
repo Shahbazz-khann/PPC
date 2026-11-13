@@ -366,33 +366,71 @@ const addProperty = async (userId, data) => {
         }
         const customerId = customerRes.rows[0].customer_id;
 
-        // 2. Validate hierarchy using higher IDs if provided
-        let hierarchyQuery = `
-            SELECT a.area_id
-            FROM areas a
-            JOIN societies s ON a.society_id = s.society_id
-            JOIN cities c ON s.city_id = c.city_id
-            JOIN tehsils t ON c.tehsil_id = t.tehsil_id
-            JOIN districts d ON t.district_id = d.district_id
-            JOIN divisions dv ON d.division_id = dv.division_id
-            JOIN provinces p ON dv.province_id = p.province_id
-            JOIN countries co ON p.country_id = co.country_id
-            WHERE a.area_id = $1
-        `;
-        const hierarchyParams = [data.area_id];
-        let paramIdx = 2;
+        // 2. Resolve, match by name, or fallback/auto-create area if society is provided
+        if (!data.area_id && data.society_id) {
+            if (data.area_name && String(data.area_name).trim()) {
+                const trimmedName = String(data.area_name).trim();
+                const namedAreaRes = await client.query(
+                    'SELECT area_id FROM areas WHERE society_id = $1 AND LOWER(area_english) = LOWER($2) AND is_active = true LIMIT 1',
+                    [data.society_id, trimmedName]
+                );
+                if (namedAreaRes.rowCount > 0) {
+                    data.area_id = namedAreaRes.rows[0].area_id;
+                } else {
+                    const insertNamedArea = await client.query(
+                        'INSERT INTO areas (area_english, society_id, is_active) VALUES ($1, $2, true) RETURNING area_id',
+                        [trimmedName, data.society_id]
+                    );
+                    data.area_id = insertNamedArea.rows[0].area_id;
+                }
+            } else {
+                const fallbackAreaRes = await client.query(
+                    'SELECT area_id FROM areas WHERE society_id = $1 AND is_active = true LIMIT 1',
+                    [data.society_id]
+                );
+                if (fallbackAreaRes.rowCount > 0) {
+                    data.area_id = fallbackAreaRes.rows[0].area_id;
+                } else {
+                    const socRes = await client.query('SELECT society_english FROM societies WHERE society_id = $1', [data.society_id]);
+                    const socName = socRes.rows[0]?.society_english || 'Main';
+                    const insertAreaRes = await client.query(
+                        'INSERT INTO areas (area_english, society_id, is_active) VALUES ($1, $2, true) RETURNING area_id',
+                        [`${socName} - Main`, data.society_id]
+                    );
+                    data.area_id = insertAreaRes.rows[0].area_id;
+                }
+            }
+        }
 
-        if (data.society_id) { hierarchyQuery += ` AND s.society_id = $${paramIdx++}`; hierarchyParams.push(data.society_id); }
-        if (data.city_id) { hierarchyQuery += ` AND c.city_id = $${paramIdx++}`; hierarchyParams.push(data.city_id); }
-        if (data.tehsil_id) { hierarchyQuery += ` AND t.tehsil_id = $${paramIdx++}`; hierarchyParams.push(data.tehsil_id); }
-        if (data.district_id) { hierarchyQuery += ` AND d.district_id = $${paramIdx++}`; hierarchyParams.push(data.district_id); }
-        if (data.division_id) { hierarchyQuery += ` AND dv.division_id = $${paramIdx++}`; hierarchyParams.push(data.division_id); }
-        if (data.province_id) { hierarchyQuery += ` AND p.province_id = $${paramIdx++}`; hierarchyParams.push(data.province_id); }
-        if (data.country_id) { hierarchyQuery += ` AND co.country_id = $${paramIdx++}`; hierarchyParams.push(data.country_id); }
+        // 3. Validate hierarchy using higher IDs if area_id is provided
+        if (data.area_id) {
+            let hierarchyQuery = `
+                SELECT a.area_id
+                FROM areas a
+                JOIN societies s ON a.society_id = s.society_id
+                JOIN cities c ON s.city_id = c.city_id
+                JOIN tehsils t ON c.tehsil_id = t.tehsil_id
+                JOIN districts d ON t.district_id = d.district_id
+                JOIN divisions dv ON d.division_id = dv.division_id
+                JOIN provinces p ON dv.province_id = p.province_id
+                JOIN countries co ON p.country_id = co.country_id
+                WHERE a.area_id = $1
+            `;
+            const hierarchyParams = [data.area_id];
+            let paramIdx = 2;
 
-        const hierarchyRes = await client.query(hierarchyQuery, hierarchyParams);
-        if (hierarchyRes.rowCount === 0) {
-            throw new Error('Invalid geographic hierarchy combination.');
+            if (data.society_id) { hierarchyQuery += ` AND s.society_id = $${paramIdx++}`; hierarchyParams.push(data.society_id); }
+            if (data.city_id) { hierarchyQuery += ` AND c.city_id = $${paramIdx++}`; hierarchyParams.push(data.city_id); }
+            if (data.tehsil_id) { hierarchyQuery += ` AND t.tehsil_id = $${paramIdx++}`; hierarchyParams.push(data.tehsil_id); }
+            if (data.district_id) { hierarchyQuery += ` AND d.district_id = $${paramIdx++}`; hierarchyParams.push(data.district_id); }
+            if (data.division_id) { hierarchyQuery += ` AND dv.division_id = $${paramIdx++}`; hierarchyParams.push(data.division_id); }
+            if (data.province_id) { hierarchyQuery += ` AND p.province_id = $${paramIdx++}`; hierarchyParams.push(data.province_id); }
+            if (data.country_id) { hierarchyQuery += ` AND co.country_id = $${paramIdx++}`; hierarchyParams.push(data.country_id); }
+
+            const hierarchyRes = await client.query(hierarchyQuery, hierarchyParams);
+            if (hierarchyRes.rowCount === 0) {
+                throw new Error('Invalid geographic hierarchy combination.');
+            }
         }
 
         // 3. Insert Property
@@ -536,39 +574,77 @@ const updateProperty = async (propertyId, customerId, data) => {
             throw new Error('Property not found or unauthorized.');
         }
 
-        // 2. Validate Geographic Hierarchy
-        let hierarchyQuery = `
-            SELECT 1 
-            FROM areas a
-            LEFT JOIN societies s ON a.society_id = s.society_id
-            LEFT JOIN cities c ON s.city_id = c.city_id
-            LEFT JOIN tehsils t ON c.tehsil_id = t.tehsil_id
-            LEFT JOIN districts d ON t.district_id = d.district_id
-            LEFT JOIN divisions dv ON d.division_id = dv.division_id
-            LEFT JOIN provinces p ON dv.province_id = p.province_id
-            LEFT JOIN countries co ON p.country_id = co.country_id
-            WHERE a.area_id = $1
-        `;
-        const hierarchyParams = [data.area_id];
-        let paramIdx = 2;
+        // 2. Resolve, match by name, or fallback/auto-create area if society is provided
+        if (!data.area_id && data.society_id) {
+            if (data.area_name && String(data.area_name).trim()) {
+                const trimmedName = String(data.area_name).trim();
+                const namedAreaRes = await client.query(
+                    'SELECT area_id FROM areas WHERE society_id = $1 AND LOWER(area_english) = LOWER($2) AND is_active = true LIMIT 1',
+                    [data.society_id, trimmedName]
+                );
+                if (namedAreaRes.rowCount > 0) {
+                    data.area_id = namedAreaRes.rows[0].area_id;
+                } else {
+                    const insertNamedArea = await client.query(
+                        'INSERT INTO areas (area_english, society_id, is_active) VALUES ($1, $2, true) RETURNING area_id',
+                        [trimmedName, data.society_id]
+                    );
+                    data.area_id = insertNamedArea.rows[0].area_id;
+                }
+            } else {
+                const fallbackAreaRes = await client.query(
+                    'SELECT area_id FROM areas WHERE society_id = $1 AND is_active = true LIMIT 1',
+                    [data.society_id]
+                );
+                if (fallbackAreaRes.rowCount > 0) {
+                    data.area_id = fallbackAreaRes.rows[0].area_id;
+                } else {
+                    const socRes = await client.query('SELECT society_english FROM societies WHERE society_id = $1', [data.society_id]);
+                    const socName = socRes.rows[0]?.society_english || 'Main';
+                    const insertAreaRes = await client.query(
+                        'INSERT INTO areas (area_english, society_id, is_active) VALUES ($1, $2, true) RETURNING area_id',
+                        [`${socName} - Main`, data.society_id]
+                    );
+                    data.area_id = insertAreaRes.rows[0].area_id;
+                }
+            }
+        }
 
-        if (data.society_id) { hierarchyQuery += ` AND s.society_id = $${paramIdx++}`; hierarchyParams.push(data.society_id); }
-        if (data.city_id) { hierarchyQuery += ` AND c.city_id = $${paramIdx++}`; hierarchyParams.push(data.city_id); }
-        if (data.tehsil_id) { hierarchyQuery += ` AND t.tehsil_id = $${paramIdx++}`; hierarchyParams.push(data.tehsil_id); }
-        if (data.district_id) { hierarchyQuery += ` AND d.district_id = $${paramIdx++}`; hierarchyParams.push(data.district_id); }
-        if (data.division_id) { hierarchyQuery += ` AND dv.division_id = $${paramIdx++}`; hierarchyParams.push(data.division_id); }
-        if (data.province_id) { hierarchyQuery += ` AND p.province_id = $${paramIdx++}`; hierarchyParams.push(data.province_id); }
-        if (data.country_id) { hierarchyQuery += ` AND co.country_id = $${paramIdx++}`; hierarchyParams.push(data.country_id); }
+        // 3. Validate Geographic Hierarchy if area_id is provided
+        if (data.area_id) {
+            let hierarchyQuery = `
+                SELECT 1 
+                FROM areas a
+                LEFT JOIN societies s ON a.society_id = s.society_id
+                LEFT JOIN cities c ON s.city_id = c.city_id
+                LEFT JOIN tehsils t ON c.tehsil_id = t.tehsil_id
+                LEFT JOIN districts d ON t.district_id = d.district_id
+                LEFT JOIN divisions dv ON d.division_id = dv.division_id
+                LEFT JOIN provinces p ON dv.province_id = p.province_id
+                LEFT JOIN countries co ON p.country_id = co.country_id
+                WHERE a.area_id = $1
+            `;
+            const hierarchyParams = [data.area_id];
+            let paramIdx = 2;
 
-        const hierarchyRes = await client.query(hierarchyQuery, hierarchyParams);
-        if (hierarchyRes.rowCount === 0) {
-            throw new Error('Invalid geographic hierarchy combination.');
+            if (data.society_id) { hierarchyQuery += ` AND s.society_id = $${paramIdx++}`; hierarchyParams.push(data.society_id); }
+            if (data.city_id) { hierarchyQuery += ` AND c.city_id = $${paramIdx++}`; hierarchyParams.push(data.city_id); }
+            if (data.tehsil_id) { hierarchyQuery += ` AND t.tehsil_id = $${paramIdx++}`; hierarchyParams.push(data.tehsil_id); }
+            if (data.district_id) { hierarchyQuery += ` AND d.district_id = $${paramIdx++}`; hierarchyParams.push(data.district_id); }
+            if (data.division_id) { hierarchyQuery += ` AND dv.division_id = $${paramIdx++}`; hierarchyParams.push(data.division_id); }
+            if (data.province_id) { hierarchyQuery += ` AND p.province_id = $${paramIdx++}`; hierarchyParams.push(data.province_id); }
+            if (data.country_id) { hierarchyQuery += ` AND co.country_id = $${paramIdx++}`; hierarchyParams.push(data.country_id); }
+
+            const hierarchyRes = await client.query(hierarchyQuery, hierarchyParams);
+            if (hierarchyRes.rowCount === 0) {
+                throw new Error('Invalid geographic hierarchy combination.');
+            }
         }
 
         // 3. Update Property Scalar Fields
         const propertyUpdateQuery = `
             UPDATE properties SET
-                area_id = $2, property_type_id = $3, property_use_id = $4, property_location_id = $5,
+                area_id = COALESCE($2, area_id), property_type_id = $3, property_use_id = $4, property_location_id = $5,
                 property_size = $6, property_size_uom = $7, property_marla_size_id = $8,
                 property_area_marla = $9, property_area_kanal = $10, property_area_acre = $11, property_area_sqft = $12, property_area_sqyard = $13,
                 property_size_front = $14, property_size_back = $15, property_size_left = $16, property_size_right = $17,

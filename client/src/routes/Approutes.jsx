@@ -89,7 +89,6 @@ import AdminDistricts from '../Pages/Admin/reference/districts/AdminDistricts';
 import AdminTehsils from '../Pages/Admin/reference/tehsils/AdminTehsils';
 import AdminCities from '../Pages/Admin/reference/cities/AdminCities';
 import AdminSocieties from '../Pages/Admin/reference/societies/AdminSocieties';
-import AdminAreas from '../Pages/Admin/reference/areas/AdminAreas';
 
 // Reference Tables - Property
 import AdminPropertyTypes from '../Pages/Admin/reference/propertyTypes/AdminPropertyTypes';
@@ -194,7 +193,6 @@ const Approutes = () => {
             <Route path="reference/tehsils" element={<AdminTehsils />} />
             <Route path="reference/cities" element={<AdminCities />} />
             <Route path="reference/societies" element={<AdminSocieties />} />
-            <Route path="reference/areas" element={<AdminAreas />} />
 
             {/* Reference Tables - Property */}
             <Route path="reference/property-types" element={<AdminPropertyTypes />} />

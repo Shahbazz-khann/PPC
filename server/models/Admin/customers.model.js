@@ -91,6 +91,7 @@ const getAdminCustomers = async (options = {}) => {
     SELECT
       c.customer_id::text AS customer_id,
       c.user_id::text AS user_id,
+      u.profile_image_url,
       ct.title_abb,
       c.customer_first_name,
       c.customer_middle_name,
@@ -104,6 +105,7 @@ const getAdminCustomers = async (options = {}) => {
       COALESCE(prop_agg.total_properties, 0)::text AS total_properties,
       COALESCE(req_agg.total_requests, 0)::text AS total_requests
     FROM customers c
+    LEFT JOIN users u ON u.user_id = c.user_id
     LEFT JOIN customer_titles ct ON ct.customer_title_id = c.customer_title_id
     LEFT JOIN (
       SELECT
@@ -202,10 +204,12 @@ const getAdminCustomerById = async (customerId) => {
       c.is_active,
       c.gps_coordinates,
       c.url_used,
+      u.profile_image_url,
       COALESCE(prop_agg.total_properties, 0)::text AS total_properties,
       COALESCE(req_agg.total_requests, 0)::text AS total_requests,
       COALESCE(visit_agg.total_property_visits, 0)::text AS total_property_visits
     FROM customers c
+    LEFT JOIN users u ON u.user_id = c.user_id
     LEFT JOIN customer_titles ct ON ct.customer_title_id = c.customer_title_id
     LEFT JOIN identity_types it ON it.identity_type_id = c.identity_type_id
     LEFT JOIN genders g ON g.gender_id = c.gender_id

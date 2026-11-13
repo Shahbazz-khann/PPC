@@ -1,5 +1,6 @@
 const { getPublicProperties, getPublicPropertyFilters } = require('../../models/Public/public.model');
 const logger = require('../../utils/logger');
+const { sendContactEnquiryEmail } = require('../../utils/email');
 
 const getProperties = async (req, res, next) => {
     try {
@@ -149,8 +150,58 @@ const getFilters = async (req, res, next) => {
     }
 };
 
+const submitContactEnquiry = async (req, res, next) => {
+    try {
+        const { firstName, name, email, phone, message } = req.body;
+        const senderName = (firstName || name || '').trim();
+        const senderEmail = (email || '').trim();
+        const senderPhone = (phone || '').trim();
+        const senderMessage = (message || '').trim();
+
+        if (!senderName) {
+            const err = new Error('Full name is required.');
+            err.statusCode = 400;
+            throw err;
+        }
+
+        if (!senderEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail)) {
+            const err = new Error('A valid email address is required.');
+            err.statusCode = 400;
+            throw err;
+        }
+
+        if (!senderMessage) {
+            const err = new Error('Message cannot be empty.');
+            err.statusCode = 400;
+            throw err;
+        }
+
+        const emailSent = await sendContactEnquiryEmail({
+            name: senderName,
+            email: senderEmail,
+            phone: senderPhone,
+            message: senderMessage
+        });
+
+        if (!emailSent) {
+            const err = new Error('Failed to send message. Please try again later.');
+            err.statusCode = 500;
+            throw err;
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Your message has been sent successfully. We will get back to you shortly!'
+        });
+    } catch (error) {
+        logger.error(`Error in submitContactEnquiry: ${error.message}`);
+        next(error);
+    }
+};
+
 module.exports = {
     getProperties,
     getPropertyById,
-    getFilters
+    getFilters,
+    submitContactEnquiry
 };

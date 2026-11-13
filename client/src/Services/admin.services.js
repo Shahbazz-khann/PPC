@@ -360,6 +360,10 @@ export const updateAdminPropertyApproval = async (propertyId, { approval_stage, 
   return await api.patch(`/admin/properties/${propertyId}/approval`, { approval_stage, remarks });
 };
 
+export const updateAdminPropertyStatus = async (propertyId, { status, remarks }) => {
+  return await api.patch(`/admin/properties/${propertyId}/status`, { status, remarks });
+};
+
 export const createAdminProperty = async (propertyData) => {
   return await api.post('/admin/properties', propertyData);
 };

@@ -80,17 +80,6 @@ const validateChangePassword = (req, res, next) => {
 };
 
 const validateAddProperty = (req, res, next) => {
-    const { area_id } = req.body;
-
-    if (!area_id) {
-        return res.status(400).json({
-            success: false,
-            message: 'Validation failed',
-            errors: ['Area ID is required']
-        });
-    }
-
-    // Additional numeric validation could be added here, but the controller/model will also naturally reject bad types.
     // Ensure amenities is an array if provided
     if (req.body.amenities && !Array.isArray(req.body.amenities)) {
         return res.status(400).json({
@@ -213,10 +202,6 @@ const validatePropertyDemand = (req, res, next) => {
 
 const validateUpdateProperty = [
     (req, res, next) => {
-        if (!req.body.area_id) {
-            return res.status(400).json({ success: false, errors: ['area_id is required'] });
-        }
-        
         // Strip uneditable fields
         delete req.body.customer_id;
         delete req.body.is_active;

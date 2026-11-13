@@ -10,7 +10,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 
-import bgImage from '../assets/FaisalMosque.png';
+import bgImage from '../assets/FaisalMosque.webp';
 import logoImg from '../assets/Logo3.png';
 import { useTranslation } from 'react-i18next';
 

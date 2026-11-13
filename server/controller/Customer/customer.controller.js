@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../../utils/logger');
 const customerModel = require('../../models/Customer/customer.model');
+const { sendSystemMessageToCustomer } = require('../../models/Customer/messages.model');
 const { notifyAdmins } = require('../../services/notification.service');
 
 // (Keep getProfile and updateProfile as they are... then append at bottom)
@@ -289,6 +290,19 @@ const addProperty = async (req, res, next) => {
             type: 'property',
             linkUrl: '/admin/properties',
         });
+
+        // Send confirmation message to customer inbox only now that they have added a property
+        try {
+            await sendSystemMessageToCustomer({
+                userId,
+                senderId: 'PPC-MGMT',
+                senderName: 'PPC Management',
+                subject: 'Property Verification Update',
+                body: `Your property (#${propertyId}) is currently under review by PPC Management. We will notify you once the verification is complete and the property is eligible for listing.`,
+            });
+        } catch (msgErr) {
+            logger.error('Failed to send property verification message to customer:', msgErr);
+        }
 
         return res.status(201).json({
             success: true,
