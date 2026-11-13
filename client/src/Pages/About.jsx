@@ -70,6 +70,9 @@ const About = () => {
         <img
           src={LillaHero}
           alt="Pakistan Property Care"
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
           className="absolute inset-0 w-full h-full object-cover object-top z-0"
         />
 
