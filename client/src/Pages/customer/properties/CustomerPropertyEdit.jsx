@@ -28,15 +28,15 @@ const CustomerPropertyEdit = () => {
             propertyType: p.property_type_id || '',
             propertyUse: p.property_use_id || '',
             
-            country: l.country_id || '',
-            province: l.province_id || '',
-            division: l.division_id || '',
-            district: l.district_id || '',
-            tehsil: l.tehsil_id || '',
-            city: l.city_id || '', cityLabel: l.city_english || '',
-            society: l.society_id || '', societyLabel: l.society_english || '',
-            area: l.area_id || '', areaLabel: l.area_english || '',
-            propertyLocation: p.property_location_id || '',
+            country: l?.country_id || '',
+            province: l?.province_id || '',
+            division: l?.division_id || '',
+            district: l?.district_id || '',
+            tehsil: l?.tehsil_id || '',
+            city: l?.city_id || '', cityLabel: l?.city_english || '',
+            society: l?.society_id || '', societyLabel: l?.society_english || '',
+            area: l?.area_id || '', areaLabel: l?.area_english || '',
+            propertyLocation: p?.property_location_id || '',
             
             propertySize: p.property_size || '',
             sizeUom: p.property_size_uom || '',
@@ -142,7 +142,9 @@ const CustomerPropertyEdit = () => {
         district_id: formData.district || null,
         tehsil_id: formData.tehsil || null,
         city_id: formData.city || null,
+        city_name: formData.cityLabel || null,
         society_id: formData.society || null,
+        society_name: formData.societyLabel || null,
       };
 
       const res = await updateCustomerProperty(propertyId, payload);

@@ -67,7 +67,13 @@ const CustomerRequestsList = () => {
   };
 
   const getPropertyName = (req) => {
-    if (!req.propertyId) return t('requests:noLinkedProperty');
+    if (!req.propertyId) {
+      if (req.purpose === 'Purchase' || req.purpose === 'Lease') {
+        const parts = [req.propertyType, req.societyName, req.cityName].filter(Boolean);
+        return parts.length > 0 ? parts.join(' - ') : t('requests:noLinkedProperty');
+      }
+      return t('requests:noLinkedProperty');
+    }
     if (req.propertyType && req.societyName) {
       return `${req.propertyType} in ${req.societyName}`;
     }

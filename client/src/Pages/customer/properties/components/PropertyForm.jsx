@@ -178,6 +178,12 @@ const AutocompleteField = ({ label, name, value, displayValue, onChange, fetchOp
       try {
         const results = await fetchOptions(inputValue);
         setOptions(results);
+        if (inputValue && inputValue.trim()) {
+          const matched = results.find(o => o.label.toLowerCase() === inputValue.trim().toLowerCase());
+          if (matched && (!value || value === '')) {
+            onChange({ target: { name, value: matched.value, label: matched.label } });
+          }
+        }
       } catch (err) {
         setOptions([]);
       } finally {
@@ -198,7 +204,18 @@ const AutocompleteField = ({ label, name, value, displayValue, onChange, fetchOp
     const text = e.target.value;
     setInputValue(text);
     setShowSuggestions(true);
-    onChange({ target: { name, value: '', label: text } });
+    const matched = options.find(o => o.label.toLowerCase() === text.trim().toLowerCase());
+    onChange({ target: { name, value: matched ? matched.value : '', label: text } });
+  };
+
+  const handleBlur = () => {
+    if (inputValue && inputValue.trim()) {
+      const matched = options.find(o => o.label.toLowerCase() === inputValue.trim().toLowerCase());
+      if (matched && matched.value !== value) {
+        setInputValue(matched.label);
+        onChange({ target: { name, value: matched.value, label: matched.label } });
+      }
+    }
   };
 
   return (
@@ -212,6 +229,7 @@ const AutocompleteField = ({ label, name, value, displayValue, onChange, fetchOp
         value={inputValue}
         onChange={handleInputChange}
         onFocus={() => setShowSuggestions(true)}
+        onBlur={handleBlur}
         disabled={disabled}
         placeholder={placeholder || `Search ${label}...`}
         className={`w-full px-4 py-3 rounded-xl border ${error ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#B8860B] focus:ring-[#B8860B]'} outline-none transition-all text-sm font-semibold ${disabled ? 'text-gray-500 bg-gray-100 cursor-not-allowed opacity-70' : 'text-gray-800 bg-gray-50/50'}`}
@@ -228,7 +246,10 @@ const AutocompleteField = ({ label, name, value, displayValue, onChange, fetchOp
                 key={opt.value}
                 type="button"
                 className="w-full text-left px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
-                onClick={() => handleSelect(opt)}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleSelect(opt);
+                }}
               >
                 {opt.label}
               </button>
@@ -346,9 +367,16 @@ const PropertyForm = ({ initialData, onSubmit, onCancel, isEditMode }) => {
 
   useEffect(() => {
     if (initialData) {
-      setFormData(prev => ({ ...prev, ...initialData }));
+      setFormData(prev => {
+        const next = { ...prev, ...initialData };
+        if (!next.country && refData.countries && refData.countries.length > 0) {
+          const pak = refData.countries.find(c => c.country_english === 'Pakistan');
+          if (pak) next.country = pak.country_id;
+        }
+        return next;
+      });
     }
-  }, [initialData]);
+  }, [initialData, refData.countries]);
 
   const fileInputRef = useRef(null);
   const videoInputRef = useRef(null);

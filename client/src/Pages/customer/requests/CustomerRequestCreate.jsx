@@ -180,7 +180,11 @@ const CustomerRequestCreate = () => {
     }
     else if (step === 3) {
       if (isPurchaseOrLease()) {
-        const reqs = formData.requirements;
+        const reqs = formData.requirements || {};
+        if (!reqs.cityId) {
+          newErrors.city = 'Please select a preferred city';
+          isValid = false;
+        }
         if (reqs.minBudget && reqs.maxBudget && Number(reqs.minBudget) > Number(reqs.maxBudget)) {
           newErrors.budget = 'Minimum budget cannot be greater than maximum budget.';
           isValid = false;
@@ -268,11 +272,6 @@ const CustomerRequestCreate = () => {
 
   const handleSubmit = async () => {
     try {
-      if (isPurchaseOrLease() && !formData.propertyId) {
-        setErrors(prev => ({ ...prev, submit: 'Please select a property or specify requirements.' }));
-        return;
-      }
-
       setIsSubmitting(true);
       setErrors(prev => ({ ...prev, submit: null }));
 
@@ -283,6 +282,9 @@ const CustomerRequestCreate = () => {
       if (formData.category === REQUEST_CATEGORIES.PROPERTY) {
         payload.requestPurposeId = formData.purposeId;
         payload.propertyId = formData.propertyId || null;
+        if (isPurchaseOrLease()) {
+          payload.requirements = formData.requirements;
+        }
       } else {
         payload.serviceId = formData.serviceId;
         payload.propertyId = formData.propertyId || null;
@@ -684,13 +686,7 @@ const CustomerRequestCreate = () => {
               {/* STEP 5: REVIEW */}
               {currentStep === 5 && (
                 <div className="animate-fadeIn space-y-6">
-                  {isPurchaseOrLease() && (
-                    <div className="bg-orange-50 border border-orange-200 text-orange-800 text-sm font-bold p-4 rounded-xl flex items-center gap-2 mb-4">
-                      <AlertTriangle size={18} />
-                      Purchase and Lease request submission will be enabled after property requirement storage is connected.
-                    </div>
-                  )}
-                  {errors.submit && !isPurchaseOrLease() && (
+                  {errors.submit && (
                     <div className="bg-red-50 border border-red-200 text-red-800 text-sm font-bold p-4 rounded-xl flex items-center gap-2">
                       <AlertTriangle size={18} />
                       {errors.submit}
@@ -734,7 +730,7 @@ const CustomerRequestCreate = () => {
                           )}
                           <div>
                             <span className="text-gray-400 block text-xs font-bold uppercase tracking-wider mb-1">City</span>
-                            <span className="font-semibold text-gray-800">Pending global city API</span>
+                            <span className="font-semibold text-gray-800">{formData.requirements.cityLabel || 'Not specified'}</span>
                           </div>
                           {formData.requirements.societyLabel && (
                             <div>
@@ -829,8 +825,8 @@ const CustomerRequestCreate = () => {
               ) : (
                 <button
                   onClick={handleSubmit}
-                  disabled={isSubmitting || isPurchaseOrLease()}
-                  className={`px-8 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#d4af37] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(184,134,11,0.3)] hover:shadow-lg transition-all flex items-center gap-2 ${(isSubmitting || isPurchaseOrLease()) ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  disabled={isSubmitting}
+                  className={`px-8 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#d4af37] text-white rounded-full font-bold text-sm shadow-[0_4px_12px_rgba(184,134,11,0.3)] hover:shadow-lg transition-all flex items-center gap-2 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {isSubmitting ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

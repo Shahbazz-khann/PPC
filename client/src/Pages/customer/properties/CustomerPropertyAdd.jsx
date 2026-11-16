@@ -38,7 +38,9 @@ const CustomerPropertyAdd = () => {
         district_id: formData.district || null,
         tehsil_id: formData.tehsil || null,
         city_id: formData.city || null,
+        city_name: formData.cityLabel || null,
         society_id: formData.society || null,
+        society_name: formData.societyLabel || null,
         area_id: formData.area || null,
         area_name: formData.areaLabel || null,
 

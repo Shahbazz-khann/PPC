@@ -27,8 +27,9 @@ const getCustomerRequests = async (userId) => {
                 pp.purpose_description AS purpose,
                 ps.service_english AS service,
                 cr.property_id AS "propertyId",
-                pt.property_type_description AS "propertyType",
-                s.society_english AS "societyName",
+                COALESCE(pt.property_type_description, pt_req.property_type_description) AS "propertyType",
+                COALESCE(s.society_english, soc_req.society_english) AS "societyName",
+                cit_req.city_english AS "cityName",
                 cr.request_description AS description,
                 cr.creation_date_time AS "createdAt",
                 st.request_status_english AS status,
@@ -43,6 +44,11 @@ const getCustomerRequests = async (userId) => {
             LEFT JOIN property_types pt ON pr.property_type_id = pt.property_type_id
             LEFT JOIN areas a ON pr.area_id = a.area_id
             LEFT JOIN societies s ON a.society_id = s.society_id
+            -- Property Requirements Joins (e.g. Purchase / Lease inquiries)
+            LEFT JOIN customer_request_property_requirements req_p ON cr.request_id = req_p.request_id AND req_p.is_active = true
+            LEFT JOIN property_types pt_req ON req_p.property_type_id = pt_req.property_type_id
+            LEFT JOIN societies soc_req ON req_p.society_id = soc_req.society_id
+            LEFT JOIN cities cit_req ON req_p.city_id = cit_req.city_id
             -- Current Active Status Join
             LEFT JOIN customer_request_status_history sh ON cr.request_id = sh.request_id AND sh.is_active = true
             LEFT JOIN customer_request_status_types st ON sh.request_status_type_id = st.request_status_type_id
@@ -85,8 +91,17 @@ const getCustomerRequestById = async (userId, requestId) => {
                 ps.service_english AS service,
                 ps.service_id AS "serviceId",
                 cr.property_id AS "propertyId",
-                pt.property_type_description AS "propertyType",
-                s.society_english AS "societyName",
+                COALESCE(pt.property_type_description, pt_req.property_type_description) AS "propertyType",
+                COALESCE(s.society_english, soc_req.society_english) AS "societyName",
+                cit_req.city_english AS "cityName",
+                a_req.area_english AS "areaName",
+                req_p.minimum_budget AS "minBudget",
+                req_p.maximum_budget AS "maxBudget",
+                req_p.minimum_size AS "minSize",
+                req_p.maximum_size AS "maxSize",
+                uom_req.uom_english AS "sizeUom",
+                req_p.minimum_rooms AS "minRooms",
+                req_p.minimum_bathrooms AS "minBathrooms",
                 cr.request_description AS description,
                 cr.request_audio_url AS "audioUrl",
                 cr.creation_date_time AS "createdAt",
@@ -102,6 +117,13 @@ const getCustomerRequestById = async (userId, requestId) => {
             LEFT JOIN property_types pt ON pr.property_type_id = pt.property_type_id
             LEFT JOIN areas a ON pr.area_id = a.area_id
             LEFT JOIN societies s ON a.society_id = s.society_id
+            -- Property Requirements Joins (e.g. Purchase / Lease inquiries)
+            LEFT JOIN customer_request_property_requirements req_p ON cr.request_id = req_p.request_id AND req_p.is_active = true
+            LEFT JOIN property_types pt_req ON req_p.property_type_id = pt_req.property_type_id
+            LEFT JOIN societies soc_req ON req_p.society_id = soc_req.society_id
+            LEFT JOIN cities cit_req ON req_p.city_id = cit_req.city_id
+            LEFT JOIN areas a_req ON req_p.area_id = a_req.area_id
+            LEFT JOIN uom uom_req ON req_p.size_uom_id = uom_req.uom_id
             -- Current Active Status Join
             LEFT JOIN customer_request_status_history sh ON cr.request_id = sh.request_id AND sh.is_active = true
             LEFT JOIN customer_request_status_types st ON sh.request_status_type_id = st.request_status_type_id
@@ -179,13 +201,6 @@ const createCustomerRequest = async (userId, data) => {
         }
 
         if (isPropertyReq) {
-            // Property Purpose Validation
-            if (!data.propertyId) {
-                const err = new Error('Property is required for this request');
-                err.statusCode = 400;
-                throw err;
-            }
-
             const purpRes = await client.query('SELECT purpose_description FROM property_purposes WHERE purpose_id = $1 AND is_active = true', [data.requestPurposeId]);
             if (purpRes.rows.length === 0) {
                 const err = new Error('Invalid or inactive Property Purpose');
@@ -194,6 +209,15 @@ const createCustomerRequest = async (userId, data) => {
             }
 
             const purposeName = purpRes.rows[0].purpose_description;
+            const isPurchaseOrLease = purposeName === 'Purchase' || purposeName === 'Lease';
+
+            // Property Purpose Validation
+            // Purchase and Lease requests can have property requirements instead of an existing propertyId.
+            if (!isPurchaseOrLease && !data.propertyId) {
+                const err = new Error(`Property is required for ${purposeName} request`);
+                err.statusCode = 400;
+                throw err;
+            }
 
             // Only the owner can list their property for Sale or request Renovation on it
             if ((purposeName === 'Sale' || purposeName === 'Renovation') && !isOwner) {
@@ -204,6 +228,11 @@ const createCustomerRequest = async (userId, data) => {
 
             // Demand validation for owner Sale or Rent
             if (purposeName === 'Sale' || (purposeName === 'Rent' && isOwner)) {
+                if (!data.propertyId) {
+                    const err = new Error(`Property is required for ${purposeName} request`);
+                    err.statusCode = 400;
+                    throw err;
+                }
                 // Get current active demand
                 const demRes = await client.query(`
                     SELECT dt.demand_type_english 
@@ -264,6 +293,74 @@ const createCustomerRequest = async (userId, data) => {
             )
         `;
         await client.query(insertHistoryQuery, [requestId, pendingStatusId, userId]);
+
+        // 8. If property requirements are provided, insert into customer_request_property_requirements
+        if (data.requirements && (data.requirements.cityId || data.requirements.propertyTypeId)) {
+            const reqs = data.requirements;
+            const cityId = reqs.cityId ? parseInt(reqs.cityId, 10) : null;
+            if (!cityId) {
+                const err = new Error('City is required in property requirements');
+                err.statusCode = 400;
+                throw err;
+            }
+            const propertyTypeId = reqs.propertyTypeId && !isNaN(parseInt(reqs.propertyTypeId, 10)) ? parseInt(reqs.propertyTypeId, 10) : null;
+            const societyId = reqs.societyId && !isNaN(parseInt(reqs.societyId, 10)) ? parseInt(reqs.societyId, 10) : null;
+            const areaId = societyId && reqs.areaId && !isNaN(parseInt(reqs.areaId, 10)) ? parseInt(reqs.areaId, 10) : null;
+
+            const minBudget = (reqs.minBudget !== undefined && reqs.minBudget !== null && reqs.minBudget !== '' && !isNaN(parseFloat(reqs.minBudget)))
+                ? parseFloat(reqs.minBudget)
+                : null;
+            const maxBudget = (reqs.maxBudget !== undefined && reqs.maxBudget !== null && reqs.maxBudget !== '' && !isNaN(parseFloat(reqs.maxBudget)))
+                ? parseFloat(reqs.maxBudget)
+                : null;
+            const hasBudget = minBudget !== null || maxBudget !== null;
+            // chk_crpr_currency_req requires currency to be NOT NULL only if budget is present, and NULL if no budget is provided
+            const currencyId = hasBudget
+                ? (reqs.currencyId && !isNaN(parseInt(reqs.currencyId, 10)) ? parseInt(reqs.currencyId, 10) : 1) // default 1 (PKR)
+                : null;
+
+            const minSize = (reqs.minSize !== undefined && reqs.minSize !== null && reqs.minSize !== '' && !isNaN(parseFloat(reqs.minSize)))
+                ? parseFloat(reqs.minSize)
+                : null;
+            const maxSize = (reqs.maxSize !== undefined && reqs.maxSize !== null && reqs.maxSize !== '' && !isNaN(parseFloat(reqs.maxSize)))
+                ? parseFloat(reqs.maxSize)
+                : null;
+            const hasSize = minSize !== null || maxSize !== null;
+            // chk_crpr_uom_req requires size_uom_id to be NOT NULL only if size is present, and NULL if no size is provided
+            const sizeUomId = hasSize && reqs.sizeUomId && !isNaN(parseInt(reqs.sizeUomId, 10))
+                ? parseInt(reqs.sizeUomId, 10)
+                : null;
+
+            const minRooms = (reqs.minRooms !== undefined && reqs.minRooms !== null && reqs.minRooms !== '' && !isNaN(parseInt(reqs.minRooms, 10)))
+                ? parseInt(reqs.minRooms, 10)
+                : null;
+            const minBathrooms = (reqs.minBathrooms !== undefined && reqs.minBathrooms !== null && reqs.minBathrooms !== '' && !isNaN(parseInt(reqs.minBathrooms, 10)))
+                ? parseInt(reqs.minBathrooms, 10)
+                : null;
+
+            const insertReqsQuery = `
+                INSERT INTO customer_request_property_requirements (
+                    request_id, property_type_id, city_id, society_id, area_id,
+                    minimum_budget, maximum_budget, budget_currency_id,
+                    minimum_size, maximum_size, size_uom_id,
+                    minimum_rooms, minimum_bathrooms,
+                    creation_date_time, update_date_time, created_by_user, is_active
+                ) VALUES (
+                    $1, $2, $3, $4, $5,
+                    $6, $7, $8,
+                    $9, $10, $11,
+                    $12, $13,
+                    NOW(), NOW(), $14, true
+                )
+            `;
+            await client.query(insertReqsQuery, [
+                requestId, propertyTypeId, cityId, societyId, areaId,
+                minBudget, maxBudget, currencyId,
+                minSize, maxSize, sizeUomId,
+                minRooms, minBathrooms,
+                userId
+            ]);
+        }
 
         await client.query('COMMIT');
         return requestId;

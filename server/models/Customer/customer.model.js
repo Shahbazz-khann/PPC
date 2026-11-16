@@ -351,6 +351,105 @@ const getCustomerPropertiesByUserId = async (userId) => {
 };
 
 /**
+ * Resolves or auto-creates city, society, and area based on passed IDs or names.
+ * Ensures properties are accurately tied to an area_id even if the user only entered/selected city or society.
+ */
+const resolveLocationAreaId = async (client, data) => {
+    // 1. Resolve City if city_name given but no city_id
+    if (!data.city_id && data.city_name && data.tehsil_id) {
+        const trimmedCity = String(data.city_name).trim();
+        const cityRes = await client.query(
+            'SELECT city_id FROM cities WHERE tehsil_id = $1 AND LOWER(city_english) = LOWER($2) AND is_active = true LIMIT 1',
+            [data.tehsil_id, trimmedCity]
+        );
+        if (cityRes.rowCount > 0) {
+            data.city_id = cityRes.rows[0].city_id;
+        } else {
+            const insCity = await client.query(
+                'INSERT INTO cities (city_english, tehsil_id, is_active) VALUES ($1, $2, true) RETURNING city_id',
+                [trimmedCity, data.tehsil_id]
+            );
+            data.city_id = insCity.rows[0].city_id;
+        }
+    }
+
+    // 2. Resolve Society if society_name given but no society_id
+    if (!data.society_id && data.society_name && data.city_id) {
+        const trimmedSoc = String(data.society_name).trim();
+        const socRes = await client.query(
+            'SELECT society_id FROM societies WHERE city_id = $1 AND LOWER(society_english) = LOWER($2) AND is_active = true LIMIT 1',
+            [data.city_id, trimmedSoc]
+        );
+        if (socRes.rowCount > 0) {
+            data.society_id = socRes.rows[0].society_id;
+        } else {
+            const insSoc = await client.query(
+                'INSERT INTO societies (society_english, city_id, is_active) VALUES ($1, $2, true) RETURNING society_id',
+                [trimmedSoc, data.city_id]
+            );
+            data.society_id = insSoc.rows[0].society_id;
+        }
+    }
+
+    // 3. Fallback society if city_id provided without society
+    if (!data.area_id && !data.society_id && data.city_id) {
+        const defaultSocRes = await client.query(
+            'SELECT society_id FROM societies WHERE city_id = $1 AND is_active = true ORDER BY society_id ASC LIMIT 1',
+            [data.city_id]
+        );
+        if (defaultSocRes.rowCount > 0) {
+            data.society_id = defaultSocRes.rows[0].society_id;
+        } else {
+            const cityRes = await client.query('SELECT city_english FROM cities WHERE city_id = $1', [data.city_id]);
+            const cityName = cityRes.rows[0]?.city_english || 'Main';
+            const insSoc = await client.query(
+                'INSERT INTO societies (society_english, city_id, is_active) VALUES ($1, $2, true) RETURNING society_id',
+                [`${cityName} - General`, data.city_id]
+            );
+            data.society_id = insSoc.rows[0].society_id;
+        }
+    }
+
+    // 4. Resolve Area if society_id is known
+    if (!data.area_id && data.society_id) {
+        if (data.area_name && String(data.area_name).trim()) {
+            const trimmedName = String(data.area_name).trim();
+            const namedAreaRes = await client.query(
+                'SELECT area_id FROM areas WHERE society_id = $1 AND LOWER(area_english) = LOWER($2) AND is_active = true LIMIT 1',
+                [data.society_id, trimmedName]
+            );
+            if (namedAreaRes.rowCount > 0) {
+                data.area_id = namedAreaRes.rows[0].area_id;
+            } else {
+                const insertNamedArea = await client.query(
+                    'INSERT INTO areas (area_english, society_id, is_active) VALUES ($1, $2, true) RETURNING area_id',
+                    [trimmedName, data.society_id]
+                );
+                data.area_id = insertNamedArea.rows[0].area_id;
+            }
+        } else {
+            const fallbackAreaRes = await client.query(
+                'SELECT area_id FROM areas WHERE society_id = $1 AND is_active = true LIMIT 1',
+                [data.society_id]
+            );
+            if (fallbackAreaRes.rowCount > 0) {
+                data.area_id = fallbackAreaRes.rows[0].area_id;
+            } else {
+                const socRes = await client.query('SELECT society_english FROM societies WHERE society_id = $1', [data.society_id]);
+                const socName = socRes.rows[0]?.society_english || 'Main';
+                const insertAreaRes = await client.query(
+                    'INSERT INTO areas (area_english, society_id, is_active) VALUES ($1, $2, true) RETURNING area_id',
+                    [`${socName} - Main`, data.society_id]
+                );
+                data.area_id = insertAreaRes.rows[0].area_id;
+            }
+        }
+    }
+
+    return data.area_id || null;
+};
+
+/**
  * Add a new Property (POST /api/v1/customer/properties)
  */
 const addProperty = async (userId, data) => {
@@ -366,41 +465,8 @@ const addProperty = async (userId, data) => {
         }
         const customerId = customerRes.rows[0].customer_id;
 
-        // 2. Resolve, match by name, or fallback/auto-create area if society is provided
-        if (!data.area_id && data.society_id) {
-            if (data.area_name && String(data.area_name).trim()) {
-                const trimmedName = String(data.area_name).trim();
-                const namedAreaRes = await client.query(
-                    'SELECT area_id FROM areas WHERE society_id = $1 AND LOWER(area_english) = LOWER($2) AND is_active = true LIMIT 1',
-                    [data.society_id, trimmedName]
-                );
-                if (namedAreaRes.rowCount > 0) {
-                    data.area_id = namedAreaRes.rows[0].area_id;
-                } else {
-                    const insertNamedArea = await client.query(
-                        'INSERT INTO areas (area_english, society_id, is_active) VALUES ($1, $2, true) RETURNING area_id',
-                        [trimmedName, data.society_id]
-                    );
-                    data.area_id = insertNamedArea.rows[0].area_id;
-                }
-            } else {
-                const fallbackAreaRes = await client.query(
-                    'SELECT area_id FROM areas WHERE society_id = $1 AND is_active = true LIMIT 1',
-                    [data.society_id]
-                );
-                if (fallbackAreaRes.rowCount > 0) {
-                    data.area_id = fallbackAreaRes.rows[0].area_id;
-                } else {
-                    const socRes = await client.query('SELECT society_english FROM societies WHERE society_id = $1', [data.society_id]);
-                    const socName = socRes.rows[0]?.society_english || 'Main';
-                    const insertAreaRes = await client.query(
-                        'INSERT INTO areas (area_english, society_id, is_active) VALUES ($1, $2, true) RETURNING area_id',
-                        [`${socName} - Main`, data.society_id]
-                    );
-                    data.area_id = insertAreaRes.rows[0].area_id;
-                }
-            }
-        }
+        // 2. Resolve, match by name, or fallback/auto-create area
+        await resolveLocationAreaId(client, data);
 
         // 3. Validate hierarchy using higher IDs if area_id is provided
         if (data.area_id) {
@@ -574,41 +640,8 @@ const updateProperty = async (propertyId, customerId, data) => {
             throw new Error('Property not found or unauthorized.');
         }
 
-        // 2. Resolve, match by name, or fallback/auto-create area if society is provided
-        if (!data.area_id && data.society_id) {
-            if (data.area_name && String(data.area_name).trim()) {
-                const trimmedName = String(data.area_name).trim();
-                const namedAreaRes = await client.query(
-                    'SELECT area_id FROM areas WHERE society_id = $1 AND LOWER(area_english) = LOWER($2) AND is_active = true LIMIT 1',
-                    [data.society_id, trimmedName]
-                );
-                if (namedAreaRes.rowCount > 0) {
-                    data.area_id = namedAreaRes.rows[0].area_id;
-                } else {
-                    const insertNamedArea = await client.query(
-                        'INSERT INTO areas (area_english, society_id, is_active) VALUES ($1, $2, true) RETURNING area_id',
-                        [trimmedName, data.society_id]
-                    );
-                    data.area_id = insertNamedArea.rows[0].area_id;
-                }
-            } else {
-                const fallbackAreaRes = await client.query(
-                    'SELECT area_id FROM areas WHERE society_id = $1 AND is_active = true LIMIT 1',
-                    [data.society_id]
-                );
-                if (fallbackAreaRes.rowCount > 0) {
-                    data.area_id = fallbackAreaRes.rows[0].area_id;
-                } else {
-                    const socRes = await client.query('SELECT society_english FROM societies WHERE society_id = $1', [data.society_id]);
-                    const socName = socRes.rows[0]?.society_english || 'Main';
-                    const insertAreaRes = await client.query(
-                        'INSERT INTO areas (area_english, society_id, is_active) VALUES ($1, $2, true) RETURNING area_id',
-                        [`${socName} - Main`, data.society_id]
-                    );
-                    data.area_id = insertAreaRes.rows[0].area_id;
-                }
-            }
-        }
+        // 2. Resolve, match by name, or fallback/auto-create area
+        await resolveLocationAreaId(client, data);
 
         // 3. Validate Geographic Hierarchy if area_id is provided
         if (data.area_id) {
@@ -637,7 +670,10 @@ const updateProperty = async (propertyId, customerId, data) => {
 
             const hierarchyRes = await client.query(hierarchyQuery, hierarchyParams);
             if (hierarchyRes.rowCount === 0) {
-                throw new Error('Invalid geographic hierarchy combination.');
+                const looseCheck = await client.query('SELECT 1 FROM areas WHERE area_id = $1', [data.area_id]);
+                if (looseCheck.rowCount === 0) {
+                    throw new Error('Invalid geographic hierarchy combination.');
+                }
             }
         }
 

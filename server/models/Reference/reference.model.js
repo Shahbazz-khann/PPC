@@ -191,12 +191,16 @@ const getCities = async (tehsilId, searchStr) => {
     let query = `
         SELECT city_id, tehsil_id, city_english, city_urdu, city_abb
         FROM cities
-        WHERE tehsil_id = $1 AND is_active = true
+        WHERE is_active = true
     `;
-    const params = [tehsilId];
+    const params = [];
+    if (tehsilId) {
+        params.push(tehsilId);
+        query += ` AND tehsil_id = $${params.length}`;
+    }
     if (searchStr) {
-        query += ` AND city_english ILIKE $2`;
         params.push(`%${searchStr}%`);
+        query += ` AND city_english ILIKE $${params.length}`;
     }
     query += ` ORDER BY city_english ASC`;
     const result = await pool.query(query, params);

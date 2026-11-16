@@ -455,6 +455,50 @@ const CustomerRequestDetails = () => {
                     </div>
                   </div>
                 </div>
+              ) : (request.cityName || request.propertyType || request.minBudget) ? (
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className="bg-amber-50/60 border border-amber-200/50 rounded-xl p-3 text-xs text-amber-900 font-medium">
+                      Desired property search criteria submitted to PPC Management.
+                    </div>
+                    <div className="grid grid-cols-2 gap-y-3.5 gap-x-2 text-sm">
+                      <div>
+                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Desired Type</span>
+                        <span className="font-bold text-gray-800">{request.propertyType || 'Any Type'}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Location</span>
+                        <span className="font-semibold text-gray-700">
+                          {[request.societyName, request.cityName].filter(Boolean).join(', ') || 'Flexible'}
+                        </span>
+                      </div>
+                      {(request.minBudget || request.maxBudget) && (
+                        <div className="col-span-2">
+                          <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Budget Range (PKR)</span>
+                          <span className="font-bold text-[#B8860B]">
+                            {Number(request.minBudget || 0).toLocaleString()} - {Number(request.maxBudget || 0).toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                      {(request.minSize || request.maxSize) && (
+                        <div>
+                          <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Size Range</span>
+                          <span className="font-semibold text-gray-700">
+                            {request.minSize || '0'} - {request.maxSize || 'No Limit'} {request.sizeUom || ''}
+                          </span>
+                        </div>
+                      )}
+                      {(request.minRooms || request.minBathrooms) && (
+                        <div>
+                          <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Rooms & Baths</span>
+                          <span className="font-semibold text-gray-700">
+                            {request.minRooms ? `${request.minRooms} Rms` : ''} {request.minBathrooms ? `${request.minBathrooms} Baths` : ''}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <div className="p-8 text-center flex flex-col items-center">
                   <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mb-3">

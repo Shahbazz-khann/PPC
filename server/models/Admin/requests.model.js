@@ -170,9 +170,16 @@ const getAdminRequests = async (options = {}) => {
       st.request_status_abb AS status_abb,
       pr.minimum_budget,
       pr.maximum_budget,
+      pr.minimum_size AS req_min_size,
+      pr.maximum_size AS req_max_size,
+      uom_req.uom_english AS req_size_uom,
+      pr.minimum_rooms AS req_min_rooms,
+      pr.minimum_bathrooms AS req_min_bathrooms,
       pt_req.property_type_description AS req_property_type,
       soc_req.society_english AS req_society,
-      cit_req.city_english AS req_city
+      cit_req.city_english AS req_city,
+      a_req.area_english AS req_area,
+      cur_req.currency_symbol AS req_currency_symbol
     FROM customer_requests cr
     JOIN customers cu ON cr.customer_id = cu.customer_id
     LEFT JOIN property_purposes pp ON cr.request_purpose_id = pp.purpose_id
@@ -188,6 +195,9 @@ const getAdminRequests = async (options = {}) => {
     LEFT JOIN property_types pt_req ON pr.property_type_id = pt_req.property_type_id
     LEFT JOIN societies soc_req ON pr.society_id = soc_req.society_id
     LEFT JOIN cities cit_req ON pr.city_id = cit_req.city_id
+    LEFT JOIN areas a_req ON pr.area_id = a_req.area_id
+    LEFT JOIN uom uom_req ON pr.size_uom_id = uom_req.uom_id
+    LEFT JOIN currencies cur_req ON pr.budget_currency_id = cur_req.currency_id
     ${whereClause}
     ORDER BY cr.creation_date_time DESC, cr.request_id DESC
     LIMIT $${limitIdx} OFFSET $${offsetIdx};
@@ -243,9 +253,16 @@ const getAdminRequestById = async (requestId) => {
       st.request_status_abb AS status_abb,
       pr.minimum_budget,
       pr.maximum_budget,
+      pr.minimum_size AS req_min_size,
+      pr.maximum_size AS req_max_size,
+      uom_req.uom_english AS req_size_uom,
+      pr.minimum_rooms AS req_min_rooms,
+      pr.minimum_bathrooms AS req_min_bathrooms,
       pt_req.property_type_description AS req_property_type,
       soc_req.society_english AS req_society,
-      cit_req.city_english AS req_city
+      cit_req.city_english AS req_city,
+      a_req.area_english AS req_area,
+      cur_req.currency_symbol AS req_currency_symbol
     FROM customer_requests cr
     JOIN customers cu ON cr.customer_id = cu.customer_id
     LEFT JOIN property_purposes pp ON cr.request_purpose_id = pp.purpose_id
@@ -261,6 +278,9 @@ const getAdminRequestById = async (requestId) => {
     LEFT JOIN property_types pt_req ON pr.property_type_id = pt_req.property_type_id
     LEFT JOIN societies soc_req ON pr.society_id = soc_req.society_id
     LEFT JOIN cities cit_req ON pr.city_id = cit_req.city_id
+    LEFT JOIN areas a_req ON pr.area_id = a_req.area_id
+    LEFT JOIN uom uom_req ON pr.size_uom_id = uom_req.uom_id
+    LEFT JOIN currencies cur_req ON pr.budget_currency_id = cur_req.currency_id
     WHERE cr.request_id = $1 AND cr.is_active = true;
   `;
 

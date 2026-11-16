@@ -58,10 +58,11 @@ const createRequest = async (req, res, next) => {
         const requestId = await requestsModel.createCustomerRequest(userId, requestData);
 
         // Notify Admins of new customer request
+        const isProperty = !!requestData.requestPurposeId;
         notifyAdmins({
             actorId: userId,
-            title: 'New Service Request',
-            message: `Customer submitted service inquiry/request #${requestId}.`,
+            title: isProperty ? 'New Property Request' : 'New Service Request',
+            message: `Customer submitted ${isProperty ? 'property' : 'service'} inquiry/request #${requestId}.`,
             type: 'request',
             linkUrl: '/admin/requests',
         });

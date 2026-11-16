@@ -145,10 +145,10 @@ const getPPCServices = async (req, res, next) => {
 const getCities = async (req, res, next) => {
     try {
         const { tehsil_id, search } = req.query;
-        if (!tehsil_id || isNaN(parseInt(tehsil_id)) || parseInt(tehsil_id) <= 0) {
-            return res.status(400).json({ success: false, message: 'Valid tehsil_id is required' });
-        }
-        const data = await referenceModel.getCities(parseInt(tehsil_id), search);
+        const parsedTehsilId = (tehsil_id && !isNaN(parseInt(tehsil_id)) && parseInt(tehsil_id) > 0)
+            ? parseInt(tehsil_id)
+            : null;
+        const data = await referenceModel.getCities(parsedTehsilId, search);
         return res.status(200).json({ success: true, message: 'Cities retrieved successfully', data });
     } catch (error) {
         logger.error('Get Cities Error:', error);

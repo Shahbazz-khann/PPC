@@ -1160,7 +1160,7 @@ const AdminRequests = () => {
               )}
 
               {/* Search Requirements (For Purchase / Rent inquiries) */}
-              {(selectedRequest.req_property_type || selectedRequest.req_city || selectedRequest.minimum_budget) && (
+              {(selectedRequest.req_property_type || selectedRequest.req_city || selectedRequest.minimum_budget || selectedRequest.req_min_size) && (
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-gray-400 block">
                     Property Search Criteria
@@ -1175,7 +1175,7 @@ const AdminRequests = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-500">Target Area:</span>
                       <span className="font-bold text-gray-900">
-                        {[selectedRequest.req_society, selectedRequest.req_city].filter(Boolean).join(', ') ||
+                        {[selectedRequest.req_area, selectedRequest.req_society, selectedRequest.req_city].filter(Boolean).join(', ') ||
                           'Flexible'}
                       </span>
                     </div>
@@ -1183,8 +1183,24 @@ const AdminRequests = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-500">Budget Range:</span>
                         <span className="font-bold text-emerald-700">
-                          PKR {Number(selectedRequest.minimum_budget || 0).toLocaleString()} -{' '}
+                          {selectedRequest.req_currency_symbol || 'PKR'} {Number(selectedRequest.minimum_budget || 0).toLocaleString()} -{' '}
                           {Number(selectedRequest.maximum_budget || 0).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                    {(selectedRequest.req_min_size || selectedRequest.req_max_size) && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Size Range:</span>
+                        <span className="font-bold text-gray-900">
+                          {selectedRequest.req_min_size || 0} - {selectedRequest.req_max_size || 'No Limit'} {selectedRequest.req_size_uom || ''}
+                        </span>
+                      </div>
+                    )}
+                    {(selectedRequest.req_min_rooms || selectedRequest.req_min_bathrooms) && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Rooms & Baths:</span>
+                        <span className="font-bold text-gray-900">
+                          {selectedRequest.req_min_rooms ? `${selectedRequest.req_min_rooms} Rooms` : ''} {selectedRequest.req_min_bathrooms ? `${selectedRequest.req_min_bathrooms} Baths` : ''}
                         </span>
                       </div>
                     )}

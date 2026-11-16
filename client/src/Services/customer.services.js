@@ -118,7 +118,10 @@ export const getPPCServices = async () => {
 };
 
 export const getCities = async (tehsilId, search = '') => {
-  return await api.get(`/reference/cities`, { params: { tehsil_id: tehsilId, search } });
+  const params = {};
+  if (tehsilId) params.tehsil_id = tehsilId;
+  if (search) params.search = search;
+  return await api.get(`/reference/cities`, { params });
 };
 
 export const getSocieties = async (cityId, search = '') => {
