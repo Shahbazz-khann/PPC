@@ -40,7 +40,15 @@ import {
   ChevronLeft,
   Droplets,
   Video,
-  Play
+  Play,
+  Map,
+  Compass,
+  Ruler,
+  Navigation,
+  Calendar,
+  DollarSign,
+  CheckSquare,
+  FileText
 } from 'lucide-react';
 import { INITIAL_PROPERTIES, formatPrice } from './mockAdminProperties';
 import PropHouse from '../../../assets/prop_house.png';
@@ -1141,14 +1149,27 @@ const AdminProperties = () => {
                         ? 'bg-emerald-100 text-emerald-800'
                         : selectedProperty.approval_stage === 'Pending'
                           ? 'bg-amber-100 text-amber-800'
-                          : 'bg-blue-100 text-blue-800'
+                          : selectedProperty.approval_stage === 'Rejected'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-blue-100 text-blue-800'
                         }`}
                     >
                       {selectedProperty.approval_stage}
                     </span>
+                    {selectedProperty.status && (
+                      <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-gray-100 text-gray-700">
+                        {selectedProperty.status}
+                      </span>
+                    )}
                   </div>
-                  <p className="text-xs text-gray-500">
-                    {selectedProperty.property_type} • {selectedProperty.demand_type} Listing
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {selectedProperty.property_use ? `${selectedProperty.property_use} • ` : ''}
+                    {selectedProperty.property_type || 'Property'} • {selectedProperty.demand_type || 'Listing'}
+                    {selectedProperty.creation_date_time && (
+                      <span className="ml-2 text-gray-400">
+                        • Added {formatDate(selectedProperty.creation_date_time)}
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -1280,7 +1301,7 @@ const AdminProperties = () => {
               <div className="bg-[#FAF8F3] p-5 rounded-2xl border border-amber-200/60 flex items-center justify-between">
                 <div>
                   <span className="text-xs uppercase font-bold text-gray-400 tracking-wider">
-                    Asking Demand ({selectedProperty.demand_type})
+                    Asking Demand ({selectedProperty.demand_type || 'Sale'})
                   </span>
                   <div className="text-2xl font-black text-[#1a2b25] mt-0.5">
                     {formatPrice(selectedProperty.demand_amount, selectedProperty.demand_type)}
@@ -1302,71 +1323,179 @@ const AdminProperties = () => {
                 </div>
               </div>
 
-              {/* Specifications Matrix */}
+              {/* Location & Administrative Hierarchy */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#C59B27]" /> Location & Administrative Hierarchy
+                  </h4>
+                  {selectedProperty.property_location && (
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                      {selectedProperty.property_location}
+                    </span>
+                  )}
+                </div>
+                <div className="bg-gray-50/70 p-4 rounded-2xl border border-gray-100 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Country</span>
+                    <span className="font-semibold text-gray-800">{selectedProperty.country || 'Pakistan'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Province</span>
+                    <span className="font-semibold text-gray-800">{selectedProperty.province || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Division</span>
+                    <span className="font-semibold text-gray-800">{selectedProperty.division || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">District</span>
+                    <span className="font-semibold text-gray-800">{selectedProperty.district || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Tehsil</span>
+                    <span className="font-semibold text-gray-800">{selectedProperty.tehsil || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">City</span>
+                    <span className="font-bold text-gray-900">{selectedProperty.city || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Society / Scheme</span>
+                    <span className="font-bold text-gray-900">{selectedProperty.society || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Area / Block</span>
+                    <span className="font-semibold text-gray-800">{selectedProperty.area || '-'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sizing & Land Conversions */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
-                  Architectural & Dimension Specs
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1.5">
+                  <Ruler className="w-3.5 h-3.5 text-[#C59B27]" /> Sizing & Land Conversions
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
+                  <div className="bg-amber-50/40 p-3 rounded-xl border border-amber-200/50">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Marla</span>
+                    <span className="text-sm font-bold text-gray-900">{selectedProperty.property_area_marla || selectedProperty.property_size || '-'}</span>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Kanal</span>
+                    <span className="text-sm font-bold text-gray-900">{selectedProperty.property_area_kanal || '-'}</span>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Sq Ft</span>
+                    <span className="text-sm font-bold text-gray-900">{selectedProperty.property_area_sqft || '-'}</span>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Sq Yard</span>
+                    <span className="text-sm font-bold text-gray-900">{selectedProperty.property_area_sqyard || '-'}</span>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Acre</span>
+                    <span className="text-sm font-bold text-gray-900">{selectedProperty.property_area_acre || '-'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Architectural Layout & Rooms */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1.5">
+                  <Building className="w-3.5 h-3.5 text-[#C59B27]" /> Architectural Specs & Rooms
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
                     <span className="text-[11px] text-gray-400 font-medium block">Bedrooms</span>
-                    <span className="text-base font-bold text-gray-800">{selectedProperty.rooms}</span>
+                    <span className="text-base font-bold text-gray-800">{selectedProperty.rooms ?? '-'}</span>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
                     <span className="text-[11px] text-gray-400 font-medium block">Bathrooms</span>
-                    <span className="text-base font-bold text-gray-800">{selectedProperty.bathrooms}</span>
+                    <span className="text-base font-bold text-gray-800">{selectedProperty.bathrooms ?? '-'}</span>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
                     <span className="text-[11px] text-gray-400 font-medium block">Floors</span>
-                    <span className="text-base font-bold text-gray-800">{selectedProperty.floors}</span>
+                    <span className="text-base font-bold text-gray-800">{selectedProperty.floors ?? '-'}</span>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span className="text-[11px] text-gray-400 font-medium block">Kitchens</span>
+                    <span className="text-base font-bold text-gray-800">{selectedProperty.kitchens ?? '-'}</span>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span className="text-[11px] text-gray-400 font-medium block">Lounges / Living</span>
+                    <span className="text-base font-bold text-gray-800">{selectedProperty.lounges ?? '-'}</span>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span className="text-[11px] text-gray-400 font-medium block">Drawing Rooms</span>
+                    <span className="text-base font-bold text-gray-800">{selectedProperty.drawing_rooms ?? '-'}</span>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
                     <span className="text-[11px] text-gray-400 font-medium block">Covered Area</span>
-                    <span className="text-base font-bold text-gray-800">{selectedProperty.covered_area_sqft} sqft</span>
+                    <span className="text-base font-bold text-gray-800">{selectedProperty.covered_area_sqft ? `${selectedProperty.covered_area_sqft} sqft` : '-'}</span>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                    <span className="text-[11px] text-gray-400 font-medium block">Front Road</span>
-                    <span className="text-base font-bold text-gray-800">{selectedProperty.road_front_ft} ft</span>
+                    <span className="text-[11px] text-gray-400 font-medium block">Open Area</span>
+                    <span className="text-base font-bold text-gray-800">{selectedProperty.open_area_sqft ? `${selectedProperty.open_area_sqft} sqft` : '-'}</span>
                   </div>
-                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                    <span className="text-[11px] text-gray-400 font-medium block">Plot Dimensions</span>
-                    <span className="text-base font-bold text-gray-800">
-                      {selectedProperty.property_size_front}x{selectedProperty.property_size_left}
-                    </span>
+                </div>
+              </div>
+
+              {/* Dimensions & Road Access */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1.5">
+                  <Compass className="w-3.5 h-3.5 text-[#C59B27]" /> Boundary Dimensions & Road Access
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-2">
+                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">Plot Boundaries (Ft)</span>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div><span className="text-gray-400">Front:</span> <span className="font-bold text-gray-800">{selectedProperty.property_size_front ? `${selectedProperty.property_size_front} ft` : '-'}</span></div>
+                      <div><span className="text-gray-400">Back:</span> <span className="font-bold text-gray-800">{selectedProperty.property_size_back ? `${selectedProperty.property_size_back} ft` : '-'}</span></div>
+                      <div><span className="text-gray-400">Left:</span> <span className="font-bold text-gray-800">{selectedProperty.property_size_left ? `${selectedProperty.property_size_left} ft` : '-'}</span></div>
+                      <div><span className="text-gray-400">Right:</span> <span className="font-bold text-gray-800">{selectedProperty.property_size_right ? `${selectedProperty.property_size_right} ft` : '-'}</span></div>
+                    </div>
                   </div>
-                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                    <span className="text-[11px] text-gray-400 font-medium block">Electric Meters</span>
-                    <span className="text-base font-bold text-gray-800">{selectedProperty.electric_meters}</span>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                    <span className="text-[11px] text-gray-400 font-medium block">Gas Meters</span>
-                    <span className="text-base font-bold text-gray-800">{selectedProperty.gas_meters}</span>
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-2">
+                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">Road Access Width (Ft)</span>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div><span className="text-gray-400">Front Road:</span> <span className="font-bold text-gray-800">{selectedProperty.road_front_ft ? `${selectedProperty.road_front_ft} ft` : '-'}</span></div>
+                      <div><span className="text-gray-400">Back Road:</span> <span className="font-bold text-gray-800">{selectedProperty.road_back_ft ? `${selectedProperty.road_back_ft} ft` : '-'}</span></div>
+                      <div><span className="text-gray-400">Left Road:</span> <span className="font-bold text-gray-800">{selectedProperty.road_left_ft ? `${selectedProperty.road_left_ft} ft` : '-'}</span></div>
+                      <div><span className="text-gray-400">Right Road:</span> <span className="font-bold text-gray-800">{selectedProperty.road_right_ft ? `${selectedProperty.road_right_ft} ft` : '-'}</span></div>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Special Features & Utilities */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
-                  Utility Features & Infrastructure
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-[#C59B27]" /> Utility Features & Infrastructure
                 </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-3">
+                  <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-100 text-xs">
+                    <span className="text-[10px] text-gray-400 block font-medium">Electric Meters</span>
+                    <span className="font-bold text-gray-800">{selectedProperty.electric_meters ?? 'None'}</span>
+                  </div>
+                  <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-100 text-xs">
+                    <span className="text-[10px] text-gray-400 block font-medium">Gas Meters</span>
+                    <span className="font-bold text-gray-800">{selectedProperty.gas_meters ?? 'None'}</span>
+                  </div>
+                  <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-100 text-xs">
+                    <span className="text-[10px] text-gray-400 block font-medium">Swimming Pool</span>
+                    <span className={`font-bold ${selectedProperty.swimming_pool ? 'text-blue-700' : 'text-gray-500'}`}>{selectedProperty.swimming_pool ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-100 text-xs">
+                    <span className="text-[10px] text-gray-400 block font-medium">Media Room</span>
+                    <span className={`font-bold ${selectedProperty.media_room ? 'text-purple-700' : 'text-gray-500'}`}>{selectedProperty.media_room ? 'Yes' : 'No'}</span>
+                  </div>
+                </div>
                 <div className="flex flex-wrap gap-2">
-                  {selectedProperty.swimming_pool && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100">
-                      <Droplets className="w-3.5 h-3.5" />
-                      Swimming Pool
-                    </span>
-                  )}
-                  {selectedProperty.media_room && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 text-purple-700 text-xs font-semibold border border-purple-100">
-                      <Tv className="w-3.5 h-3.5" />
-                      Media / Cinema Room
-                    </span>
-                  )}
                   {selectedProperty.solar_installed && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-semibold border border-amber-100">
                       <Sun className="w-3.5 h-3.5" />
-                      Solar Power ({selectedProperty.solar_capacity} kW)
+                      Solar Power {selectedProperty.solar_capacity ? `(${selectedProperty.solar_capacity} kW)` : 'Installed'}
                     </span>
                   )}
                   {(selectedProperty.amenities || []).map((am, i) => (
@@ -1378,21 +1507,26 @@ const AdminProperties = () => {
                       {typeof am === 'string' ? am : (am?.name || am?.amenity_description || 'Amenity')}
                     </span>
                   ))}
+                  {(!selectedProperty.amenities || selectedProperty.amenities.length === 0) && !selectedProperty.solar_installed && (
+                    <span className="text-xs text-gray-400 italic">No additional amenities listed.</span>
+                  )}
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Description</h4>
-                <p className="text-sm text-gray-600 leading-relaxed bg-gray-50/70 p-4 rounded-xl border border-gray-100">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-[#C59B27]" /> Customer Remarks & Description
+                </h4>
+                <p className="text-sm text-gray-700 leading-relaxed bg-gray-50/70 p-4 rounded-xl border border-gray-100 whitespace-pre-wrap">
                   {selectedProperty.property_description || 'No description provided.'}
                 </p>
               </div>
 
-              {/* Owner / Customer Profile Card */}
+              {/* Customer / Ownership Dossier */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
-                  Customer & Ownership Dossier
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-[#C59B27]" /> Customer & Ownership Dossier
                 </h4>
                 <div className="bg-white p-4 rounded-2xl border border-gray-200 flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -1400,10 +1534,17 @@ const AdminProperties = () => {
                       {(selectedProperty.customer_name || 'Customer').charAt(0)}
                     </div>
                     <div>
-                      <span className="font-bold text-gray-900 text-sm block">
-                        {selectedProperty.customer_name || 'Customer'}
-                      </span>
-                      <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-900 text-sm">
+                          {selectedProperty.customer_name || 'Customer'}
+                        </span>
+                        {selectedProperty.customer_id && (
+                          <span className="text-[11px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                            #{selectedProperty.customer_id}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
                         <span className="flex items-center gap-1">
                           <Phone className="w-3 h-3 text-[#C59B27]" />
                           {selectedProperty.customer_mobile || '-'}

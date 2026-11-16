@@ -147,6 +147,11 @@ const getAdminProperties = async (options = {}) => {
       p.property_size,
       u.uom_english AS size_uom,
       CASE WHEN ms.marla_size_sqft IS NOT NULL THEN ms.marla_size_sqft::text || ' Sq Ft' ELSE NULL END AS marla_size,
+      p.property_area_marla,
+      p.property_area_kanal,
+      p.property_area_acre,
+      p.property_area_sqft,
+      p.property_area_sqyard,
       p.property_covered_area_sqft AS covered_area_sqft,
       p.property_open_area_sqft AS open_area_sqft,
       p.property_rooms AS rooms,
@@ -329,6 +334,11 @@ const getAdminPropertyById = async (propertyId) => {
       p.property_size,
       u.uom_english AS size_uom,
       CASE WHEN ms.marla_size_sqft IS NOT NULL THEN ms.marla_size_sqft::text || ' Sq Ft' ELSE NULL END AS marla_size,
+      p.property_area_marla,
+      p.property_area_kanal,
+      p.property_area_acre,
+      p.property_area_sqft,
+      p.property_area_sqyard,
       p.property_covered_area_sqft AS covered_area_sqft,
       p.property_open_area_sqft AS open_area_sqft,
       p.property_rooms AS rooms,
@@ -356,6 +366,8 @@ const getAdminPropertyById = async (propertyId) => {
       pd.discount_amount,
       pd.final_amount,
       pdt.demand_type_english AS demand_type,
+      cur.currency_code,
+      cur.currency_symbol,
       COALESCE(pst.status_english, CASE WHEN p.is_active = true THEN 'Active' ELSE 'Inactive' END) AS status,
       COALESCE(aps.approval_stage_english, 'Pending') AS approval_stage,
       pa.approval_remarks,
@@ -380,6 +392,7 @@ const getAdminPropertyById = async (propertyId) => {
     LEFT JOIN marla_sizes ms ON p.property_marla_size_id = ms.marla_id
     LEFT JOIN property_demand pd ON pd.property_id = p.property_id AND pd.is_active = true
     LEFT JOIN property_demand_types pdt ON pd.demand_type_id = pdt.demand_type_id
+    LEFT JOIN currencies cur ON pd.currency_id = cur.currency_id
     LEFT JOIN property_status ps ON ps.property_id = p.property_id AND ps.is_active = true
     LEFT JOIN property_status_types pst ON ps.status_id = pst.status_id
     LEFT JOIN property_approvals pa ON pa.property_id = p.property_id AND pa.is_active = true
