@@ -7,6 +7,7 @@ import {
   Map, Ruler, Navigation, Tag, DollarSign, Calendar, X
 } from 'lucide-react';
 import { getCustomerPropertyDetail, resolveMediaUrl, getPropertyFormReference, setCustomerPropertyDemand, getCurrencies } from '../../../Services/customer.services';
+import PropHouse from '../../../assets/prop_house.png';
 
 const CustomerPropertyDetails = () => {
   const { propertyId } = useParams();
@@ -448,7 +449,15 @@ const CustomerPropertyDetails = () => {
                   <div className="grid grid-cols-2 gap-4">
                     {pictures.map((pic, idx) => (
                       <div key={idx} className="aspect-square rounded-[16px] overflow-hidden border border-gray-200">
-                        <img src={resolveMediaUrl(pic.picture_url)} alt={`Property Pic ${idx}`} className="w-full h-full object-cover transition-transform hover:scale-110 duration-500" />
+                        <img 
+                          src={resolveMediaUrl(pic.picture_url)} 
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = PropHouse;
+                          }}
+                          alt={`Property Pic ${idx}`} 
+                          className="w-full h-full object-cover transition-transform hover:scale-110 duration-500" 
+                        />
                       </div>
                     ))}
                   </div>
