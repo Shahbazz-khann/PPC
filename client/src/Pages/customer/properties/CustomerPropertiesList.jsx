@@ -156,6 +156,10 @@ const CustomerPropertiesList = () => {
                 <div className="h-[240px] xl:w-[360px] shrink-0 relative rounded-[16px] overflow-hidden bg-[#FAF8F3] flex items-center justify-center">
                   <img 
                     src={property.image_url ? resolveMediaUrl(property.image_url) : PropVilla} 
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = PropVilla;
+                    }}
                     alt={property.property_type} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                   />

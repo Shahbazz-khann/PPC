@@ -305,6 +305,10 @@ const CustomerDashboard = () => {
                     <div className="h-[200px] sm:h-[180px] sm:w-[260px] shrink-0 relative rounded-[16px] overflow-hidden bg-gray-100">
                       <img 
                         src={property.image_url ? resolveMediaUrl(property.image_url) : PropVilla} 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = PropVilla;
+                        }}
                         alt={property.property_type} 
                         className="w-full h-full object-cover" 
                       />
